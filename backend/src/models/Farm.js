@@ -1,6 +1,8 @@
 import mongoose from 'mongoose'
 
 const farmSchema = new mongoose.Schema({
+  organizationId: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },
+  regionId: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },
   farmer: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
   farmName: { type: String, required: true, trim: true, maxlength: 120 },
   crops: [{ type: String, trim: true }],
