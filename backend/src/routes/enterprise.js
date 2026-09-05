@@ -122,4 +122,63 @@ router.post('/warehouses/:id/movements', managers, async (request, response, nex
   } catch (error) { next(error) }
 })
 
+router.post('/shipments/:id/dispatch', managers, async (request, response, next) => {
+  try {
+    const shipment = await Shipment.findOne(scopedFilter(request, { _id: request.params.id }))
+    if (!shipment) return response.status(404).json({ message: 'Shipment not found' })
+    if (!['created', 'assigned'].includes(shipment.status)) return response.status(409).json({ message: 'Shipment must be created or assigned before dispatch' })
+    if (!shipment.vehicle) return response.status(400).json({ message: 'Assign a vehicle before dispatch' })
+    shipment.status = 'dispatched'
+    shipment.history.push({ status: 'dispatched', actor: request.user.id, note: request.body.note })
+    await shipment.save()
+    response.json(shipment)
+  } catch (error) { next(error) }
+})
+
+router.post('/shipments/:id/deliver', managers, async (request, response, next) => {
+  try {
+    const shipment = await Shipment.findOne(scopedFilter(request, { _id: request.params.id }))
+    if (!shipment) return response.status(404).json({ message: 'Shipment not found' })
+    if (!['dispatched', 'in_transit'].includes(shipment.status)) return response.status(409).json({ message: 'Shipment is not in transit' })
+    shipment.status = 'delivered'
+    shipment.deliveredAt = new Date()
+    shipment.history.push({ status: 'delivered', actor: request.user.id, note: request.body.note })
+    await shipment.save()
+    response.json(shipment)
+  } catch (error) { next(error) }
+})
+
+router.post('/settlements/:id/calculate', managers, async (request, response, next) => {
+  try {
+    const settlement = await Settlement.findOne(scopedFilter(request, { _id: request.params.id }))
+    if (!settlement) return response.status(404).json({ message: 'Settlement not found' })
+    const acceptedQuantity = Number(request.body.acceptedQuantity ?? settlement.acceptedQuantity)
+    const agreedPrice = Number(request.body.agreedPrice ?? settlement.agreedPrice)
+    const deductions = Number(request.body.deductions ?? settlement.deductions ?? 0)
+    const adjustments = Number(request.body.adjustments ?? settlement.adjustments ?? 0)
+    if (![acceptedQuantity, agreedPrice, deductions, adjustments].every(Number.isFinite) || acceptedQuantity < 0 || agreedPrice < 0 || deductions < 0) return response.status(400).json({ message: 'Settlement values must be valid non-negative numbers' })
+    settlement.acceptedQuantity = acceptedQuantity
+    settlement.agreedPrice = agreedPrice
+    settlement.deductions = deductions
+    settlement.adjustments = adjustments
+    settlement.total = Math.max(0, acceptedQuantity * agreedPrice - deductions + adjustments)
+    await settlement.save()
+    response.json(settlement)
+  } catch (error) { next(error) }
+})
+
+router.post('/disputes/:id/resolve', managers, async (request, response, next) => {
+  try {
+    const dispute = await Dispute.findOne(scopedFilter(request, { _id: request.params.id }))
+    if (!dispute) return response.status(404).json({ message: 'Dispute not found' })
+    if (['resolved', 'rejected'].includes(dispute.status)) return response.status(409).json({ message: 'Dispute is already closed' })
+    const status = request.body.status || 'resolved'
+    if (!['resolved', 'rejected'].includes(status)) return response.status(400).json({ message: 'status must be resolved or rejected' })
+    dispute.status = status
+    dispute.history.push({ status, actor: request.user.id, note: request.body.note })
+    await dispute.save()
+    response.json(dispute)
+  } catch (error) { next(error) }
+})
+
 export default router
