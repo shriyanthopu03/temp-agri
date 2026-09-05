@@ -17,6 +17,5 @@
 :root { font-family: var(--font-sans); color: var(--color-foreground); background: var(--color-background); font-synthesis: none; }
 * { box-sizing: border-box; }
 body { margin: 0; min-width: 320px; }
-.leaflet-container { height: 100%; width: 100%; font-family: inherit; }
-.leaflet-control-zoom { border: 0 !important; box-shadow: 0 6px 20px rgba(28,41,31,.12) !important; }
-.leaflet-control-zoom a { color: #2f6b45 !important; border: 0 !important; }
+.farm-point-marker { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: 2px solid #ffffff; border-radius: 999px; background: #2f6b45; color: #ffffff; font: 700 12px/1 var(--font-sans); box-shadow: 0 3px 10px rgba(28,41,31,.28); }
+.farm-map-marking { cursor: crosshair; }

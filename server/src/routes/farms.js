@@ -5,12 +5,15 @@ import Farm from '../models/Farm.js'
 import { requireAuth } from '../middleware/auth.js'
 
 const router = express.Router()
-const toGeoJson = (coordinates) => coordinates.map(([latitude, longitude]) => [longitude, latitude])
 function validateBoundary(coordinates) {
   if (!Array.isArray(coordinates) || coordinates.length < 3) throw new Error('At least three boundary points are required')
-  const open = coordinates.map(([lat, lng]) => [lng, lat])
+  const open = coordinates.map((point) => {
+    if (!Array.isArray(point) || point.length !== 2) throw new Error('Coordinates are invalid')
+    const [lng, lat] = point
+    if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) throw new Error('Coordinates are invalid')
+    return [lng, lat]
+  })
   const closed = [...open, open[0]]
-  for (const [lng, lat] of closed) if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) throw new Error('Coordinates are invalid')
   const sqm = area(polygon([closed]))
   if (!sqm) throw new Error('Boundary area must be positive')
   return { coordinates: [closed], sqm }
