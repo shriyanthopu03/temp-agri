@@ -10,6 +10,7 @@ import lots from './routes/lots.js'
 import operations from './routes/operations.js'
 import audit from './routes/audit.js'
 import notifications from './routes/notifications.js'
+import enterprise from './routes/enterprise.js'
 
 const app = express()
 app.use(helmet())
@@ -23,6 +24,7 @@ app.use('/api/lots', lots)
 app.use('/api/operations', operations)
 app.use('/api/audit', audit)
 app.use('/api/notifications', notifications)
+app.use('/api/enterprise', enterprise)
 app.use((error, _req, res, _next) => res.status(error.status || 500).json({ message: error.message || 'Server error' }))
 const port = process.env.PORT || 5000
 if (process.env.MONGODB_URI) mongoose.connect(process.env.MONGODB_URI).then(() => app.listen(port, () => console.log(`AgriTrade API listening on ${port}`))).catch((error) => { console.error('MongoDB connection failed', error); process.exit(1) })
