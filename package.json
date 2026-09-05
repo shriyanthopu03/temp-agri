@@ -4,11 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"vite --host 0.0.0.0\" \"node --watch server/src/server.js\"",
+    "dev": "concurrently \"vite --host 0.0.0.0\" \"node --watch backend/src/server.js\"",
     "dev:client": "vite --host 0.0.0.0",
-    "dev:server": "node --watch server/src/server.js",
+    "dev:server": "node --watch backend/src/server.js",
     "build": "vite build",
-    "start": "node server/src/server.js"
+    "start": "node backend/src/server.js"
   },
   "dependencies": {
     "@mapbox/mapbox-gl-draw": "^1.5.1",
