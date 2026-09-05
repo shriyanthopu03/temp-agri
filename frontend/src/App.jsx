@@ -1,31 +1,30 @@
 import { useMemo, useState } from 'react'
 import { AreaChart, Bell, ChevronDown, CircleHelp, CloudSun, Compass, FileText, LayoutDashboard, Leaf, MapPin, Menu, Plus, Search, Settings, Sprout, Tractor, TrendingUp, Users, X } from 'lucide-react'
-import { FarmMap, type FarmArea, type Point } from './components/FarmMap'
+import { FarmMap } from './components/FarmMap'
 
-type Farm = { id: string; name: string; location: string; crop: string; area: number; status: 'Verified' | 'Pending'; points: Point[] }
-const starterFarms: Farm[] = [
+const starterFarms = [
   { id: 'f-1', name: 'Green Valley Organics', location: 'Nashik, Maharashtra', crop: 'Grapes', area: 24.8, status: 'Verified', points: [[20.02, 73.78], [20.04, 73.82], [20.01, 73.84], [19.99, 73.81]] },
   { id: 'f-2', name: 'Sunrise Fields', location: 'Pune, Maharashtra', crop: 'Wheat', area: 18.4, status: 'Verified', points: [[18.51, 73.84], [18.53, 73.87], [18.50, 73.89], [18.48, 73.86]] },
   { id: 'f-3', name: 'Riverbend Estate', location: 'Kolhapur, Maharashtra', crop: 'Sugarcane', area: 32.1, status: 'Pending', points: [] },
 ]
 
-function MetricCard({ label, value, suffix, icon: Icon, tone }: { label: string; value: string; suffix?: string; icon: typeof Leaf; tone: string }) {
+function MetricCard({ label, value, suffix, icon: Icon, tone }) {
   return <div className="rounded-2xl border border-border bg-card p-5 shadow-sm"><div className="flex items-start justify-between"><div><p className="text-sm text-muted-foreground">{label}</p><p className="mt-2 text-3xl font-semibold tracking-tight">{value}<span className="ml-1 text-base font-normal text-muted-foreground">{suffix}</span></p></div><div className={`rounded-xl p-3 ${tone}`}><Icon size={20} /></div></div><div className="mt-4 flex items-center gap-1 text-xs font-medium text-primary"><TrendingUp size={13} /> 8.4% <span className="font-normal text-muted-foreground">vs last season</span></div></div>
 }
 
 export default function App() {
   const [farms, setFarms] = useState(starterFarms)
   const [active, setActive] = useState('Overview')
-  const [selectedFarm, setSelectedFarm] = useState<Farm | null>(starterFarms[0])
+  const [selectedFarm, setSelectedFarm] = useState(starterFarms[0])
   const [showForm, setShowForm] = useState(false)
-  const [points, setPoints] = useState<Point[]>([])
+  const [points, setPoints] = useState([])
   const [finished, setFinished] = useState(false)
-  const [farmArea, setFarmArea] = useState<FarmArea | null>(null)
+  const [farmArea, setFarmArea] = useState(null)
   const [farmName, setFarmName] = useState('')
   const [crop, setCrop] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
   const totalArea = useMemo(() => farms.reduce((total, farm) => total + farm.area, 0), [farms])
-  const addFarm = () => { if (!farmName.trim() || !crop.trim() || !finished || !farmArea || points.length < 3) return; const next = { id: `f-${Date.now()}`, name: farmName.trim(), location: 'New location', crop: crop.trim(), area: farmArea.acres, status: 'Pending' as const, points: [...points] }; setFarms((current) => [...current, next]); setSelectedFarm(next); setFarmName(''); setCrop(''); setPoints([]); setFarmArea(null); setFinished(false); setShowForm(false) }
+  const addFarm = () => { if (!farmName.trim() || !crop.trim() || !finished || !farmArea || points.length < 3) return; const next = { id: `f-${Date.now()}`, name: farmName.trim(), location: 'New location', crop: crop.trim(), area: farmArea.acres, status: 'Pending', points: [...points] }; setFarms((current) => [...current, next]); setSelectedFarm(next); setFarmName(''); setCrop(''); setPoints([]); setFarmArea(null); setFinished(false); setShowForm(false) }
   const navItems = [{ label: 'Overview', icon: LayoutDashboard }, { label: 'My Farms', icon: Leaf }, { label: 'Produce Lots', icon: Sprout }, { label: 'Market', icon: AreaChart }, { label: 'Settings', icon: Settings }]
   return <div className="min-h-screen bg-background text-foreground">
     <aside className={`fixed inset-y-0 left-0 z-20 flex w-64 flex-col border-r border-border bg-card transition-transform lg:translate-x-0 ${menuOpen ? 'translate-x-0' : '-translate-x-full'}`}>

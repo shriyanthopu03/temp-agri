@@ -3,27 +3,14 @@ import * as maptilersdk from '@maptiler/sdk'
 import * as turf from '@turf/turf'
 import '@maptiler/sdk/dist/maptiler-sdk.css'
 
-type Point = [number, number]
-const DEFAULT_CENTER: Point = [78.9629, 20.5937]
-const apiKey = process.env.API_KEY as string | undefined
+const DEFAULT_CENTER = [78.9629, 20.5937]
+const apiKey = process.env.API_KEY
 
-interface FarmMapProps {
-  points: Point[]
-  onAdd: (point: Point) => void
-  onUndo: () => void
-  onClear: () => void
-  onFinish: (area: FarmArea) => void
-  onEdit: () => void
-  finished: boolean
-}
-
-export type FarmArea = { sqm: number; acres: number; hectares: number }
-
-export function FarmMap({ points, onAdd, onUndo, onClear, onFinish, onEdit, finished }: FarmMapProps) {
-  const mapContainer = useRef<HTMLDivElement>(null)
-  const mapRef = useRef<maptilersdk.Map | null>(null)
-  const markersRef = useRef<maptilersdk.Marker[]>([])
-  const [locationState, setLocationState] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
+export function FarmMap({ points, onAdd, onUndo, onClear, onFinish, onEdit, finished }) {
+  const mapContainer = useRef(null)
+  const mapRef = useRef(null)
+  const markersRef = useRef([])
+  const [locationState, setLocationState] = useState('idle')
   const [mapError, setMapError] = useState(false)
   const [marking, setMarking] = useState(false)
   const markingRef = useRef(false)
@@ -32,7 +19,7 @@ export function FarmMap({ points, onAdd, onUndo, onClear, onFinish, onEdit, fini
   markingRef.current = marking
   finishedRef.current = finished
   onAddRef.current = onAdd
-  const [area, setArea] = useState<{ sqm: number; acres: number; hectares: number } | null>(null)
+  const [area, setArea] = useState(null)
 
   useEffect(() => {
     if (!mapContainer.current || !apiKey) return
@@ -56,8 +43,8 @@ export function FarmMap({ points, onAdd, onUndo, onClear, onFinish, onEdit, fini
       return new maptilersdk.Marker({ element }).setLngLat([longitude, latitude]).addTo(map)
     })
     const coordinates = points.length >= 3 ? [...points, points[0]] : points
-    const data = { type: 'FeatureCollection' as const, features: coordinates.length >= 2 ? [{ type: 'Feature' as const, properties: {}, geometry: { type: coordinates.length >= 3 ? 'Polygon' as const : 'LineString' as const, coordinates: coordinates.length >= 3 ? [coordinates] : coordinates } }] : [] }
-    const source = map.getSource('farm-boundary') as maptilersdk.GeoJSONSource | undefined
+    const data = { type: 'FeatureCollection', features: coordinates.length >= 2 ? [{ type: 'Feature', properties: {}, geometry: { type: coordinates.length >= 3 ? 'Polygon' : 'LineString', coordinates: coordinates.length >= 3 ? [coordinates] : coordinates } }] : [] }
+    const source = map.getSource('farm-boundary')
     if (source) source.setData(data)
     else if (map.isStyleLoaded()) {
       map.addSource('farm-boundary', { type: 'geojson', data })
@@ -88,4 +75,3 @@ export function FarmMap({ points, onAdd, onUndo, onClear, onFinish, onEdit, fini
   </div>
 }
 
-export type { Point }
