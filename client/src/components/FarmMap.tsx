@@ -1,30 +1,29 @@
 import { useEffect, useRef, useState } from 'react'
-import mapboxgl from 'mapbox-gl'
-import 'mapbox-gl/dist/mapbox-gl.css'
+import * as maptilersdk from '@maptiler/sdk'
+import '@maptiler/sdk/dist/maptiler-sdk.css'
 
 type Point = [number, number]
 
 const DEFAULT_CENTER: [number, number] = [78.9629, 20.5937]
-const token = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN as string | undefined
+const apiKey = process.env.API_KEY as string | undefined
 
 export function FarmMap({ points, onAdd }: { points: Point[]; onAdd: (point: Point) => void }) {
   const mapContainer = useRef<HTMLDivElement>(null)
-  const mapRef = useRef<mapboxgl.Map | null>(null)
-  const markersRef = useRef<mapboxgl.Marker[]>([])
+  const mapRef = useRef<maptilersdk.Map | null>(null)
+  const markersRef = useRef<maptilersdk.Marker[]>([])
   const [locationState, setLocationState] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
   const [mapError, setMapError] = useState(false)
 
   useEffect(() => {
-    if (!mapContainer.current || !token) return
-    mapboxgl.accessToken = token
-    const map = new mapboxgl.Map({
+    if (!mapContainer.current || !apiKey) return
+    maptilersdk.config.apiKey = apiKey
+    const map = new maptilersdk.Map({
       container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/outdoors-v12',
+      style: 'outdoor-v2',
       center: DEFAULT_CENTER,
       zoom: 4,
-      attributionControl: true,
+      navigationControl: true,
     })
-    map.addControl(new mapboxgl.NavigationControl(), 'top-right')
     map.on('load', () => setMapError(false))
     map.on('error', () => setMapError(true))
     map.on('click', (event) => onAdd([event.lngLat.lng, event.lngLat.lat]))
@@ -34,14 +33,14 @@ export function FarmMap({ points, onAdd }: { points: Point[]; onAdd: (point: Poi
       map.remove()
       mapRef.current = null
     }
-  }, [onAdd, token])
+  }, [onAdd, apiKey])
 
   useEffect(() => {
     const map = mapRef.current
     if (!map) return
     markersRef.current.forEach((marker) => marker.remove())
-    markersRef.current = points.map(([longitude, latitude]) => new mapboxgl.Marker({ color: '#2f6b45' }).setLngLat([longitude, latitude]).addTo(map))
-    const source = map.getSource('farm-boundary') as mapboxgl.GeoJSONSource | undefined
+    markersRef.current = points.map(([longitude, latitude]) => new maptilersdk.Marker({ color: '#2f6b45' }).setLngLat([longitude, latitude]).addTo(map))
+    const source = map.getSource('farm-boundary') as maptilersdk.GeoJSONSource | undefined
     const coordinates = points.length > 2 ? [...points, points[0]] : []
     const data = { type: 'Feature' as const, properties: {}, geometry: { type: 'Polygon' as const, coordinates: coordinates.length ? [coordinates] : [] } }
     if (source) source.setData(data)
@@ -63,9 +62,9 @@ export function FarmMap({ points, onAdd }: { points: Point[]; onAdd: (point: Poi
   }
 
   return <div className="relative h-full min-h-[340px] w-full overflow-hidden rounded-2xl">
-    {!token ? <div className="flex h-full min-h-[340px] items-center justify-center bg-muted p-6 text-center"><div><p className="font-semibold">Mapbox token required</p><p className="mt-2 max-w-sm text-sm text-muted-foreground">Set VITE_MAPBOX_ACCESS_TOKEN in the environment to load the farm map.</p></div></div> : <div ref={mapContainer} className="h-full min-h-[340px] w-full" />}
-    {token && <button type="button" onClick={locateUser} disabled={locationState === 'loading'} className="absolute bottom-4 left-4 rounded-xl border border-border bg-card px-3 py-2 text-sm font-semibold text-primary shadow-md transition hover:bg-secondary disabled:opacity-60">{locationState === 'loading' ? 'Locating…' : 'Use my location'}</button>}
+    {!apiKey ? <div className="flex h-full min-h-[340px] items-center justify-center bg-muted p-6 text-center"><div><p className="font-semibold">MapTiler API key required</p><p className="mt-2 max-w-sm text-sm text-muted-foreground">Set API_KEY in the deployment environment to load the farm map.</p></div></div> : <div ref={mapContainer} className="h-full min-h-[340px] w-full" />}
+    {apiKey && <button type="button" onClick={locateUser} disabled={locationState === 'loading'} className="absolute bottom-4 left-4 rounded-xl border border-border bg-card px-3 py-2 text-sm font-semibold text-primary shadow-md transition hover:bg-secondary disabled:opacity-60">{locationState === 'loading' ? 'Locating…' : 'Use my location'}</button>}
     {locationState === 'error' && <p className="absolute bottom-4 right-4 max-w-[220px] rounded-lg bg-card px-3 py-2 text-xs text-destructive shadow-md">Location permission was denied or unavailable.</p>}
-    {mapError && <p className="absolute left-4 top-4 rounded-lg bg-card px-3 py-2 text-xs text-destructive shadow-md">Mapbox could not load the map.</p>}
+    {mapError && <p className="absolute left-4 top-4 rounded-lg bg-card px-3 py-2 text-xs text-destructive shadow-md">MapTiler could not load the map.</p>}
   </div>
 }
