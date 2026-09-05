@@ -75,9 +75,50 @@ router.patch('/:resource/:id/status', managers, async (request, response, next) 
     const Model = getModel(request.params.resource, response)
     if (!Model) return
     if (!request.body.status) return response.status(400).json({ message: 'status is required' })
-    const record = await Model.findOneAndUpdate(scopedFilter(request, { _id: request.params.id }), { $set: { status: request.body.status } }, { new: true, runValidators: true })
+    const record = await Model.findOne(scopedFilter(request, { _id: request.params.id }))
     if (!record) return response.status(404).json({ message: 'Record not found' })
+    if (request.params.resource === 'purchase-orders') {
+      const allowed = { draft: ['submitted', 'cancelled'], submitted: ['approved', 'cancelled'], approved: ['partially_fulfilled', 'fulfilled', 'cancelled'], partially_fulfilled: ['fulfilled', 'cancelled'], fulfilled: [], cancelled: [] }
+      if (!allowed[record.status]?.includes(request.body.status)) return response.status(409).json({ message: `Cannot move purchase order from ${record.status} to ${request.body.status}` })
+      record.history.push({ status: request.body.status, changedBy: request.user.id, note: request.body.note })
+    }
+    record.status = request.body.status
+    await record.save()
     response.json(record)
+  } catch (error) { next(error) }
+})
+
+router.post('/purchase-orders/:id/allocate', managers, async (request, response, next) => {
+  try {
+    const order = await PurchaseOrder.findOne(scopedFilter(request, { _id: request.params.id }))
+    if (!order) return response.status(404).json({ message: 'Purchase order not found' })
+    const { lineIndex, lot, quantity } = request.body
+    if (!Number.isInteger(lineIndex) || !lot || !Number.isFinite(quantity) || quantity <= 0) return response.status(400).json({ message: 'lineIndex, lot, and positive quantity are required' })
+    const line = order.lines[lineIndex]
+    if (!line || quantity > line.quantity - line.allocatedLots.reduce((sum, allocation) => sum + allocation.quantity, 0)) return response.status(400).json({ message: 'Allocation exceeds remaining line quantity' })
+    line.allocatedLots.push({ lot, quantity })
+    const allocated = order.lines.every((item) => item.allocatedLots.reduce((sum, allocation) => sum + allocation.quantity, 0) >= item.quantity)
+    order.status = allocated ? 'fulfilled' : 'partially_fulfilled'
+    order.history.push({ status: order.status, changedBy: request.user.id, note: `Allocated ${quantity}` })
+    await order.save()
+    response.json(order)
+  } catch (error) { next(error) }
+})
+
+router.post('/warehouses/:id/movements', managers, async (request, response, next) => {
+  try {
+    const warehouse = await Warehouse.findOne(scopedFilter(request, { _id: request.params.id }))
+    if (!warehouse) return response.status(404).json({ message: 'Warehouse not found' })
+    const { lot, quantity, direction, reason, bin } = request.body
+    if (!lot || !Number.isFinite(quantity) || quantity <= 0 || !['in', 'out'].includes(direction)) return response.status(400).json({ message: 'lot, positive quantity, and direction are required' })
+    const item = warehouse.inventory.find((entry) => String(entry.lot) === String(lot))
+    const current = item?.quantity || 0
+    if (direction === 'out' && quantity > current) return response.status(400).json({ message: 'Insufficient inventory' })
+    if (item) { item.quantity += direction === 'in' ? quantity : -quantity; if (bin) item.bin = bin } else if (direction === 'in') warehouse.inventory.push({ lot, quantity, bin })
+    warehouse.inventory = warehouse.inventory.filter((entry) => entry.quantity > 0)
+    warehouse.movements.push({ lot, quantity, direction, reason, actor: request.user.id })
+    await warehouse.save()
+    response.json(warehouse)
   } catch (error) { next(error) }
 })
 
