@@ -12,10 +12,12 @@ interface FarmMapProps {
   onAdd: (point: Point) => void
   onUndo: () => void
   onClear: () => void
-  onFinish: () => void
+  onFinish: (area: FarmArea) => void
   onEdit: () => void
   finished: boolean
 }
+
+export type FarmArea = { sqm: number; acres: number; hectares: number }
 
 export function FarmMap({ points, onAdd, onUndo, onClear, onFinish, onEdit, finished }: FarmMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null)
@@ -77,7 +79,7 @@ export function FarmMap({ points, onAdd, onUndo, onClear, onFinish, onEdit, fini
 
   return <div className="relative h-full min-h-[340px] w-full overflow-hidden rounded-2xl">
     {!apiKey ? <div className="flex h-full min-h-[340px] items-center justify-center bg-muted p-6 text-center"><div><p className="font-semibold">MapTiler API key required</p><p className="mt-2 max-w-sm text-sm text-muted-foreground">Set API_KEY in the deployment environment to load the farm map.</p></div></div> : <div ref={mapContainer} className={`h-full min-h-[340px] w-full ${marking ? 'farm-map-marking' : ''}`} />}
-    {apiKey && <div className="absolute left-4 top-4 flex max-w-[calc(100%-2rem)] flex-wrap gap-2"><button type="button" onClick={() => { setMarking(true); onEdit() }} disabled={marking && !finished} className="rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground shadow-md disabled:opacity-70">{marking && !finished ? 'Marking Farm Boundary…' : 'Mark Farm Boundary'}</button>{marking && <><button type="button" onClick={onUndo} disabled={!points.length} className="rounded-xl border border-border bg-card px-3 py-2 text-sm font-semibold shadow-md disabled:opacity-50">Undo Last Point</button><button type="button" onClick={clear} disabled={!points.length} className="rounded-xl border border-border bg-card px-3 py-2 text-sm font-semibold shadow-md disabled:opacity-50">Clear All</button>{points.length >= 3 && !finished && <button type="button" onClick={() => { setMarking(false); onFinish() }} className="rounded-xl bg-card px-3 py-2 text-sm font-semibold text-primary shadow-md">Finish Farm</button>}{finished && <button type="button" onClick={() => { setMarking(true); onEdit() }} className="rounded-xl bg-card px-3 py-2 text-sm font-semibold text-primary shadow-md">Edit Boundary</button>}</>}</div>}
+    {apiKey && <div className="absolute left-4 top-4 flex max-w-[calc(100%-2rem)] flex-wrap gap-2"><button type="button" onClick={() => { setMarking(true); onEdit() }} disabled={marking && !finished} className="rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground shadow-md disabled:opacity-70">{marking && !finished ? 'Marking Farm Boundary…' : 'Mark Farm Boundary'}</button>{marking && <><button type="button" onClick={onUndo} disabled={!points.length} className="rounded-xl border border-border bg-card px-3 py-2 text-sm font-semibold shadow-md disabled:opacity-50">Undo Last Point</button><button type="button" onClick={clear} disabled={!points.length} className="rounded-xl border border-border bg-card px-3 py-2 text-sm font-semibold shadow-md disabled:opacity-50">Clear All</button>{points.length >= 3 && !finished && <button type="button" onClick={() => { setMarking(false); if (area) onFinish(area) }} className="rounded-xl bg-card px-3 py-2 text-sm font-semibold text-primary shadow-md">Finish Farm</button>}{finished && <button type="button" onClick={() => { setMarking(true); onEdit() }} className="rounded-xl bg-card px-3 py-2 text-sm font-semibold text-primary shadow-md">Edit Boundary</button>}</>}</div>}
     {apiKey && <button type="button" onClick={locateUser} disabled={locationState === 'loading'} className="absolute bottom-4 left-4 rounded-xl border border-border bg-card px-3 py-2 text-sm font-semibold text-primary shadow-md">{locationState === 'loading' ? 'Locating…' : 'Use my location'}</button>}
     {area && <div className="absolute bottom-4 right-4 rounded-xl border border-border bg-card px-4 py-3 shadow-md"><p className="text-xs font-semibold text-muted-foreground">Farm area</p><p className="text-lg font-semibold text-primary">{area.acres.toFixed(2)} acres</p><p className="text-xs text-muted-foreground">{area.hectares.toFixed(2)} hectares</p></div>}
     {finished && <div className="absolute right-4 top-4 rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground shadow-md">Farm Boundary Completed</div>}
