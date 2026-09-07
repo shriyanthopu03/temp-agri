@@ -1,33 +1,94 @@
-# temp-agri
+# Features
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [v0](https://v0.app).
+* **Authentication & Role-Based Access Control**
 
-## Built with v0
+  * Secure authentication with region- and organization-scoped RBAC.
+  * Role-based access to farmers, farms, inventory, logistics, orders, and settlements.
 
-This repository is linked to a [v0](https://v0.app) project. You can continue developing by visiting the link below -- start new chats to make changes, and v0 will push commits directly to this repo. Every merge to `main` will automatically deploy.
+* **Land & Farm Mapping**
 
-[Continue working on v0 →](https://v0.app/chat/projects/prj_hz5wG25LnoJC9vS7bwh4PGEYlncD)
+  * Interactive map-based visualization of registered farms and agricultural land.
+  * Mark and store farm locations and land boundaries directly on the map.
+  * Record land area, farm coordinates, and location details.
+  * View mapped farms geographically for easier farm identification and management.
+  * Support location-based farm management and future integration with geospatial analytics.
 
-## Getting Started
+* **Farm & Farmer Management**
 
-First, run the development server:
+  * CRUD operations for farmers, farms, and produce categories.
+  * Maintain farmer profiles, farm details, land information, and associated produce.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-```
+* **Produce & Lot Management**
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+  * CRUD operations for produce lots and related records.
+  * Complete produce lot lifecycle from:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+    * Created
+    * Received
+    * Inspected
+    * Accepted/Rejected
+    * Stored
+    * Allocated
+    * Dispatched
+    * Delivered
 
-## Learn More
+* **Quality Grading & Inspection**
 
-To learn more, take a look at the following resources:
+  * Configurable quality grading criteria.
+  * Quality inspection workflow for produce lots.
+  * Maintain complete inspection and grading history.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-- [v0 Documentation](https://v0.app/docs) - learn about v0 and how to use it.
+* **Purchase Order Management**
+
+  * Create and manage purchase orders with line items.
+  * Allocate produce lots to orders.
+  * Support partial fulfillment and cancellation.
+  * Track delivery confirmation.
+
+* **Warehouse & Inventory Management**
+
+  * Track inventory by produce lot, quantity, and storage location.
+  * Maintain inventory movement history.
+  * Monitor produce from receiving through dispatch.
+
+* **Logistics & Shipment Management**
+
+  * Create and manage shipments.
+  * Assign vehicles to shipments.
+  * Track dispatch, transit updates, and delivery status.
+  * Manage vehicles and transportation information.
+
+* **Farmer Settlement Management**
+
+  * Calculate farmer settlements based on:
+
+    * Accepted quantity
+    * Quality grade
+    * Agreed price
+    * Deductions
+    * Adjustments
+  * Maintain settlement history and payment-related records.
+
+* **Dispute Management**
+
+  * Create, track, and resolve disputes related to produce, quality, orders, deliveries, and settlements.
+
+* **Dashboards & Analytics**
+
+  * Role-specific dashboards.
+  * Overview of farms, produce, inventory, orders, shipments, and settlements.
+  * Search, filtering, and reporting capabilities.
+
+* **Reports & Data Export**
+
+  * Generate operational reports.
+  * Export relevant data for analysis and record keeping.
+
+* **Notifications**
+
+  * Notifications for important workflow events, order updates, inspections, shipments, deliveries, and settlements.
+
+* **Audit History**
+
+  * Track important actions and changes across the system.
+  * Maintain an audit trail for improved transparency and accountability.
