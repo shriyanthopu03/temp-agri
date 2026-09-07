@@ -40,7 +40,9 @@ body { margin: 0; min-width: 320px; }
 .login-heading p { margin: 13px 0 25px; color: #87908a; font-size: 12px; line-height: 1.55; }
 .login-form { display: flex; flex-direction: column; gap: 12px; }
 .login-form label { display: flex; flex-direction: column; gap: 7px; color: #7c847f; font-size: 11px; }
-.login-form input { width: 100%; border: 1px solid #e3e6e4; border-radius: 9px; padding: 14px 13px; outline: none; color: #18201b; font: inherit; transition: border-color .2s, box-shadow .2s; }
+.login-form input, .login-form select { width: 100%; border: 1px solid #e3e6e4; border-radius: 9px; padding: 14px 13px; outline: none; color: #18201b; background: #fff; font: inherit; transition: border-color .2s, box-shadow .2s; }
+.login-form select { cursor: pointer; }
+.login-form input:focus, .login-form select:focus { border-color: #6675db; box-shadow: 0 0 0 3px rgba(102, 117, 219, .12); }
 .login-form input:focus { border-color: #6675db; box-shadow: 0 0 0 3px rgba(102, 117, 219, .12); }
 .login-forgot { align-self: center; border: 0; background: transparent; color: #285bc4; font-size: 11px; font-weight: 700; cursor: pointer; }
 .login-submit { margin-top: 2px; border: 0; border-radius: 8px; background: #1552ed; padding: 13px; color: #fff; font-size: 12px; font-weight: 700; cursor: pointer; box-shadow: 0 7px 14px rgba(21, 82, 237, .16); }
