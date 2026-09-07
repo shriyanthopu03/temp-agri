@@ -1,8 +1,8 @@
 import express from 'express'
 import { area, polygon } from '@turf/turf'
-import Farm from '../models/Farm.js'
-import { requireAuth } from '../middleware/auth.js'
-import { scopedFilter } from '../middleware/rbac.js'
+import Farm from '../../models/Farm.js'
+import { requireAuth } from '../../middleware/auth.js'
+import { scopedFilter } from '../../middleware/rbac.js'
 
 const router = express.Router()
 function validateBoundary(coordinates) {
