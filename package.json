@@ -4,10 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"vite --host 0.0.0.0\" \"node --watch backend/src/server.js\"",
-    "dev:client": "vite --host 0.0.0.0",
+    "dev": "concurrently \"vite --config frontend/vite.config.js --host 0.0.0.0\" \"node --watch backend/src/server.js\"",
+    "dev:client": "vite --config frontend/vite.config.js --host 0.0.0.0",
     "dev:server": "node --watch backend/src/server.js",
-    "build": "vite build",
+    "build": "vite --config frontend/vite.config.js build",
     "start": "node backend/src/server.js"
   },
   "dependencies": {
