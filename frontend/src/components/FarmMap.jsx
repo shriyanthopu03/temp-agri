@@ -4,7 +4,7 @@ import * as turf from '@turf/turf'
 import '@maptiler/sdk/dist/maptiler-sdk.css'
 
 const DEFAULT_CENTER = [78.9629, 20.5937]
-const apiKey = process.env.API_KEY
+const apiKey = process.env.MAPTILER_API_KEY
 
 export function FarmMap({ points, onAdd, onUndo, onClear, onFinish, onEdit, finished }) {
   const mapContainer = useRef(null)
