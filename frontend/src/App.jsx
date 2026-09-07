@@ -27,7 +27,7 @@ function WorkspacePanel({ active, farms }) {
 
 const referenceImage = 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202026-09-07%20183007-1ZZ814lv9Jftsz45jf0tRvpAGec7FV.png'
 
-function LoginScreen({ onLogin }) {
+function LoginScreen({ onLogin, onSignUp }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
@@ -44,7 +44,7 @@ function LoginScreen({ onLogin }) {
       <div className="login-brand-mark"><Leaf size={20} /> AgriTrade</div>
     </section>
     <section className="login-panel">
-      <div className="login-signup">Don&apos;t have an account? <button type="button">Sign up</button></div>
+      <div className="login-signup">Don&apos;t have an account? <button type="button" onClick={onSignUp}>Sign up</button></div>
       <div className="login-content">
         <div className="login-heading"><div className="login-icon"><Leaf size={18} /></div><h1>Sign in to <span>AgriTrade</span></h1><p>Welcome back. Please enter your login details<br />to continue to your farm workspace.</p></div>
         <form onSubmit={submit} className="login-form">
@@ -60,10 +60,52 @@ function LoginScreen({ onLogin }) {
   </main>
 }
 
+function SignUpScreen({ onLogin, onSignUp }) {
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const canSubmit = name.trim() && email.trim() && password.trim() && password === confirmPassword
+
+  const submit = (event) => {
+    event.preventDefault()
+    if (canSubmit) onSignUp()
+  }
+
+  return <main className="login-page">
+    <section className="login-visual" style={{ backgroundImage: `url(${referenceImage})` }} aria-label="AgriTrade farm operations visual">
+      <div className="login-visual-shade" />
+      <div className="login-stat login-stat-orange"><strong>41%</strong><span>of farmers say accurate land data is the hardest part of planning.</span></div>
+      <div className="login-stat login-stat-green"><strong>76%</strong><span>of farm teams say connected operations are their greatest advantage.</span></div>
+      <div className="login-brand-mark"><Leaf size={20} /> AgriTrade</div>
+    </section>
+    <section className="login-panel">
+      <div className="login-signup">Already have an account? <button type="button" onClick={onLogin}>Login</button></div>
+      <div className="login-content">
+        <div className="login-heading"><div className="login-icon"><Leaf size={18} /></div><h1>Create your <span>AgriTrade</span> account</h1><p>Join your connected farm workspace<br />and manage every operation in one place.</p></div>
+        <form onSubmit={submit} className="login-form">
+          <label>Full name<input type="text" value={name} onChange={(event) => setName(event.target.value)} placeholder="Full name" required /></label>
+          <label>Email Address<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Email Address" required /></label>
+          <label>Password<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Create a password" minLength="8" required /></label>
+          <label>Confirm password<input type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} placeholder="Confirm password" minLength="8" required /></label>
+          {confirmPassword && password !== confirmPassword && <p className="login-error">Passwords do not match.</p>}
+          <button className="login-submit" type="submit" disabled={!canSubmit}>Create account</button>
+        </form>
+        <div className="login-divider"><span>OR</span></div>
+        <button className="google-login" type="button"><span className="google-g">G</span> Sign up with Google</button>
+      </div>
+    </section>
+  </main>
+}
+
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [authMode, setAuthMode] = useState('login')
   const [farms, setFarms] = useState(starterFarms) 
-  if (!isAuthenticated) return <LoginScreen onLogin={() => setIsAuthenticated(true)} />
+  if (!isAuthenticated) {
+    if (authMode === 'signup') return <SignUpScreen onLogin={() => setAuthMode('login')} onSignUp={() => setIsAuthenticated(true)} />
+    return <LoginScreen onLogin={() => setIsAuthenticated(true)} onSignUp={() => setAuthMode('signup')} />
+  }
   const [active, setActive] = useState('Overview')
   const [selectedFarm, setSelectedFarm] = useState(starterFarms[0])
   const [showForm, setShowForm] = useState(false)
