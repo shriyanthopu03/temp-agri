@@ -25,8 +25,45 @@ function WorkspacePanel({ active, farms }) {
   return <section className="rounded-2xl border border-border bg-card p-6 shadow-sm"><div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">AgriTrade workspace</p><h2 className="mt-2 text-2xl font-semibold tracking-tight">{title}</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">{description}</p></div><span className="rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-primary">{metric}</span></div><div className="mt-6 rounded-xl border border-dashed border-border bg-background p-5"><p className="font-medium">{detail}</p><p className="mt-2 text-sm leading-6 text-muted-foreground">Use the navigation to move between workspace areas. Data is scoped to your organization and region.</p></div></section>
 }
 
+const referenceImage = 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202026-09-07%20183007-1ZZ814lv9Jftsz45jf0tRvpAGec7FV.png'
+
+function LoginScreen({ onLogin }) {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+
+  const submit = (event) => {
+    event.preventDefault()
+    if (email.trim() && password.trim()) onLogin()
+  }
+
+  return <main className="login-page">
+    <section className="login-visual" style={{ backgroundImage: `url(${referenceImage})` }} aria-label="AgriTrade farm operations visual">
+      <div className="login-visual-shade" />
+      <div className="login-stat login-stat-orange"><strong>41%</strong><span>of farmers say accurate land data is the hardest part of planning.</span></div>
+      <div className="login-stat login-stat-green"><strong>76%</strong><span>of farm teams say connected operations are their greatest advantage.</span></div>
+      <div className="login-brand-mark"><Leaf size={20} /> AgriTrade</div>
+    </section>
+    <section className="login-panel">
+      <div className="login-signup">Don&apos;t have an account? <button type="button">Sign up</button></div>
+      <div className="login-content">
+        <div className="login-heading"><div className="login-icon"><Leaf size={18} /></div><h1>Sign in to <span>AgriTrade</span></h1><p>Welcome back. Please enter your login details<br />to continue to your farm workspace.</p></div>
+        <form onSubmit={submit} className="login-form">
+          <label>Email Address<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Email Address" required /></label>
+          <label>Password<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Password" required /></label>
+          <button className="login-forgot" type="button">Forgot the password?</button>
+          <button className="login-submit" type="submit">Login</button>
+        </form>
+        <div className="login-divider"><span>OR</span></div>
+        <button className="google-login" type="button"><span className="google-g">G</span> Sign in with Google</button>
+      </div>
+    </section>
+  </main>
+}
+
 export default function App() {
-  const [farms, setFarms] = useState(starterFarms)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [farms, setFarms] = useState(starterFarms) 
+  if (!isAuthenticated) return <LoginScreen onLogin={() => setIsAuthenticated(true)} />
   const [active, setActive] = useState('Overview')
   const [selectedFarm, setSelectedFarm] = useState(starterFarms[0])
   const [showForm, setShowForm] = useState(false)
