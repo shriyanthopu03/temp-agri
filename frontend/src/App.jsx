@@ -75,6 +75,8 @@ function LoginScreen({ onLogin, onSignUp }) {
       <div className="login-signup">Don&apos;t have an account? <button type="button" onClick={onSignUp}>Sign up</button></div>
       <div className="login-content">
         <div className="login-heading"><div className="login-icon"><Leaf size={18} /></div><h1>Sign in to <span>AgriTrade</span></h1><p>Welcome back. Please enter your login details<br />to continue to your farm workspace.</p></div>
+        <button className="google-login" type="button"><span className="google-g">G</span> Sign in with Google</button>
+        <div className="login-divider"><span>OR</span></div>
         <form onSubmit={submit} className="login-form">
           <label>Email Address<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Email Address" required /></label>
           <label>Password<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Password" required /></label>
@@ -82,8 +84,6 @@ function LoginScreen({ onLogin, onSignUp }) {
           {error && <p className="login-error" role="alert">{error}</p>}
           <button className="login-submit" type="submit" disabled={loading}>{loading ? 'Signing in...' : 'Login'}</button>
         </form>
-        <div className="login-divider"><span>OR</span></div>
-        <button className="google-login" type="button"><span className="google-g">G</span> Sign in with Google</button>
       </div>
     </section>
   </main>
@@ -125,6 +125,8 @@ function SignUpScreen({ onLogin, onSignUp }) {
       <div className="login-signup">Already have an account? <button type="button" onClick={onLogin}>Login</button></div>
       <div className="login-content">
         <div className="login-heading"><div className="login-icon"><Leaf size={18} /></div><h1>Create your <span>AgriTrade</span> account</h1><p>Join your connected farm workspace<br />and manage every operation in one place.</p></div>
+        <button className="google-login" type="button"><span className="google-g">G</span> Sign up with Google</button>
+        <div className="login-divider"><span>OR</span></div>
         <form onSubmit={submit} className="login-form">
           <label>Full name<input type="text" value={name} onChange={(event) => setName(event.target.value)} placeholder="Full name" required /></label>
           <label>Account type<select value={accountType} onChange={(event) => setAccountType(event.target.value)} required>{accountTypes.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}</select></label>
@@ -135,8 +137,6 @@ function SignUpScreen({ onLogin, onSignUp }) {
           {error && <p className="login-error" role="alert">{error}</p>}
           <button className="login-submit" type="submit" disabled={!canSubmit || loading}>{loading ? 'Creating account...' : 'Create account'}</button>
         </form>
-        <div className="login-divider"><span>OR</span></div>
-        <button className="google-login" type="button"><span className="google-g">G</span> Sign up with Google</button>
       </div>
     </section>
   </main>
