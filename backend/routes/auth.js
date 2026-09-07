@@ -6,8 +6,8 @@ import User from '../models/User.js'
 const router = Router()
 
 function issueToken(user) {
-  const secret = process.env.JWT_SECRET || process.env.API_KEY
-  if (!secret) throw new Error('JWT_SECRET or API_KEY is required for authentication')
+  const secret = process.env.JWT_SECRET 
+  if (!secret) throw new Error('JWT_SECRET or MAPTILER_API_KEY is required for authentication')
   return jwt.sign({ userId: user._id.toString(), role: user.role, organizationId: user.organizationId.toString(), regionId: user.regionId.toString() }, secret, { expiresIn: '8h' })
 }
 

@@ -7,7 +7,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     define: {
-      'process.env.API_KEY': JSON.stringify(env.API_KEY ?? ''),
+      'process.env.MAPTILER_API_KEY': JSON.stringify(env.MAPTILER_API_KEY ?? ''),
     },
     root: 'frontend',
     plugins: [react(), tailwindcss()],
