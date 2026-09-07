@@ -15,6 +15,16 @@
 }
 
 :root { font-family: var(--font-sans); color: var(--color-foreground); background: var(--color-background); font-synthesis: none; }
+.dark {
+  --color-background: #172019;
+  --color-foreground: #edf4ed;
+  --color-card: #202c22;
+  --color-card-foreground: #edf4ed;
+  --color-secondary: #2c4130;
+  --color-muted: #26352a;
+  --color-muted-foreground: #a8b8aa;
+  --color-border: #3a4b3d;
+}
 * { box-sizing: border-box; }
 body { margin: 0; min-width: 320px; }
 .farm-point-marker { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: 2px solid #ffffff; border-radius: 999px; background: #2f6b45; color: #ffffff; font: 700 12px/1 var(--font-sans); box-shadow: 0 3px 10px rgba(28,41,31,.28); }
