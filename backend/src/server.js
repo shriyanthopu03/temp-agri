@@ -29,13 +29,14 @@ app.get('/api/health', (_req, res) => res.json({
   service: 'agritrade-api',
   database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
 }))
-app.use('/api/auth', auth)
-app.use('/api/farms', farms)
-app.use('/api/lots', lots)
-app.use('/api/operations', operations)
-app.use('/api/audit', audit)
-app.use('/api/notifications', notifications)
-app.use('/api/enterprise', enterprise)
+const apiPrefix = process.env.VERCEL ? '/backend/api' : '/api'
+app.use(`${apiPrefix}/auth`, auth)
+app.use(`${apiPrefix}/farms`, farms)
+app.use(`${apiPrefix}/lots`, lots)
+app.use(`${apiPrefix}/operations`, operations)
+app.use(`${apiPrefix}/audit`, audit)
+app.use(`${apiPrefix}/notifications`, notifications)
+app.use(`${apiPrefix}/enterprise`, enterprise)
 app.use(express.static(frontendDist))
 app.get('/*splat', (request, response, next) => {
   if (request.path.startsWith('/api/')) return next()
@@ -54,7 +55,7 @@ async function startServer() {
   app.listen(port, () => console.log(`AgriTrade API listening on ${port} with MongoDB connected`))
 }
 
-if (process.env.NODE_ENV !== 'test') {
+if (process.env.NODE_ENV !== 'test' && !process.env.VERCEL) {
   startServer().catch((error) => {
     console.error('MongoDB connection failed', error)
     process.exit(1)
