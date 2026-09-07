@@ -3,12 +3,6 @@ import { AreaChart, Bell, ChevronDown, CircleHelp, CloudSun, Compass, FileText, 
 import { FarmMap } from './components/FarmMap'
 import { OperationsDashboard } from './components/OperationsDashboard'
 
-const starterFarms = [
-  { id: 'f-1', name: 'Green Valley Organics', location: 'Nashik, Maharashtra', crop: 'Grapes', area: 24.8, status: 'Verified', points: [[20.02, 73.78], [20.04, 73.82], [20.01, 73.84], [19.99, 73.81]] },
-  { id: 'f-2', name: 'Sunrise Fields', location: 'Pune, Maharashtra', crop: 'Wheat', area: 18.4, status: 'Verified', points: [[18.51, 73.84], [18.53, 73.87], [18.50, 73.89], [18.48, 73.86]] },
-  { id: 'f-3', name: 'Riverbend Estate', location: 'Kolhapur, Maharashtra', crop: 'Sugarcane', area: 32.1, status: 'Pending', points: [] },
-]
-
 function MetricCard({ label, value, suffix, icon: Icon, tone }) {
   return <div className="rounded-2xl border border-border bg-card p-5 shadow-sm"><div className="flex items-start justify-between"><div><p className="text-sm text-muted-foreground">{label}</p><p className="mt-2 text-3xl font-semibold tracking-tight">{value}<span className="ml-1 text-base font-normal text-muted-foreground">{suffix}</span></p></div><div className={`rounded-xl p-3 ${tone}`}><Icon size={20} /></div></div><div className="mt-4 flex items-center gap-1 text-xs font-medium text-primary"><TrendingUp size={13} /> 8.4% <span className="font-normal text-muted-foreground">vs last season</span></div></div>
 }
@@ -41,6 +35,19 @@ async function requestAuth(path, payload) {
   const response = await fetch(`/api/auth/${path}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
   const data = await response.json().catch(() => ({}))
   if (!response.ok) throw new Error(data.message || 'Unable to complete authentication')
+  return data
+}
+
+function mapFarm(farm) {
+  const points = farm.boundary?.coordinates?.[0] || []
+  const closedPoints = points.length > 1 && points[0][0] === points.at(-1)[0] && points[0][1] === points.at(-1)[1] ? points.slice(0, -1) : points
+  return { id: farm._id, name: farm.farmName, location: farm.location?.address || 'Location not provided', crop: farm.crops?.[0] || 'Crop not specified', area: farm.areaAcres, status: 'Saved', points: closedPoints }
+}
+
+async function requestFarms(path, options, token) {
+  const response = await fetch(`/api/farms${path}`, { ...options, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, ...(options?.headers || {}) } })
+  const data = await response.json().catch(() => ({}))
+  if (!response.ok) throw new Error(data.message || 'Unable to load farms')
   return data
 }
 
@@ -147,9 +154,9 @@ export default function App() {
     try { return JSON.parse(window.localStorage.getItem('agritrade-session') || 'null') } catch { return null }
   })
   const [authMode, setAuthMode] = useState('login')
-  const [farms, setFarms] = useState(starterFarms)
+  const [farms, setFarms] = useState([])
   const [active, setActive] = useState('Overview')
-  const [selectedFarm, setSelectedFarm] = useState(starterFarms[0])
+  const [selectedFarm, setSelectedFarm] = useState(null)
   const [showForm, setShowForm] = useState(false)
   const [points, setPoints] = useState([])
   const [finished, setFinished] = useState(false)
@@ -158,12 +165,29 @@ export default function App() {
   const [crop, setCrop] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
   const [accountMenuOpen, setAccountMenuOpen] = useState(false)
+  const [farmsLoading, setFarmsLoading] = useState(false)
+  const [farmError, setFarmError] = useState('')
   const [darkMode, setDarkMode] = useState(() => window.localStorage.getItem('agritrade-theme') === 'dark')
   const totalArea = useMemo(() => farms.reduce((total, farm) => total + farm.area, 0), [farms])
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode)
     window.localStorage.setItem('agritrade-theme', darkMode ? 'dark' : 'light')
   }, [darkMode])
+  useEffect(() => {
+    if (!session?.token) return
+    let activeRequest = true
+    setFarmsLoading(true)
+    requestFarms('/my-farms', {}, session.token)
+      .then((data) => {
+        if (!activeRequest) return
+        const savedFarms = data.map(mapFarm)
+        setFarms(savedFarms)
+        setSelectedFarm(savedFarms[0] || null)
+      })
+      .catch((error) => { if (activeRequest) setFarmError(error.message) })
+      .finally(() => { if (activeRequest) setFarmsLoading(false) })
+    return () => { activeRequest = false }
+  }, [session])
   const saveSession = (data) => {
     setSession(data)
     window.localStorage.setItem('agritrade-session', JSON.stringify(data))
@@ -177,7 +201,22 @@ export default function App() {
     if (authMode === 'signup') return <SignUpScreen onLogin={() => setAuthMode('login')} onSignUp={saveSession} />
     return <LoginScreen onLogin={saveSession} onSignUp={() => setAuthMode('signup')} />
   }
-  const addFarm = () => { if (!farmName.trim() || !crop.trim() || !finished || !farmArea || points.length < 3) return; const next = { id: `f-${Date.now()}`, name: farmName.trim(), location: 'New location', crop: crop.trim(), area: farmArea.acres, status: 'Pending', points: [...points] }; setFarms((current) => [...current, next]); setSelectedFarm(next); setFarmName(''); setCrop(''); setPoints([]); setFarmArea(null); setFinished(false); setShowForm(false) }
+  const addFarm = async () => {
+    if (!farmName.trim() || !crop.trim() || !finished || !farmArea || points.length < 3) return
+    try {
+      setFarmError('')
+      const savedFarm = await requestFarms('/', { method: 'POST', body: JSON.stringify({ farmName: farmName.trim(), crops: [crop.trim()], coordinates: points, location: {} }) }, session.token)
+      const next = mapFarm(savedFarm)
+      setFarms((current) => [...current, next])
+      setSelectedFarm(next)
+      setFarmName('')
+      setCrop('')
+      setPoints([])
+      setFarmArea(null)
+      setFinished(false)
+      setShowForm(false)
+    } catch (error) { setFarmError(error.message) }
+  }
   const account = accountTypes.find((type) => type.value === (session?.user?.role || session?.role)) || accountTypes[1]
   const userName = session?.user?.name || session?.name || 'Workspace user'
   const userInitials = userName.split(' ').filter(Boolean).slice(0, 2).map((part) => part[0].toUpperCase()).join('') || 'WU'
