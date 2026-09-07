@@ -21,9 +21,32 @@ const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '
 const frontendDist = path.join(projectRoot, 'frontend', 'dist')
 
 app.use(helmet())
-app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173' }))
+app.use(cors(process.env.CLIENT_URL ? { origin: process.env.CLIENT_URL } : {}))
 app.use(express.json({ limit: '1mb' }))
 app.use(morgan('dev'))
+let connectionPromise
+
+async function connectDatabase() {
+  if (mongoose.connection.readyState === 1) return
+  if (!mongoUrl) throw new Error('MONGODB_URL is required to access the API')
+  if (!connectionPromise) {
+    connectionPromise = mongoose.connect(mongoUrl).catch((error) => {
+      connectionPromise = undefined
+      throw error
+    })
+  }
+  await connectionPromise
+}
+
+app.use(async (_request, _response, next) => {
+  try {
+    await connectDatabase()
+    next()
+  } catch (error) {
+    next(error)
+  }
+})
+
 app.get('/api/health', (_req, res) => res.json({
   status: mongoose.connection.readyState === 1 ? 'ok' : 'degraded',
   service: 'agritrade-api',
@@ -47,11 +70,7 @@ const port = process.env.PORT || 5000
 const mongoUrl = process.env.MONGODB_URL || process.env.MONGODB_URI
 
 async function startServer() {
-  if (!mongoUrl) {
-    throw new Error('MONGODB_URL is required to start the backend')
-  }
-
-  await mongoose.connect(mongoUrl)
+  await connectDatabase()
   app.listen(port, () => console.log(`AgriTrade API listening on ${port} with MongoDB connected`))
 }
 
