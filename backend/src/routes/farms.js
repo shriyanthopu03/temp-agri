@@ -1,6 +1,5 @@
 import express from 'express'
-import { polygon } from '@turf/helpers'
-import { area } from '@turf/area'
+import { area, polygon } from '@turf/turf'
 import Farm from '../models/Farm.js'
 import { requireAuth } from '../middleware/auth.js'
 import { scopedFilter } from '../middleware/rbac.js'
