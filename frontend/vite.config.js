@@ -11,6 +11,10 @@ export default defineConfig(({ mode }) => {
     },
     root: 'frontend',
     plugins: [react(), tailwindcss()],
-    server: { port: 3000, host: '0.0.0.0' },
+    server: {
+      port: 3000,
+      host: '0.0.0.0',
+      proxy: { '/api': { target: 'http://localhost:5000', changeOrigin: true } },
+    },
   }
 })

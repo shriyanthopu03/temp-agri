@@ -26,14 +26,34 @@ function WorkspacePanel({ active, farms }) {
 }
 
 const referenceImage = 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202026-09-07%20183007-1ZZ814lv9Jftsz45jf0tRvpAGec7FV.png'
+const defaultOrganizationId = '507f1f77bcf86cd799439011'
+const defaultRegionId = '507f1f77bcf86cd799439012'
+
+async function requestAuth(path, payload) {
+  const response = await fetch(`/api/auth/${path}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+  const data = await response.json().catch(() => ({}))
+  if (!response.ok) throw new Error(data.message || 'Unable to complete authentication')
+  return data
+}
 
 function LoginScreen({ onLogin, onSignUp }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  const submit = (event) => {
+  const submit = async (event) => {
     event.preventDefault()
-    if (email.trim() && password.trim()) onLogin()
+    setError('')
+    setLoading(true)
+    try {
+      const data = await requestAuth('login', { email, password })
+      onLogin(data)
+    } catch (authError) {
+      setError(authError.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return <main className="login-page">
@@ -51,7 +71,8 @@ function LoginScreen({ onLogin, onSignUp }) {
           <label>Email Address<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Email Address" required /></label>
           <label>Password<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Password" required /></label>
           <button className="login-forgot" type="button">Forgot the password?</button>
-          <button className="login-submit" type="submit">Login</button>
+          {error && <p className="login-error" role="alert">{error}</p>}
+          <button className="login-submit" type="submit" disabled={loading}>{loading ? 'Signing in...' : 'Login'}</button>
         </form>
         <div className="login-divider"><span>OR</span></div>
         <button className="google-login" type="button"><span className="google-g">G</span> Sign in with Google</button>
@@ -65,11 +86,23 @@ function SignUpScreen({ onLogin, onSignUp }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
   const canSubmit = name.trim() && email.trim() && password.trim() && password === confirmPassword
 
-  const submit = (event) => {
+  const submit = async (event) => {
     event.preventDefault()
-    if (canSubmit) onSignUp()
+    if (!canSubmit) return
+    setError('')
+    setLoading(true)
+    try {
+      const data = await requestAuth('register', { name, email, password, role: 'farmer', organizationId: defaultOrganizationId, regionId: defaultRegionId })
+      onSignUp(data)
+    } catch (authError) {
+      setError(authError.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return <main className="login-page">
@@ -89,7 +122,8 @@ function SignUpScreen({ onLogin, onSignUp }) {
           <label>Password<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Create a password" minLength="8" required /></label>
           <label>Confirm password<input type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} placeholder="Confirm password" minLength="8" required /></label>
           {confirmPassword && password !== confirmPassword && <p className="login-error">Passwords do not match.</p>}
-          <button className="login-submit" type="submit" disabled={!canSubmit}>Create account</button>
+          {error && <p className="login-error" role="alert">{error}</p>}
+          <button className="login-submit" type="submit" disabled={!canSubmit || loading}>{loading ? 'Creating account...' : 'Create account'}</button>
         </form>
         <div className="login-divider"><span>OR</span></div>
         <button className="google-login" type="button"><span className="google-g">G</span> Sign up with Google</button>
@@ -99,7 +133,9 @@ function SignUpScreen({ onLogin, onSignUp }) {
 }
 
 export default function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [session, setSession] = useState(() => {
+    try { return JSON.parse(window.localStorage.getItem('agritrade-session') || 'null') } catch { return null }
+  })
   const [authMode, setAuthMode] = useState('login')
   const [farms, setFarms] = useState(starterFarms)
   const [active, setActive] = useState('Overview')
@@ -112,9 +148,13 @@ export default function App() {
   const [crop, setCrop] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
   const totalArea = useMemo(() => farms.reduce((total, farm) => total + farm.area, 0), [farms])
-  if (!isAuthenticated) {
-    if (authMode === 'signup') return <SignUpScreen onLogin={() => setAuthMode('login')} onSignUp={() => setIsAuthenticated(true)} />
-    return <LoginScreen onLogin={() => setIsAuthenticated(true)} onSignUp={() => setAuthMode('signup')} />
+  const saveSession = (data) => {
+    setSession(data)
+    window.localStorage.setItem('agritrade-session', JSON.stringify(data))
+  }
+  if (!session) {
+    if (authMode === 'signup') return <SignUpScreen onLogin={() => setAuthMode('login')} onSignUp={saveSession} />
+    return <LoginScreen onLogin={saveSession} onSignUp={() => setAuthMode('signup')} />
   }
   const addFarm = () => { if (!farmName.trim() || !crop.trim() || !finished || !farmArea || points.length < 3) return; const next = { id: `f-${Date.now()}`, name: farmName.trim(), location: 'New location', crop: crop.trim(), area: farmArea.acres, status: 'Pending', points: [...points] }; setFarms((current) => [...current, next]); setSelectedFarm(next); setFarmName(''); setCrop(''); setPoints([]); setFarmArea(null); setFinished(false); setShowForm(false) }
   const navItems = [{ label: 'Overview', icon: LayoutDashboard }, { label: 'My Farms', icon: Leaf }, { label: 'Produce Lots', icon: Sprout }, { label: 'Market', icon: AreaChart }, { label: 'Settings', icon: Settings }]
