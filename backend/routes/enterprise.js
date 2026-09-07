@@ -1,11 +1,11 @@
 import { Router } from 'express'
-import { requireAuth } from '../../middleware/auth.js'
-import { requireRole, scopedFilter } from '../../middleware/rbac.js'
-import PurchaseOrder from '../../models/PurchaseOrder.js'
-import Warehouse from '../../models/Warehouse.js'
-import Shipment from '../../models/Shipment.js'
-import Settlement from '../../models/Settlement.js'
-import Dispute from '../../models/Dispute.js'
+import { requireAuth } from '../middleware/auth.js'
+import { requireRole, scopedFilter } from '../middleware/rbac.js'
+import PurchaseOrder from '../models/PurchaseOrder.js'
+import Warehouse from '../models/Warehouse.js'
+import Shipment from '../models/Shipment.js'
+import Settlement from '../models/Settlement.js'
+import Dispute from '../models/Dispute.js'
 
 const router = Router()
 router.use(requireAuth)

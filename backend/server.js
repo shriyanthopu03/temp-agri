@@ -29,7 +29,7 @@ app.get('/api/health', (_req, res) => res.json({
   service: 'agritrade-api',
   database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
 }))
-const apiPrefix = process.env.VERCEL ? '/backend/api' : '/api'
+const apiPrefix = '/api'
 app.use(`${apiPrefix}/auth`, auth)
 app.use(`${apiPrefix}/farms`, farms)
 app.use(`${apiPrefix}/lots`, lots)

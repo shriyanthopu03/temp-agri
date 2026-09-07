@@ -1,7 +1,7 @@
 import { Router } from 'express'
-import ProduceLot, { statuses } from '../../models/ProduceLot.js'
-import { requireAuth } from '../../middleware/auth.js'
-import { scopedFilter, requireRole } from '../../middleware/rbac.js'
+import ProduceLot, { statuses } from '../models/ProduceLot.js'
+import { requireAuth } from '../middleware/auth.js'
+import { scopedFilter, requireRole } from '../middleware/rbac.js'
 
 const router = Router()
 router.use(requireAuth)

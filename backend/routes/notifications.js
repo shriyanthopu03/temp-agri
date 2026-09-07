@@ -1,7 +1,7 @@
 import { Router } from 'express'
-import Notification from '../../models/Notification.js'
-import { requireAuth } from '../../middleware/auth.js'
-import { scopedFilter } from '../../middleware/rbac.js'
+import Notification from '../models/Notification.js'
+import { requireAuth } from '../middleware/auth.js'
+import { scopedFilter } from '../middleware/rbac.js'
 
 const router = Router()
 router.use(requireAuth)
