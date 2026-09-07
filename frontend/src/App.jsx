@@ -111,11 +111,11 @@ export default function App() {
   const [farmName, setFarmName] = useState('')
   const [crop, setCrop] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
+  const totalArea = useMemo(() => farms.reduce((total, farm) => total + farm.area, 0), [farms])
   if (!isAuthenticated) {
     if (authMode === 'signup') return <SignUpScreen onLogin={() => setAuthMode('login')} onSignUp={() => setIsAuthenticated(true)} />
     return <LoginScreen onLogin={() => setIsAuthenticated(true)} onSignUp={() => setAuthMode('signup')} />
   }
-  const totalArea = useMemo(() => farms.reduce((total, farm) => total + farm.area, 0), [farms])
   const addFarm = () => { if (!farmName.trim() || !crop.trim() || !finished || !farmArea || points.length < 3) return; const next = { id: `f-${Date.now()}`, name: farmName.trim(), location: 'New location', crop: crop.trim(), area: farmArea.acres, status: 'Pending', points: [...points] }; setFarms((current) => [...current, next]); setSelectedFarm(next); setFarmName(''); setCrop(''); setPoints([]); setFarmArea(null); setFinished(false); setShowForm(false) }
   const navItems = [{ label: 'Overview', icon: LayoutDashboard }, { label: 'My Farms', icon: Leaf }, { label: 'Produce Lots', icon: Sprout }, { label: 'Market', icon: AreaChart }, { label: 'Settings', icon: Settings }]
   return <div className="min-h-screen bg-background text-foreground">
