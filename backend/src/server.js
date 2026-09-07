@@ -4,6 +4,8 @@ import cors from 'cors'
 import helmet from 'helmet'
 import morgan from 'morgan'
 import mongoose from 'mongoose'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import farms from './routes/farms.js'
 import auth from './routes/auth.js'
 import lots from './routes/lots.js'
@@ -13,6 +15,9 @@ import notifications from './routes/notifications.js'
 import enterprise from './routes/enterprise.js'
 
 const app = express()
+const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
+const frontendDist = path.join(projectRoot, 'frontend', 'dist')
+
 app.use(helmet())
 app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173' }))
 app.use(express.json({ limit: '1mb' }))
@@ -29,6 +34,11 @@ app.use('/api/operations', operations)
 app.use('/api/audit', audit)
 app.use('/api/notifications', notifications)
 app.use('/api/enterprise', enterprise)
+app.use(express.static(frontendDist))
+app.get('/*splat', (request, response, next) => {
+  if (request.path.startsWith('/api/')) return next()
+  response.sendFile(path.join(frontendDist, 'index.html'))
+})
 app.use((error, _req, res, _next) => res.status(error.status || 500).json({ message: error.message || 'Server error' }))
 const port = process.env.PORT || 5000
 const mongoUrl = process.env.MONGODB_URL || process.env.MONGODB_URI
