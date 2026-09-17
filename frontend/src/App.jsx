@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { AreaChart, Bell, ChevronDown, CircleHelp, CloudSun, Compass, FileText, LayoutDashboard, Leaf, LogOut, MapPin, Menu, Moon, Plus, Search, Settings, Sprout, Sun, Tractor, TrendingUp, Users, X } from 'lucide-react'
+import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
 import { FarmMap } from './components/FarmMap'
 import { OperationsDashboard } from './components/OperationsDashboard'
+import { firebaseAuth } from './firebase'
 
 function MetricCard({ label, value, suffix, icon: Icon, tone }) {
   return <div className="rounded-2xl border border-border bg-card p-5 shadow-sm"><div className="flex items-start justify-between"><div><p className="text-sm text-muted-foreground">{label}</p><p className="mt-2 text-3xl font-semibold tracking-tight">{value}<span className="ml-1 text-base font-normal text-muted-foreground">{suffix}</span></p></div><div className={`rounded-xl p-3 ${tone}`}><Icon size={20} /></div></div><div className="mt-4 flex items-center gap-1 text-xs font-medium text-primary"><TrendingUp size={13} /> 8.4% <span className="font-normal text-muted-foreground">vs last season</span></div></div>
@@ -38,6 +40,12 @@ async function requestAuth(path, payload) {
   return data
 }
 
+async function signInWithGoogle() {
+  const result = await signInWithPopup(firebaseAuth, new GoogleAuthProvider())
+  const idToken = await result.user.getIdToken()
+  return requestAuth('firebase', { idToken })
+}
+
 function mapFarm(farm) {
   const points = farm.boundary?.coordinates?.[0] || []
   const closedPoints = points.length > 1 && points[0][0] === points.at(-1)[0] && points[0][1] === points.at(-1)[1] ? points.slice(0, -1) : points
@@ -56,6 +64,12 @@ function LoginScreen({ onLogin, onSignUp }) {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  const googleLogin = async () => {
+    setError('')
+    setLoading(true)
+    try { onLogin(await signInWithGoogle()) } catch (authError) { setError(authError.message) } finally { setLoading(false) }
+  }
 
   const submit = async (event) => {
     event.preventDefault()
@@ -82,7 +96,7 @@ function LoginScreen({ onLogin, onSignUp }) {
       <div className="login-signup">Don&apos;t have an account? <button type="button" onClick={onSignUp}>Sign up</button></div>
       <div className="login-content">
         <div className="login-heading"><div className="login-icon"><Leaf size={18} /></div><h1>Sign in to <span>AgriTrade</span></h1><p>Welcome back. Please enter your login details<br />to continue to your farm workspace.</p></div>
-        <button className="google-login" type="button"><span className="google-g">G</span> Sign in with Google</button>
+        <button className="google-login" type="button" onClick={googleLogin} disabled={loading}><span className="google-g">G</span> {loading ? 'Connecting...' : 'Sign in with Google'}</button>
         <div className="login-divider"><span>OR</span></div>
         <form onSubmit={submit} className="login-form">
           <label>Email Address<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Email Address" required /></label>
@@ -105,6 +119,12 @@ function SignUpScreen({ onLogin, onSignUp }) {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const canSubmit = name.trim() && email.trim() && password.trim() && password === confirmPassword
+
+  const googleSignUp = async () => {
+    setError('')
+    setLoading(true)
+    try { onSignUp(await signInWithGoogle()) } catch (authError) { setError(authError.message) } finally { setLoading(false) }
+  }
 
   const submit = async (event) => {
     event.preventDefault()
@@ -132,7 +152,7 @@ function SignUpScreen({ onLogin, onSignUp }) {
       <div className="login-signup">Already have an account? <button type="button" onClick={onLogin}>Login</button></div>
       <div className="login-content">
         <div className="login-heading"><div className="login-icon"><Leaf size={18} /></div><h1>Create your <span>AgriTrade</span> account</h1><p>Join your connected farm workspace<br />and manage every operation in one place.</p></div>
-        <button className="google-login" type="button"><span className="google-g">G</span> Sign up with Google</button>
+        <button className="google-login" type="button" onClick={googleSignUp} disabled={loading}><span className="google-g">G</span> {loading ? 'Connecting...' : 'Sign up with Google'}</button>
         <div className="login-divider"><span>OR</span></div>
         <form onSubmit={submit} className="login-form">
           <label>Full name<input type="text" value={name} onChange={(event) => setName(event.target.value)} placeholder="Full name" required /></label>
@@ -151,7 +171,16 @@ function SignUpScreen({ onLogin, onSignUp }) {
 
 export default function App() {
   const [session, setSession] = useState(() => {
-    try { return JSON.parse(window.localStorage.getItem('agritrade-session') || 'null') } catch { return null }
+    try {
+      const googleSession = new URLSearchParams(window.location.hash.slice(1)).get('google-session')
+      if (googleSession) {
+        const data = JSON.parse(decodeURIComponent(googleSession))
+        window.history.replaceState(null, '', window.location.pathname + window.location.search)
+        window.localStorage.setItem('agritrade-session', JSON.stringify(data))
+        return data
+      }
+      return JSON.parse(window.localStorage.getItem('agritrade-session') || 'null')
+    } catch { return null }
   })
   const [authMode, setAuthMode] = useState('login')
   const [farms, setFarms] = useState([])

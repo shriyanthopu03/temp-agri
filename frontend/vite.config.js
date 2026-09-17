@@ -10,6 +10,7 @@ export default defineConfig(({ mode }) => {
       'process.env.MAPTILER_API_KEY': JSON.stringify(env.MAPTILER_API_KEY ?? ''),
     },
     root: 'frontend',
+    envDir: '..',
     plugins: [react(), tailwindcss()],
     server: {
       port: 3000,
