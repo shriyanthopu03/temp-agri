@@ -7,6 +7,7 @@
     "dev": "concurrently \"vite --config frontend/vite.config.js --host 0.0.0.0\" \"node --watch backend/server.js\"",
     "dev:client": "vite --config frontend/vite.config.js --host 0.0.0.0",
     "dev:server": "node --watch backend/server.js",
+    "seed": "node backend/seed.js",
     "build": "vite --config frontend/vite.config.js build",
     "start": "node backend/server.js"
   },
