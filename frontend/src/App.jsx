@@ -149,11 +149,11 @@ function LoginScreen({ onLogin, onSignUp }) {
     <main className="login-page">
       <section
         className="login-visual"
-        style={{ backgroundImage: `url(${referenceImage})` }}
         aria-label="AgriTrade farm operations visual"
       >
-        <div className="login-visual-shade" />
-        <div className="login-brand-mark">
+        <img src={referenceImage} alt="" className="absolute inset-0 h-full w-full object-contain object-left" />
+        <div className="absolute inset-0 z-[1] bg-gradient-to-r from-[#343723]/25 via-transparent to-[#EFE9D7]" />
+        <div className="login-brand-mark z-10">
           <Leaf size={20} /> AgriTrade
         </div>
       </section>
@@ -283,11 +283,11 @@ function SignUpScreen({ onLogin, onSignUp }) {
     <main className="login-page">
       <section
         className="login-visual"
-        style={{ backgroundImage: `url(${referenceImage})` }}
         aria-label="AgriTrade farm operations visual"
       >
-        <div className="login-visual-shade" />
-        <div className="login-brand-mark">
+        <img src={referenceImage} alt="" className="absolute inset-0 h-full w-full object-contain object-left" />
+        <div className="absolute inset-0 z-[1] bg-gradient-to-r from-[#343723]/25 via-transparent to-[#EFE9D7]" />
+        <div className="login-brand-mark z-10">
           <Leaf size={20} /> AgriTrade
         </div>
       </section>
