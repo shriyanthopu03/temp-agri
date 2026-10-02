@@ -151,9 +151,8 @@ function LoginScreen({ onLogin, onSignUp }) {
         className="login-visual"
         aria-label="AgriTrade farm operations visual"
       >
-        <img src={referenceImage} alt="" className="absolute inset-0 h-full w-full object-contain object-left" />
-        <div className="absolute inset-0 z-[1] bg-gradient-to-r from-[#343723]/10 via-transparent via-[82%] to-[#EFE9D7]/70" />
-        <div className="absolute inset-0 z-[1] bg-gradient-to-b from-[#EFE9D7]/20 via-transparent via-[18%] to-[#EFE9D7]/20" />
+        <img src={referenceImage} alt="" className="absolute inset-0 h-full w-full object-fill" />
+        <div className="absolute inset-0 z-[1] bg-[linear-gradient(90deg,rgba(52,55,35,0.08)_0%,transparent_68%,rgba(239,233,215,0.7)_100%),linear-gradient(180deg,rgba(239,233,215,0.16)_0%,transparent_14%,transparent_86%,rgba(239,233,215,0.16)_100%)]" />
         <div className="login-brand-mark z-10">
           <Leaf size={20} /> AgriTrade
         </div>
@@ -286,9 +285,8 @@ function SignUpScreen({ onLogin, onSignUp }) {
         className="login-visual"
         aria-label="AgriTrade farm operations visual"
       >
-        <img src={referenceImage} alt="" className="absolute inset-0 h-full w-full object-contain object-left" />
-        <div className="absolute inset-0 z-[1] bg-gradient-to-r from-[#343723]/10 via-transparent via-[82%] to-[#EFE9D7]/70" />
-        <div className="absolute inset-0 z-[1] bg-gradient-to-b from-[#EFE9D7]/20 via-transparent via-[18%] to-[#EFE9D7]/20" />
+        <img src={referenceImage} alt="" className="absolute inset-0 h-full w-full object-fill" />
+        <div className="absolute inset-0 z-[1] bg-[linear-gradient(90deg,rgba(52,55,35,0.08)_0%,transparent_68%,rgba(239,233,215,0.7)_100%),linear-gradient(180deg,rgba(239,233,215,0.16)_0%,transparent_14%,transparent_86%,rgba(239,233,215,0.16)_100%)]" />
         <div className="login-brand-mark z-10">
           <Leaf size={20} /> AgriTrade
         </div>
