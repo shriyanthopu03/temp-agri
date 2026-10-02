@@ -80,7 +80,7 @@ router.patch('/:resource/:id/status', managers, async (request, response, next) 
     if (request.params.resource === 'purchase-orders') {
       const allowed = { draft: ['submitted', 'cancelled'], submitted: ['approved', 'cancelled'], approved: ['partially_fulfilled', 'fulfilled', 'cancelled'], partially_fulfilled: ['fulfilled', 'cancelled'], fulfilled: [], cancelled: [] }
       if (!allowed[record.status]?.includes(request.body.status)) return response.status(409).json({ message: `Cannot move purchase order from ${record.status} to ${request.body.status}` })
-      record.history.push({ status: request.body.status, changedBy: request.user.id, note: request.body.note })
+      record.history.push({ status: request.body.status, changedBy: request.user.userId, note: request.body.note })
     }
     record.status = request.body.status
     await record.save()
@@ -99,7 +99,7 @@ router.post('/purchase-orders/:id/allocate', managers, async (request, response,
     line.allocatedLots.push({ lot, quantity })
     const allocated = order.lines.every((item) => item.allocatedLots.reduce((sum, allocation) => sum + allocation.quantity, 0) >= item.quantity)
     order.status = allocated ? 'fulfilled' : 'partially_fulfilled'
-    order.history.push({ status: order.status, changedBy: request.user.id, note: `Allocated ${quantity}` })
+    order.history.push({ status: order.status, changedBy: request.user.userId, note: `Allocated ${quantity}` })
     await order.save()
     response.json(order)
   } catch (error) { next(error) }
@@ -116,7 +116,7 @@ router.post('/warehouses/:id/movements', managers, async (request, response, nex
     if (direction === 'out' && quantity > current) return response.status(400).json({ message: 'Insufficient inventory' })
     if (item) { item.quantity += direction === 'in' ? quantity : -quantity; if (bin) item.bin = bin } else if (direction === 'in') warehouse.inventory.push({ lot, quantity, bin })
     warehouse.inventory = warehouse.inventory.filter((entry) => entry.quantity > 0)
-    warehouse.movements.push({ lot, quantity, direction, reason, actor: request.user.id })
+    warehouse.movements.push({ lot, quantity, direction, reason, actor: request.user.userId })
     await warehouse.save()
     response.json(warehouse)
   } catch (error) { next(error) }
@@ -129,7 +129,7 @@ router.post('/shipments/:id/dispatch', managers, async (request, response, next)
     if (!['created', 'assigned'].includes(shipment.status)) return response.status(409).json({ message: 'Shipment must be created or assigned before dispatch' })
     if (!shipment.vehicle) return response.status(400).json({ message: 'Assign a vehicle before dispatch' })
     shipment.status = 'dispatched'
-    shipment.history.push({ status: 'dispatched', actor: request.user.id, note: request.body.note })
+    shipment.history.push({ status: 'dispatched', actor: request.user.userId, note: request.body.note })
     await shipment.save()
     response.json(shipment)
   } catch (error) { next(error) }
@@ -142,7 +142,7 @@ router.post('/shipments/:id/deliver', managers, async (request, response, next) 
     if (!['dispatched', 'in_transit'].includes(shipment.status)) return response.status(409).json({ message: 'Shipment is not in transit' })
     shipment.status = 'delivered'
     shipment.deliveredAt = new Date()
-    shipment.history.push({ status: 'delivered', actor: request.user.id, note: request.body.note })
+    shipment.history.push({ status: 'delivered', actor: request.user.userId, note: request.body.note })
     await shipment.save()
     response.json(shipment)
   } catch (error) { next(error) }
@@ -175,7 +175,7 @@ router.post('/disputes/:id/resolve', managers, async (request, response, next) =
     const status = request.body.status || 'resolved'
     if (!['resolved', 'rejected'].includes(status)) return response.status(400).json({ message: 'status must be resolved or rejected' })
     dispute.status = status
-    dispute.history.push({ status, actor: request.user.id, note: request.body.note })
+    dispute.history.push({ status, actor: request.user.userId, note: request.body.note })
     await dispute.save()
     response.json(dispute)
   } catch (error) { next(error) }

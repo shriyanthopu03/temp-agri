@@ -20,7 +20,10 @@ function validateBoundary(coordinates) {
 }
 
 router.use(requireAuth)
-router.get('/my-farms', async (req, res) => res.json(await Farm.find(scopedFilter(req, { farmer: req.user.userId })).sort({ createdAt: -1 })))
+router.get('/my-farms', async (req, res) => {
+  const ownership = req.user.role === 'admin' ? {} : { farmer: req.user.userId }
+  res.json(await Farm.find(scopedFilter(req, ownership)).sort({ createdAt: -1 }))
+})
 router.post('/', requireRole('farmer', 'admin'), async (req, res) => {
   try {
     const { coordinates, sqm } = validateBoundary(req.body.coordinates)
@@ -29,7 +32,7 @@ router.post('/', requireRole('farmer', 'admin'), async (req, res) => {
     res.status(201).json(farm)
   } catch (error) { res.status(400).json({ message: error.message }) }
 })
-router.get('/:id', async (req, res) => { const farm = await Farm.findOne(scopedFilter(req, { _id: req.params.id, farmer: req.user.userId })); if (!farm) return res.status(404).json({ message: 'Farm not found' }); res.json(farm) })
+router.get('/:id', async (req, res) => { const ownership = req.user.role === 'admin' ? {} : { farmer: req.user.userId }; const farm = await Farm.findOne(scopedFilter(req, { _id: req.params.id, ...ownership })); if (!farm) return res.status(404).json({ message: 'Farm not found' }); res.json(farm) })
 router.put('/:id', requireRole('farmer', 'admin'), async (req, res) => { try { const { coordinates, sqm } = validateBoundary(req.body.coordinates); const ownership = req.user.role === 'admin' ? {} : { farmer: req.user.userId }; const farm = await Farm.findOneAndUpdate(scopedFilter(req, { _id: req.params.id, ...ownership }), { farmName: req.body.farmName, crops: req.body.crops || [], location: req.body.location || {}, boundary: { type: 'Polygon', coordinates }, areaSqMeters: sqm, areaAcres: sqm / 4046.8564224, areaHectares: sqm / 10000 }, { new: true, runValidators: true }); if (!farm) return res.status(404).json({ message: 'Farm not found' }); res.json(farm) } catch (error) { res.status(400).json({ message: error.message }) } })
 router.delete('/:id', requireRole('farmer', 'admin'), async (req, res) => { const ownership = req.user.role === 'admin' ? {} : { farmer: req.user.userId }; const farm = await Farm.findOneAndDelete(scopedFilter(req, { _id: req.params.id, ...ownership })); if (!farm) return res.status(404).json({ message: 'Farm not found' }); res.status(204).end() })
 export default router

@@ -12,6 +12,7 @@ router.use(requireAuth)
 const inspectors = requireRole('admin', 'platform_admin', 'quality_inspector')
 const buyers = requireRole('admin', 'platform_admin', 'buyer')
 const logistics = requireRole('admin', 'platform_admin', 'logistics_coordinator')
+const orderViewers = requireRole('admin', 'platform_admin', 'buyer', 'farmer', 'logistics_coordinator')
 
 function coordinates(value) {
   const latitude = Number(value?.latitude)
@@ -86,7 +87,7 @@ router.post('/orders', buyers, async (req, res, next) => {
   } catch (error) { next(error) }
 })
 
-router.get('/orders', async (req, res, next) => {
+router.get('/orders', orderViewers, async (req, res, next) => {
   try {
     const filter = req.user.role === 'buyer' ? { buyer: req.user.userId } : req.user.role === 'farmer' ? { supplier: req.user.userId } : {}
     res.json(await PurchaseOrder.find(scopedFilter(req, filter)).populate('supplier', 'name').populate('buyer', 'name').populate('farm', 'farmName location').populate('batch', 'category variety qualityGrade qualityRating').sort({ createdAt: -1 }))
@@ -101,6 +102,7 @@ router.post('/shipments', logistics, async (req, res, next) => {
   try {
     const order = await PurchaseOrder.findOne(scopedFilter(req, { _id: req.body.orderId, status: 'submitted' })).populate('batch').populate('supplier').populate('buyer')
     if (!order) return res.status(409).json({ message: 'Only a purchased order can be assigned for shipment' })
+    if (order.shipment || await Shipment.exists(scopedFilter(req, { order: order._id }))) return res.status(409).json({ message: 'A shipment already exists for this order' })
     const shipment = await Shipment.create({ ...scopedFilter(req), order: order._id, buyer: order.buyer._id, farmer: order.supplier._id, shipmentNumber: `SHP-${Date.now()}`, status: 'ready_for_pickup', lots: [{ lot: order.batch._id, quantity: order.quantity }], pickupLocation: order.pickupLocation, destination: order.buyerLocation, qualityGrade: order.batch.qualityGrade, history: [{ status: 'ready_for_pickup', actor: req.user.userId, note: 'Shipment created from purchased order' }] })
     order.status = 'approved'
     order.shipment = shipment._id

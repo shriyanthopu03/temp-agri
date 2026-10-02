@@ -8,14 +8,18 @@ const router = Router()
 router.use(requireAuth)
 
 router.get('/', async (req, res, next) => {
-  try { res.json(await ProduceLot.find(scopedFilter(req)).sort({ createdAt: -1 })) } catch (error) { next(error) }
+  try {
+    const ownership = req.user.role === 'farmer' ? { farmer: req.user.userId } : {}
+    res.json(await ProduceLot.find(scopedFilter(req, ownership)).sort({ createdAt: -1 }))
+  } catch (error) { next(error) }
 })
 
 router.post('/', requireRole('farmer', 'admin', 'platform_admin'), async (req, res, next) => {
   try {
     const { category, quantity, unit, farmer, farm } = req.body
-    if (!category || !farmer || !Number.isFinite(quantity) || quantity <= 0) return res.status(400).json({ message: 'Category, farmer, and positive quantity are required' })
+    if (!category || !Number.isFinite(quantity) || quantity <= 0) return res.status(400).json({ message: 'Category and positive quantity are required' })
     const ownerId = req.user.role === 'farmer' ? req.user.userId : farmer
+    if (!ownerId) return res.status(400).json({ message: 'farmer is required for admin batch creation' })
     if (!farm) return res.status(400).json({ message: 'Farm is required for a harvest batch' })
     const ownedFarm = await Farm.findOne(scopedFilter(req, { _id: farm, farmer: ownerId }))
     if (!ownedFarm) return res.status(403).json({ message: 'The selected farm is not owned by the batch farmer' })
@@ -47,7 +51,9 @@ router.post('/:id/inspection', requireRole('admin', 'platform_admin', 'quality_i
     lot.inspectionHistory.push({ inspector: req.user.userId, grade: req.body.grade, rating: req.body.rating, measuredQuantity: req.body.measuredQuantity, notes: req.body.notes })
     lot.qualityGrade = req.body.grade
     lot.qualityRating = req.body.rating
-    lot.availableQuantity = req.body.measuredQuantity || lot.quantity
+    const measuredQuantity = Number(req.body.measuredQuantity ?? lot.quantity)
+    if (!Number.isFinite(measuredQuantity) || measuredQuantity <= 0 || measuredQuantity > lot.quantity) return res.status(400).json({ message: 'Measured quantity must be positive and cannot exceed lot quantity' })
+    lot.availableQuantity = measuredQuantity
     lot.status = req.body.accepted ? 'accepted' : 'rejected'
     lot.statusHistory.push({ status: lot.status, changedBy: req.user.userId, note: 'Inspection completed' })
     await lot.save()

@@ -18,7 +18,7 @@ import enterprise from './routes/enterprise.js'
 import workflow from './routes/workflow.js'
 
 const app = express()
-const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
+const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const frontendDist = path.join(projectRoot, 'frontend', 'dist')
 
 app.use(helmet())
@@ -39,6 +39,12 @@ async function connectDatabase() {
   await connectionPromise
 }
 
+app.get('/api/health', (_req, res) => res.json({
+  status: mongoose.connection.readyState === 1 ? 'ok' : 'degraded',
+  service: 'agritrade-api',
+  database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+}))
+
 app.use(async (_request, _response, next) => {
   try {
     await connectDatabase()
@@ -48,11 +54,6 @@ app.use(async (_request, _response, next) => {
   }
 })
 
-app.get('/api/health', (_req, res) => res.json({
-  status: mongoose.connection.readyState === 1 ? 'ok' : 'degraded',
-  service: 'agritrade-api',
-  database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
-}))
 const apiPrefix = '/api'
 app.use(`${apiPrefix}/auth`, auth)
 app.use(`${apiPrefix}/farms`, farms)

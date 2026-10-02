@@ -231,7 +231,6 @@ function SignUpScreen({ onLogin, onSignUp }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [accountType, setAccountType] = useState('farmer')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const canSubmit = name.trim() && email.trim() && password.trim() && password === confirmPassword
@@ -256,7 +255,6 @@ function SignUpScreen({ onLogin, onSignUp }) {
         name,
         email,
         password,
-        role: accountType,
         organizationId: defaultOrganizationId,
         regionId: defaultRegionId,
       })
@@ -317,16 +315,6 @@ function SignUpScreen({ onLogin, onSignUp }) {
                 placeholder="Full name"
                 required
               />
-            </label>
-            <label>
-              Account type
-              <select value={accountType} onChange={(event) => setAccountType(event.target.value)} required>
-                {accountTypes.map((type) => (
-                  <option key={type.value} value={type.value}>
-                    {type.label}
-                  </option>
-                ))}
-              </select>
             </label>
             <label>
               Email Address
