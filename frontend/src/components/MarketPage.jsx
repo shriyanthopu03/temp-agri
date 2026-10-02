@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   AreaChart,
   ArrowUpRight,
@@ -44,108 +44,29 @@ export function MarketPage({
   const [deliveryLongitude, setDeliveryLongitude] = useState('')
 
   // PO Form
-  const [poCrop, setPoCrop] = useState('Organic Grapes')
-  const [poQuantity, setPoQuantity] = useState('10')
-  const [poUnitPrice, setPoUnitPrice] = useState('85')
-  const [poBuyer, setPoBuyer] = useState('Apex Agro Exports Pvt Ltd')
+  const [poCrop, setPoCrop] = useState('')
+  const [poQuantity, setPoQuantity] = useState('')
+  const [poUnitPrice, setPoUnitPrice] = useState('')
+  const [poBuyer, setPoBuyer] = useState('')
 
   // Listing Form
-  const [listCrop, setListCrop] = useState('Alphonso Mangoes')
-  const [listQuantity, setListQuantity] = useState('1500')
-  const [listPrice, setListPrice] = useState('110')
-  const [listGrade, setListGrade] = useState('Grade A Export')
+  const [listCrop, setListCrop] = useState('')
+  const [listQuantity, setListQuantity] = useState('')
+  const [listPrice, setListPrice] = useState('')
+  const [listGrade, setListGrade] = useState('')
 
   // Calculator Form
-  const [calcQty, setCalcQty] = useState('1000')
-  const [calcPrice, setCalcPrice] = useState('85')
-  const [calcDeduction, setCalcDeduction] = useState('1500')
-  const [calcBonus, setCalcBonus] = useState('2000')
+  const [calcQty, setCalcQty] = useState('')
+  const [calcPrice, setCalcPrice] = useState('')
+  const [calcDeduction, setCalcDeduction] = useState('')
+  const [calcBonus, setCalcBonus] = useState('')
 
-  // Live Commodity Prices Data
-  const commodities = [
-    { name: 'Organic Grapes', price: '₹86.00', unit: 'per kg', change: '+12.6%', trend: 'up', volume: '140 Tons' },
-    { name: 'Khapli Wheat', price: '₹28.50', unit: 'per kg', change: '+4.2%', trend: 'up', volume: '320 Tons' },
-    { name: 'Cotton Bales', price: '₹62.00', unit: 'per kg', change: '-1.5%', trend: 'down', volume: '95 Tons' },
-    { name: 'Basmati Rice', price: '₹44.00', unit: 'per kg', change: '+2.8%', trend: 'up', volume: '510 Tons' },
-    { name: 'Alphonso Mango', price: '₹110.00', unit: 'per kg', change: '+18.4%', trend: 'up', volume: '60 Tons' },
-    { name: 'Sugarcane', price: '₹3,150', unit: 'per ton', change: '+0.8%', trend: 'up', volume: '1,200 Tons' },
-  ]
+  const [listings, setListings] = useState([])
+  const [localPOs, setLocalPOs] = useState(purchaseOrders)
 
-  // Default Market Listings
-  const [listings, setListings] = useState([
-    {
-      id: 'm1',
-      farmerName: 'Ramesh Patel',
-      crop: 'Organic Grapes',
-      quantity: '1,200 kg',
-      grade: 'Grade A (Export)',
-      price: '₹85 / kg',
-      location: 'Nashik Agro Hub',
-      verified: true,
-    },
-    {
-      id: 'm2',
-      farmerName: 'Anita Deshmukh',
-      crop: 'Khapli Wheat',
-      quantity: '3,500 kg',
-      grade: 'Grade A Premium',
-      price: '₹28 / kg',
-      location: 'Pune Regional Center',
-      verified: true,
-    },
-    {
-      id: 'm3',
-      farmerName: 'Suresh Patil',
-      crop: 'Cotton Bales',
-      quantity: '2,000 kg',
-      grade: 'Grade B Commercial',
-      price: '₹60 / kg',
-      location: 'Nagpur Collection Hub',
-      verified: false,
-    },
-  ])
-
-  // Default POs
-  const defaultPOList = useMemo(() => {
-    if (purchaseOrders && purchaseOrders.length > 0) return purchaseOrders
-    return [
-      {
-        id: 'po1',
-        reference: 'PO-2026-101',
-        buyerName: 'Apex Fresh Supermarkets',
-        crop: 'Organic Grapes',
-        quantity: 10,
-        unitPrice: 86,
-        totalBudget: 860000,
-        status: 'approved',
-        allocatedLots: ['LOT-2026-001'],
-      },
-      {
-        id: 'po2',
-        reference: 'PO-2026-102',
-        buyerName: 'Global Organic Trade Co',
-        crop: 'Alphonso Mangoes',
-        quantity: 5,
-        unitPrice: 110,
-        totalBudget: 550000,
-        status: 'submitted',
-        allocatedLots: [],
-      },
-      {
-        id: 'po3',
-        reference: 'PO-2026-103',
-        buyerName: 'Reliance Fresh Logistics',
-        crop: 'Khapli Wheat',
-        quantity: 25,
-        unitPrice: 28,
-        totalBudget: 700000,
-        status: 'fulfilled',
-        allocatedLots: ['LOT-2026-003'],
-      },
-    ]
+  useEffect(() => {
+    setLocalPOs(purchaseOrders)
   }, [purchaseOrders])
-
-  const [localPOs, setLocalPOs] = useState(defaultPOList)
 
   const handlePOSubmit = async (e) => {
     e.preventDefault()
@@ -190,8 +111,7 @@ export function MarketPage({
   }
 
   const calcNetTotal = Math.max(0, Number(calcQty) * Number(calcPrice) - Number(calcDeduction) + Number(calcBonus))
-  const marketListings = availableBatches.length
-    ? availableBatches.map((batch) => ({
+  const marketListings = availableBatches.map((batch) => ({
         ...batch,
         id: batch.id || batch._id,
         crop: batch.category,
@@ -202,7 +122,6 @@ export function MarketPage({
         location: batch.farmName || batch.farm?.farmName || 'Farm location stored',
         verified: true,
       }))
-    : listings
 
   return (
     <div className="space-y-6">
@@ -234,25 +153,8 @@ export function MarketPage({
         </div>
       </div>
 
-      {/* Live Commodity Price Ticker */}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-        {commodities.map((item) => (
-          <div key={item.name} className="rounded-2xl border border-border bg-card p-4 shadow-sm hover:border-primary/50 transition">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-muted-foreground truncate">{item.name}</span>
-              <span
-                className={`flex items-center gap-0.5 text-[11px] font-bold ${
-                  item.trend === 'up' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
-                }`}
-              >
-                {item.trend === 'up' ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
-                {item.change}
-              </span>
-            </div>
-            <p className="mt-2 text-xl font-bold tracking-tight text-foreground">{item.price}</p>
-            <p className="text-[10px] text-muted-foreground mt-0.5">{item.unit} • Vol: {item.volume}</p>
-          </div>
-        ))}
+      <div className="rounded-2xl border border-dashed border-border bg-card p-5 text-sm text-muted-foreground">
+        Market pricing will appear here when live commodity data is available.
       </div>
 
       {/* Tabs */}
@@ -303,10 +205,11 @@ export function MarketPage({
                 className="w-full rounded-lg border border-border bg-background py-2 pl-9 pr-3 text-xs outline-none focus:border-primary"
               />
             </div>
-            <span className="text-xs text-muted-foreground font-medium">{listings.length} verified listings available</span>
+            <span className="text-xs text-muted-foreground font-medium">{marketListings.length} verified listings available</span>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {marketListings.length === 0 && <div className="col-span-full rounded-2xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">No inspected batches are available for purchase.</div>}
             {marketListings.map((item) => (
               <div key={item.id} className="rounded-2xl border border-border bg-card p-5 shadow-sm hover:shadow-md transition space-y-4">
                 <div className="flex items-start justify-between">
@@ -478,22 +381,7 @@ export function MarketPage({
           <div className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-4">
             <h2 className="font-bold text-lg border-b border-border pb-3">Recent Trade Settlement Records</h2>
             <div className="space-y-3 text-xs">
-              {[
-                { farmer: 'Ramesh Patel', crop: 'Grapes (1.2 Tons)', net: '₹1,01,500', status: 'Settled', date: '2026-09-22' },
-                { farmer: 'Anita Deshmukh', crop: 'Khapli Wheat (3.5 Tons)', net: '₹98,000', status: 'Settled', date: '2026-09-21' },
-                { farmer: 'Vikram Singh', crop: 'Basmati Rice (5 Tons)', net: '₹2,10,000', status: 'Pending Approval', date: '2026-09-23' },
-              ].map((s, idx) => (
-                <div key={idx} className="p-3 rounded-xl bg-muted/50 flex items-center justify-between">
-                  <div>
-                    <p className="font-bold text-foreground">{s.farmer}</p>
-                    <p className="text-muted-foreground">{s.crop} • {s.date}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-primary">{s.net}</p>
-                    <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">{s.status}</span>
-                  </div>
-                </div>
-              ))}
+              <div className="rounded-xl border border-dashed border-border p-8 text-center text-muted-foreground">No settlement records available.</div>
             </div>
           </div>
         </div>

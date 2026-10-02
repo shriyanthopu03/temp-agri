@@ -21,7 +21,6 @@ import {
   Tractor,
   TrendingUp,
   User,
-  UserCheck,
   Users,
   X,
 } from 'lucide-react'
@@ -72,12 +71,12 @@ function mapFarm(farm) {
       : points
   return {
     id: farm._id || farm.id || String(Math.random()),
-    name: farm.farmName || farm.name || 'Agri Parcel',
-    location: farm.location?.address || farm.location || 'Location not provided',
-    crop: farm.crops?.[0] || farm.crop || 'Grapes',
-    area: farm.areaAcres || farm.area || 4.5,
+    name: farm.farmName || farm.name,
+    location: farm.location?.address || farm.location,
+    crop: farm.crops?.[0] || farm.crop,
+    area: farm.areaAcres || farm.area,
     status: 'Verified',
-    points: closedPoints.length ? closedPoints : [[78.96, 20.59], [78.97, 20.59], [78.97, 20.60]],
+    points: closedPoints,
   }
 }
 
@@ -206,16 +205,6 @@ function LoginScreen({ onLogin, onSignUp }) {
               />
             </label>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '4px 0 8px' }}>
-              <button
-                className="login-forgot"
-                type="button"
-                onClick={() => {
-                  setEmail('farmer@agritrade.com')
-                  setPassword('Farmer123!')
-                }}
-              >
-                Fill Demo Account
-              </button>
               <button className="login-forgot" type="button">
                 Forgot the password?
               </button>
@@ -407,50 +396,7 @@ export default function App() {
   const [active, setActive] = useState('Overview')
 
   // Farms state
-  const [farms, setFarms] = useState([
-    {
-      id: 'f1',
-      name: 'Nashik Vineyard Grove',
-      location: 'Nashik Agro Belt, Maharashtra',
-      crop: 'Organic Grapes',
-      area: 6.8,
-      status: 'Verified',
-      points: [
-        [73.7898, 19.9975],
-        [73.7925, 19.9975],
-        [73.7925, 19.9992],
-        [73.7898, 19.9992],
-      ],
-    },
-    {
-      id: 'f2',
-      name: 'Vidarbha Cotton Estate',
-      location: 'Nagpur District, Maharashtra',
-      crop: 'Cotton Bales',
-      area: 12.4,
-      status: 'Verified',
-      points: [
-        [79.0882, 21.1458],
-        [79.092, 21.1458],
-        [79.092, 21.1495],
-        [79.0882, 21.1495],
-      ],
-    },
-    {
-      id: 'f3',
-      name: 'Deccan Wheat & Grain Farm',
-      location: 'Pune Rural, Maharashtra',
-      crop: 'Khapli Wheat',
-      area: 8.2,
-      status: 'Verified',
-      points: [
-        [73.8567, 18.5204],
-        [73.86, 18.5204],
-        [73.86, 18.524],
-        [73.8567, 18.524],
-      ],
-    },
-  ])
+  const [farms, setFarms] = useState([])
 
   const [selectedFarm, setSelectedFarm] = useState(farms[0])
   const [showForm, setShowForm] = useState(false)
@@ -537,15 +483,6 @@ export default function App() {
     return () => { activeRequest = false }
   }, [session, currentRoleValue])
 
-  const handleRoleChange = (newRole) => {
-    const updated = {
-      ...session,
-      role: newRole,
-      user: session?.user ? { ...session.user, role: newRole } : { role: newRole, name: session?.name || 'Workspace User' },
-    }
-    saveSession(updated)
-  }
-
   const addFarm = async () => {
     if (!farmName.trim() || !crop.trim() || !finished || !farmArea || points.length < 3) return
     try {
@@ -565,15 +502,6 @@ export default function App() {
           },
           session.token
         )
-      } else {
-        savedFarm = {
-          _id: String(Date.now()),
-          farmName: farmName.trim(),
-          crops: [crop.trim()],
-          boundary: { coordinates: [points] },
-          areaAcres: farmArea.acres,
-          location: { address: 'Nashik Belt, MH' },
-        }
       }
       const next = mapFarm(savedFarm)
       setFarms((current) => [...current, next])
@@ -663,12 +591,10 @@ export default function App() {
           ))}
         </nav>
 
-        {/* Quick Role Persona Badge in Sidebar */}
+        {/* Authenticated role badge */}
         <div className="m-4 rounded-2xl bg-secondary p-4 text-xs space-y-2">
-          <p className="font-semibold text-primary">Active Persona: {account.label}</p>
-          <p className="text-muted-foreground text-[11px]">
-            Switch workspace role anytime in top user menu or Settings page.
-          </p>
+          <p className="font-semibold text-primary">Role: {account.label}</p>
+          <p className="text-muted-foreground text-[11px]">Managed by your authenticated account.</p>
         </div>
       </aside>
 
@@ -710,7 +636,7 @@ export default function App() {
 
             <div className="hidden h-7 w-px bg-border sm:block" />
 
-            {/* Profile & Role Switcher Menu */}
+            {/* Profile Menu */}
             <div className="relative">
               <button
                 className="flex items-center gap-2 rounded-xl p-1.5 hover:bg-muted transition"
@@ -742,27 +668,6 @@ export default function App() {
                     <p className="text-xs font-bold text-foreground">{userName}</p>
                     <p className="text-[11px] text-muted-foreground">{session?.user?.email || 'user@agritrade.com'}</p>
                   </div>
-
-                  <p className="px-3 pt-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                    Switch Workspace Role Persona
-                  </p>
-                  {accountTypes.map((type) => (
-                    <button
-                      key={type.value}
-                      onClick={() => {
-                        handleRoleChange(type.value)
-                        setAccountMenuOpen(false)
-                      }}
-                      className={`flex w-full items-center justify-between rounded-lg px-3 py-1.5 text-xs text-left transition ${
-                        currentRoleValue === type.value
-                          ? 'bg-secondary text-primary font-bold'
-                          : 'text-foreground hover:bg-muted'
-                      }`}
-                    >
-                      <span>{type.label}</span>
-                      {currentRoleValue === type.value && <UserCheck size={14} />}
-                    </button>
-                  ))}
 
                   <div className="border-t border-border pt-1">
                     <button
@@ -839,7 +744,9 @@ export default function App() {
                 const response = await fetch('/api/lots', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.token}` }, body: JSON.stringify({ category: newLot.category, quantity: newLot.quantity, unit: newLot.unit, farmer: session.user.id, farm: farms[0]?.id }) })
                 const saved = await response.json()
                 if (!response.ok) throw new Error(saved.message || 'Unable to create harvest batch')
-                setLots((current) => [mapLot(saved), ...current])
+                const mappedLot = mapLot(saved)
+                setLots((current) => [mappedLot, ...current])
+                return mappedLot
               }}
               onInspectLot={async (lotId, inspection) => {
                 const saved = await requestWorkflow('/inspections', { method: 'POST', body: JSON.stringify({ batchId: lotId, grade: inspection.grade.replace('Grade ', ''), rating: inspection.rating || 4.5, measuredQuantity: inspection.measuredQuantity, remarks: inspection.notes }) }, session.token)
@@ -869,10 +776,8 @@ export default function App() {
             <SettingsPage
               session={session}
               role={currentRoleValue}
-              onRoleChange={handleRoleChange}
               darkMode={darkMode}
               setDarkMode={setDarkMode}
-              accountTypes={accountTypes}
             />
           )}
         </div>

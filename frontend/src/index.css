@@ -49,7 +49,7 @@ body { margin: 0; min-width: 320px; }
 .login-heading p { margin: 13px 0 25px; color: #62634A; font-size: 12px; line-height: 1.55; }
 .login-form { display: flex; flex-direction: column; gap: 12px; }
 .login-form label { display: flex; flex-direction: column; gap: 7px; color: #62634A; font-size: 11px; }
-.login-form input, .login-form select { width: 100%; border: 1px solid #CEC8AE; border-radius: 9px; padding: 14px 13px; outline: none; color: #343723; background: #F5F1E4; font: inherit; transition: border-color .2s, box-shadow .2s; }
+.login-form input, .login-form select { width: 100%; border: 1px solid #CEC8AE; border-radius: 7px; padding: 10px 11px; outline: none; color: #343723; background: #F5F1E4; font: inherit; transition: border-color .2s, box-shadow .2s; }
 .login-form select { cursor: pointer; }
 .login-form input:focus, .login-form select:focus { border-color: #7D2826; box-shadow: 0 0 0 3px rgba(125, 40, 38, .14); }
 .login-form input:focus { border-color: #7D2826; box-shadow: 0 0 0 3px rgba(125, 40, 38, .14); }

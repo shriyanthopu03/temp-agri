@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   Award,
   Box,
@@ -48,101 +48,33 @@ export function ProduceLotsPage({
   const [activeLot, setActiveLot] = useState(null)
 
   // New Lot Form
-  const [newCategory, setNewCategory] = useState('Organic Grapes')
-  const [newQuantity, setNewQuantity] = useState('500')
+  const [newCategory, setNewCategory] = useState('')
+  const [newQuantity, setNewQuantity] = useState('')
   const [newUnit, setNewUnit] = useState('kg')
-  const [newFarmer, setNewFarmer] = useState(session?.user?.name || 'Farmer Ramesh')
-  const [newFarm, setNewFarm] = useState(farms[0]?.name || 'Green Acres Parcel A')
+  const [newFarmer, setNewFarmer] = useState(session?.user?.name || '')
+  const [newFarm, setNewFarm] = useState(farms[0]?.name || '')
 
   // Quality Form
-  const [inspectGrade, setInspectGrade] = useState('Grade A')
-  const [inspectMoisture, setInspectMoisture] = useState('12.4%')
-  const [inspectPurity, setInspectPurity] = useState('99.1%')
-  const [inspectNotes, setInspectNotes] = useState('Certified premium quality. Passed lab analysis.')
+  const [inspectGrade, setInspectGrade] = useState('')
+  const [inspectMoisture, setInspectMoisture] = useState('')
+  const [inspectPurity, setInspectPurity] = useState('')
+  const [inspectNotes, setInspectNotes] = useState('')
   const [inspectAccepted, setInspectAccepted] = useState(true)
 
   // Warehouse Form
-  const [warehouseLocation, setWarehouseLocation] = useState('Central Warehouse Hub #1')
-  const [warehouseBin, setWarehouseBin] = useState('Bin-A12')
+  const [warehouseLocation, setWarehouseLocation] = useState('')
+  const [warehouseBin, setWarehouseBin] = useState('')
 
   // Dispatch Form
-  const [vehicleId, setVehicleId] = useState('MH-12-AB-4081')
-  const [driverName, setDriverName] = useState('Suresh Kumar')
-  const [destination, setDestination] = useState('Apex Supermarket Central Depot')
+  const [vehicleId, setVehicleId] = useState('')
+  const [driverName, setDriverName] = useState('')
+  const [destination, setDestination] = useState('')
 
-  // Seed default lots if empty
-  const defaultLotsList = useMemo(() => {
-    if (lots && lots.length > 0) return lots
-    return [
-      {
-        id: '65f1a10001',
-        lotCode: 'LOT-2026-001',
-        category: 'Organic Grapes',
-        quantity: 1200,
-        unit: 'kg',
-        farmerName: 'Ramesh Patel',
-        farmName: 'Vineyard Parcel 1',
-        status: 'accepted',
-        qualityGrade: 'Grade A (Export Quality)',
-        createdAt: '2026-09-20',
-        moisture: '11.8%',
-        purity: '99.4%',
-      },
-      {
-        id: '65f1a10002',
-        lotCode: 'LOT-2026-002',
-        category: 'Cotton Bales',
-        quantity: 3500,
-        unit: 'kg',
-        farmerName: 'Suresh Patil',
-        farmName: 'Cotton Fields B',
-        status: 'created',
-        qualityGrade: 'Pending Inspection',
-        createdAt: '2026-09-22',
-      },
-      {
-        id: '65f1a10003',
-        lotCode: 'LOT-2026-003',
-        category: 'Khabli Wheat',
-        quantity: 2400,
-        unit: 'kg',
-        farmerName: 'Anita Deshmukh',
-        farmName: 'Golden Fields',
-        status: 'stored',
-        qualityGrade: 'Grade A',
-        warehouseBin: 'Bin B-04',
-        createdAt: '2026-09-18',
-      },
-      {
-        id: '65f1a10004',
-        lotCode: 'LOT-2026-004',
-        category: 'Basmati Rice',
-        quantity: 5000,
-        unit: 'kg',
-        farmerName: 'Vikram Singh',
-        farmName: 'River Delta Farm',
-        status: 'dispatched',
-        qualityGrade: 'Grade A',
-        vehicle: 'MH-14-GH-9912',
-        createdAt: '2026-09-15',
-      },
-      {
-        id: '65f1a10005',
-        lotCode: 'LOT-2026-005',
-        category: 'Alphonso Mangoes',
-        quantity: 800,
-        unit: 'kg',
-        farmerName: 'Ramesh Patel',
-        farmName: 'Mango Grove Parcel',
-        status: 'delivered',
-        qualityGrade: 'Grade A (Premium)',
-        deliveredAt: '2026-09-23',
-        createdAt: '2026-09-14',
-      },
-    ]
+  const [localLots, setLocalLots] = useState(lots)
+
+  useEffect(() => {
+    setLocalLots(lots)
   }, [lots])
-
-  const [localLots, setLocalLots] = useState(defaultLotsList)
 
   // Filter lots
   const filteredLots = useMemo(() => {
@@ -169,8 +101,6 @@ export function ProduceLotsPage({
   const handleCreateSubmit = async (e) => {
     e.preventDefault()
     const newLot = {
-      id: String(Date.now()),
-      lotCode: `LOT-2026-${Math.floor(100 + Math.random() * 900)}`,
       category: newCategory,
       quantity: Number(newQuantity),
       unit: newUnit,
@@ -182,12 +112,12 @@ export function ProduceLotsPage({
     }
     if (onCreateLot) {
       try {
-        await onCreateLot(newLot)
+        const savedLot = await onCreateLot(newLot)
+        if (savedLot) setLocalLots((current) => [savedLot, ...current])
       } catch (err) {
         console.error(err)
       }
     }
-    setLocalLots([newLot, ...localLots])
     setShowCreateModal(false)
   }
 

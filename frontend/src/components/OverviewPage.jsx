@@ -56,8 +56,8 @@ export function OverviewPage({
       metrics: [
         { label: 'Total farm area', value: `${farms.reduce((acc, f) => acc + (f.area || 0), 0).toFixed(1)} ac`, suffix: 'acres', icon: Tractor, tone: 'bg-[#e7efe5] text-primary' },
         { label: 'Active farms', value: String(farms.length), suffix: 'registered', icon: Leaf, tone: 'bg-[#f7ecd8] text-[#a56a17]' },
-        { label: 'Harvested lots', value: String(lots.length || 18), suffix: 'active', icon: Sprout, tone: 'bg-[#e4eef1] text-[#2e7080]' },
-        { label: 'Market value', value: '₹12.8L', suffix: 'estimated', icon: TrendingUp, tone: 'bg-[#eee8f4] text-[#76518e]' },
+        { label: 'Harvested lots', value: String(lots.length), suffix: 'active', icon: Sprout, tone: 'bg-[#e4eef1] text-[#2e7080]' },
+        { label: 'Market value', value: '—', suffix: 'estimated', icon: TrendingUp, tone: 'bg-[#eee8f4] text-[#76518e]' },
       ],
     },
     logistics_coordinator: {
@@ -66,10 +66,10 @@ export function OverviewPage({
       actionBtn: 'Create Shipment',
       onAction: () => setActiveTab('Produce Lots'),
       metrics: [
-        { label: 'Active shipments', value: String(shipments.filter(s => s.status !== 'delivered').length || 6), suffix: 'in transit', icon: Truck, tone: 'bg-[#e4eef1] text-[#2e7080]' },
-        { label: 'Vehicles dispatched', value: '14', suffix: 'on route', icon: Ship, tone: 'bg-[#e7efe5] text-primary' },
-        { label: 'Intake volume', value: '42.5', suffix: 'tons', icon: Package, tone: 'bg-[#f7ecd8] text-[#a56a17]' },
-        { label: 'On-time delivery', value: '98.4%', suffix: 'performance', icon: CheckCircle2, tone: 'bg-[#eee8f4] text-[#76518e]' },
+        { label: 'Active shipments', value: String(shipments.filter(s => s.status !== 'delivered').length), suffix: 'in transit', icon: Truck, tone: 'bg-[#e4eef1] text-[#2e7080]' },
+        { label: 'Vehicles dispatched', value: '—', suffix: 'on route', icon: Ship, tone: 'bg-[#e7efe5] text-primary' },
+        { label: 'Intake volume', value: '—', suffix: 'tons', icon: Package, tone: 'bg-[#f7ecd8] text-[#a56a17]' },
+        { label: 'On-time delivery', value: '—', suffix: 'performance', icon: CheckCircle2, tone: 'bg-[#eee8f4] text-[#76518e]' },
       ],
     },
     platform_admin: {
@@ -78,10 +78,10 @@ export function OverviewPage({
       actionBtn: 'Audit System Logs',
       onAction: () => setActiveTab('Settings'),
       metrics: [
-        { label: 'Total Users', value: '1,284', suffix: 'active', icon: Users, tone: 'bg-[#e7efe5] text-primary' },
-        { label: 'Land Parcels', value: String(farms.length + 42), suffix: 'parcels', icon: Globe, tone: 'bg-[#f7ecd8] text-[#a56a17]' },
-        { label: 'Enterprise POs', value: String(purchaseOrders.length || 24), suffix: 'orders', icon: FileCheck, tone: 'bg-[#e4eef1] text-[#2e7080]' },
-        { label: 'Platform GMV', value: '₹84.6L', suffix: 'total trade', icon: TrendingUp, tone: 'bg-[#eee8f4] text-[#76518e]' },
+        { label: 'Total Users', value: '—', suffix: 'active', icon: Users, tone: 'bg-[#e7efe5] text-primary' },
+        { label: 'Land Parcels', value: String(farms.length), suffix: 'parcels', icon: Globe, tone: 'bg-[#f7ecd8] text-[#a56a17]' },
+        { label: 'Enterprise POs', value: String(purchaseOrders.length), suffix: 'orders', icon: FileCheck, tone: 'bg-[#e4eef1] text-[#2e7080]' },
+        { label: 'Platform GMV', value: '—', suffix: 'total trade', icon: TrendingUp, tone: 'bg-[#eee8f4] text-[#76518e]' },
       ],
     },
     collection_center_manager: {
@@ -90,10 +90,10 @@ export function OverviewPage({
       actionBtn: 'Warehouse Bins',
       onAction: () => setActiveTab('Produce Lots'),
       metrics: [
-        { label: "Today's Intake", value: '18.4', suffix: 'tons', icon: Warehouse, tone: 'bg-[#e7efe5] text-primary' },
-        { label: 'Storage capacity', value: '74%', suffix: 'occupied', icon: HardDrive, tone: 'bg-[#f7ecd8] text-[#a56a17]' },
-        { label: 'Pending staging', value: String(lots.filter(l => l.status === 'created').length || 8), suffix: 'lots', icon: Clock, tone: 'bg-[#e4eef1] text-[#2e7080]' },
-        { label: 'Suppliers active', value: '32', suffix: 'farmers', icon: UserCheck, tone: 'bg-[#eee8f4] text-[#76518e]' },
+        { label: "Today's Intake", value: '—', suffix: 'tons', icon: Warehouse, tone: 'bg-[#e7efe5] text-primary' },
+        { label: 'Storage capacity', value: '—', suffix: 'occupied', icon: HardDrive, tone: 'bg-[#f7ecd8] text-[#a56a17]' },
+        { label: 'Pending staging', value: String(lots.filter(l => l.status === 'created').length), suffix: 'lots', icon: Clock, tone: 'bg-[#e4eef1] text-[#2e7080]' },
+        { label: 'Suppliers active', value: '—', suffix: 'farmers', icon: UserCheck, tone: 'bg-[#eee8f4] text-[#76518e]' },
       ],
     },
     quality_inspector: {
@@ -102,10 +102,10 @@ export function OverviewPage({
       actionBtn: 'Inspect Pending Lots',
       onAction: () => setActiveTab('Produce Lots'),
       metrics: [
-        { label: 'Pending inspection', value: String(lots.filter(l => l.status === 'created').length || 5), suffix: 'lots', icon: Clock, tone: 'bg-[#f7ecd8] text-[#a56a17]' },
-        { label: 'Inspected today', value: '12', suffix: 'completed', icon: FileCheck, tone: 'bg-[#e7efe5] text-primary' },
-        { label: 'Pass Rate', value: '94.2%', suffix: 'accepted', icon: ShieldCheck, tone: 'bg-[#e4eef1] text-[#2e7080]' },
-        { label: 'Grade A lots', value: '18', suffix: 'export grade', icon: Award, tone: 'bg-[#eee8f4] text-[#76518e]' },
+        { label: 'Pending inspection', value: String(lots.filter(l => l.status === 'created').length), suffix: 'lots', icon: Clock, tone: 'bg-[#f7ecd8] text-[#a56a17]' },
+        { label: 'Inspected today', value: '—', suffix: 'completed', icon: FileCheck, tone: 'bg-[#e7efe5] text-primary' },
+        { label: 'Pass Rate', value: '—', suffix: 'accepted', icon: ShieldCheck, tone: 'bg-[#e4eef1] text-[#2e7080]' },
+        { label: 'Grade A lots', value: '—', suffix: 'export grade', icon: Award, tone: 'bg-[#eee8f4] text-[#76518e]' },
       ],
     },
     buyer: {
@@ -114,10 +114,10 @@ export function OverviewPage({
       actionBtn: 'Create Purchase Order',
       onAction: () => setActiveTab('Market'),
       metrics: [
-        { label: 'Open Purchase Orders', value: String(purchaseOrders.length || 6), suffix: 'active', icon: ShoppingBag, tone: 'bg-[#e7efe5] text-primary' },
-        { label: 'Contracted produce', value: '65', suffix: 'tons', icon: Package, tone: 'bg-[#f7ecd8] text-[#a56a17]' },
-        { label: 'Available lots', value: String(lots.length || 24), suffix: 'listed', icon: AreaChart, tone: 'bg-[#e4eef1] text-[#2e7080]' },
-        { label: 'Total procurement', value: '₹24.5L', suffix: 'spent', icon: TrendingUp, tone: 'bg-[#eee8f4] text-[#76518e]' },
+        { label: 'Open Purchase Orders', value: String(purchaseOrders.length), suffix: 'active', icon: ShoppingBag, tone: 'bg-[#e7efe5] text-primary' },
+        { label: 'Contracted produce', value: '—', suffix: 'tons', icon: Package, tone: 'bg-[#f7ecd8] text-[#a56a17]' },
+        { label: 'Available lots', value: String(lots.length), suffix: 'listed', icon: AreaChart, tone: 'bg-[#e4eef1] text-[#2e7080]' },
+        { label: 'Total procurement', value: '—', suffix: 'spent', icon: TrendingUp, tone: 'bg-[#eee8f4] text-[#76518e]' },
       ],
     },
   }
@@ -130,7 +130,7 @@ export function OverviewPage({
       <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
         <div>
           <div className="mb-2 flex items-center gap-2 text-sm font-medium text-primary">
-            <CloudSun size={17} /> Thursday, 24 September 2026
+            <CloudSun size={17} /> {new Intl.DateTimeFormat(undefined, { dateStyle: 'full' }).format(new Date())}
           </div>
           <div className="flex items-center gap-3">
             <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">Good morning, {userName}</h1>
@@ -270,13 +270,13 @@ export function OverviewPage({
                         <Truck size={18} />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-semibold">{s.reference || `SHP-2026-0${i + 1}`}</p>
-                        <p className="text-xs text-muted-foreground">Vehicle: {s.vehicle || 'MH-12-AB-4081'}</p>
+                        <p className="text-sm font-semibold">{s.reference || s.shipmentNumber}</p>
+                        <p className="text-xs text-muted-foreground">Vehicle: {s.vehicle || 'Unassigned'}</p>
                         <p className="text-[11px] text-muted-foreground">Pickup {s.pickupLocation?.latitude}, {s.pickupLocation?.longitude} → Destination {s.destination?.latitude}, {s.destination?.longitude}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      {s.status === 'ready_for_pickup' && <button onClick={() => onAssignShipment?.(s.id, 'FLEET-DEFAULT')} className="rounded-lg bg-secondary px-2.5 py-1 text-[11px] font-semibold text-primary">Assign vehicle</button>}
+                      {s.status === 'ready_for_pickup' && <button onClick={() => { const vehicleId = window.prompt('Enter vehicle ID'); if (vehicleId?.trim()) onAssignShipment?.(s.id, vehicleId.trim()) }} className="rounded-lg bg-secondary px-2.5 py-1 text-[11px] font-semibold text-primary">Assign vehicle</button>}
                       {s.status === 'assigned' && <button onClick={() => onDispatchShipment?.(s.id)} className="rounded-lg bg-primary px-2.5 py-1 text-[11px] font-semibold text-primary-foreground">Dispatch</button>}
                       <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-primary capitalize">{s.status || 'in_transit'}</span>
                     </div>
@@ -287,23 +287,7 @@ export function OverviewPage({
 
             {role === 'platform_admin' && (
               <div className="divide-y divide-border">
-                {[
-                  { user: 'Farmer Ramesh', action: 'Registered new parcel (5.4 ac)', time: '10m ago' },
-                  { user: 'Inspector Anita', action: 'Certified Lot LOT-2026-004 as Grade A', time: '25m ago' },
-                  { user: 'Manager Vikram', action: 'Received 8.2 tons into Bin B-04', time: '1h ago' },
-                  { user: 'Logistics Coord', action: 'Dispatched truck MH-14-GH-9912', time: '2h ago' },
-                ].map((item, idx) => (
-                  <div key={idx} className="p-4 flex items-start gap-3 text-xs">
-                    <div className="p-2 rounded-lg bg-secondary text-primary mt-0.5">
-                      <ShieldCheck size={14} />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-semibold text-foreground">{item.user}</p>
-                      <p className="text-muted-foreground mt-0.5">{item.action}</p>
-                    </div>
-                    <span className="text-muted-foreground">{item.time}</span>
-                  </div>
-                ))}
+                <div className="p-8 text-center text-sm text-muted-foreground">No audit activity available.</div>
               </div>
             )}
 
@@ -364,8 +348,8 @@ export function OverviewPage({
                         <ShoppingBag size={18} />
                       </div>
                       <div>
-                        <p className="text-sm font-semibold">{po.reference || `PO-2026-10${idx + 1}`}</p>
-                        <p className="text-xs text-muted-foreground">{po.crop || 'Organic Grapes'} • {po.quantity || '10'} Tons</p>
+                        <p className="text-sm font-semibold">{po.reference || po.number}</p>
+                        <p className="text-xs text-muted-foreground">{po.crop || 'Crop unavailable'} • {po.quantity || 0} {po.unit || 'kg'}</p>
                       </div>
                     </div>
                     <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-primary capitalize">
@@ -434,12 +418,12 @@ export function OverviewPage({
               <TrendingUp size={20} />
             </div>
             <div>
-              <p className="text-2xl font-semibold">+12.6%</p>
-              <p className="text-xs text-muted-foreground">Average price movement this week</p>
+              <p className="text-2xl font-semibold">—</p>
+              <p className="text-xs text-muted-foreground">Live market movement unavailable</p>
             </div>
             <div className="ml-auto text-right">
-              <p className="text-sm font-medium">Organic Grapes</p>
-              <p className="text-sm font-bold text-primary">₹86 / kg</p>
+              <p className="text-sm font-medium">No market data</p>
+              <p className="text-sm font-bold text-primary">—</p>
             </div>
           </div>
         </section>
