@@ -41,7 +41,7 @@ body { margin: 0; min-width: 320px; }
 .login-panel { display: flex; flex-direction: column; min-height: 100vh; padding: 28px 24px; background: #EFE9D7; }
 .login-signup { align-self: flex-end; color: #62634A; font-size: 11px; }
 .login-signup button { margin-left: 7px; border: 0; border-radius: 5px; background: #898861; padding: 7px 10px; color: #EFE9D7; font-size: 11px; font-weight: 700; cursor: pointer; }
-.login-content { width: min(100%, 350px); margin: auto; }
+.login-content { width: min(100%, 350px); margin: auto auto auto 0; }
 .login-heading { text-align: center; }
 .login-icon { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; margin-bottom: 12px; border-radius: 12px; background: #898861; color: #7D2826; }
 .login-heading h1 { margin: 0; font-size: 24px; letter-spacing: -.045em; }
