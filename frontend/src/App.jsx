@@ -153,14 +153,6 @@ function LoginScreen({ onLogin, onSignUp }) {
         aria-label="AgriTrade farm operations visual"
       >
         <div className="login-visual-shade" />
-        <div className="login-stat login-stat-orange">
-          <strong>41%</strong>
-          <span>of farmers say accurate land data is the hardest part of planning.</span>
-        </div>
-        <div className="login-stat login-stat-green">
-          <strong>76%</strong>
-          <span>of farm teams say connected operations are their greatest advantage.</span>
-        </div>
         <div className="login-brand-mark">
           <Leaf size={20} /> AgriTrade
         </div>
@@ -295,14 +287,6 @@ function SignUpScreen({ onLogin, onSignUp }) {
         aria-label="AgriTrade farm operations visual"
       >
         <div className="login-visual-shade" />
-        <div className="login-stat login-stat-orange">
-          <strong>41%</strong>
-          <span>of farmers say accurate land data is the hardest part of planning.</span>
-        </div>
-        <div className="login-stat login-stat-green">
-          <strong>76%</strong>
-          <span>of farm teams say connected operations are their greatest advantage.</span>
-        </div>
         <div className="login-brand-mark">
           <Leaf size={20} /> AgriTrade
         </div>
