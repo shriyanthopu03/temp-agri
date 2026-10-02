@@ -24,8 +24,10 @@ export function MarketPage({
   role,
   purchaseOrders = [],
   lots = [],
+  availableBatches = [],
   onCreatePO,
   onAllocatePO,
+  onPurchaseBatch,
 }) {
   const [activeTab, setActiveTab] = useState('marketplace')
   const [search, setSearch] = useState('')
@@ -36,6 +38,10 @@ export function MarketPage({
   const [showBidModal, setShowBidModal] = useState(false)
   const [showSettlementModal, setShowSettlementModal] = useState(false)
   const [activeListing, setActiveListing] = useState(null)
+  const [purchaseQuantity, setPurchaseQuantity] = useState('100')
+  const [deliveryAddress, setDeliveryAddress] = useState('')
+  const [deliveryLatitude, setDeliveryLatitude] = useState('')
+  const [deliveryLongitude, setDeliveryLongitude] = useState('')
 
   // PO Form
   const [poCrop, setPoCrop] = useState('Organic Grapes')
@@ -184,6 +190,19 @@ export function MarketPage({
   }
 
   const calcNetTotal = Math.max(0, Number(calcQty) * Number(calcPrice) - Number(calcDeduction) + Number(calcBonus))
+  const marketListings = availableBatches.length
+    ? availableBatches.map((batch) => ({
+        ...batch,
+        id: batch.id || batch._id,
+        crop: batch.category,
+        farmerName: batch.farmerName || batch.farmer?.name,
+        quantity: `${batch.availableQuantity ?? batch.quantity} ${batch.unit || 'kg'}`,
+        grade: `${batch.qualityGrade || 'Inspected'}${batch.qualityRating ? ` (${batch.qualityRating}/5)` : ''}`,
+        price: `₹${batch.marketPrice || 0} / ${batch.unit || 'kg'}`,
+        location: batch.farmName || batch.farm?.farmName || 'Farm location stored',
+        verified: true,
+      }))
+    : listings
 
   return (
     <div className="space-y-6">
@@ -288,7 +307,7 @@ export function MarketPage({
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {listings.map((item) => (
+            {marketListings.map((item) => (
               <div key={item.id} className="rounded-2xl border border-border bg-card p-5 shadow-sm hover:shadow-md transition space-y-4">
                 <div className="flex items-start justify-between">
                   <div>
@@ -319,13 +338,15 @@ export function MarketPage({
                 </div>
 
                 <button
+                  disabled={!item.verified || role !== 'buyer'}
                   onClick={() => {
                     setActiveListing(item)
+                    setPurchaseQuantity(String(Math.min(100, item.availableQuantity || 100)))
                     setShowBidModal(true)
                   }}
-                  className="w-full rounded-xl bg-primary py-2.5 text-xs font-semibold text-primary-foreground hover:opacity-90 transition"
+                  className="w-full rounded-xl bg-primary py-2.5 text-xs font-semibold text-primary-foreground hover:opacity-90 transition disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  Place Purchase Bid / Buy Lot
+                  {role === 'buyer' && item.verified ? 'Purchase inspected batch' : 'Purchase unavailable'}
                 </button>
               </div>
             ))}
@@ -637,13 +658,23 @@ export function MarketPage({
                 Farmer: {activeListing.farmerName} • Location: {activeListing.location}
               </div>
               <label className="block space-y-1">
-                <span className="font-medium text-foreground">Bid Price Offer (₹/kg)</span>
+                <span className="font-medium text-foreground">Quantity ({activeListing.unit || 'kg'})</span>
                 <input
                   type="number"
-                  defaultValue="85"
+                  min="1"
+                  value={purchaseQuantity}
+                  onChange={(event) => setPurchaseQuantity(event.target.value)}
                   className="w-full rounded-xl border border-border bg-background p-2.5 text-xs outline-none focus:border-primary"
                 />
               </label>
+              <label className="block space-y-1">
+                <span className="font-medium text-foreground">Delivery address</span>
+                <input value={deliveryAddress} onChange={(event) => setDeliveryAddress(event.target.value)} required className="w-full rounded-xl border border-border bg-background p-2.5 text-xs outline-none focus:border-primary" />
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <input type="number" step="any" placeholder="Latitude" value={deliveryLatitude} onChange={(event) => setDeliveryLatitude(event.target.value)} required className="rounded-xl border border-border bg-background p-2.5 text-xs outline-none focus:border-primary" />
+                <input type="number" step="any" placeholder="Longitude" value={deliveryLongitude} onChange={(event) => setDeliveryLongitude(event.target.value)} required className="rounded-xl border border-border bg-background p-2.5 text-xs outline-none focus:border-primary" />
+              </div>
 
               <div className="flex justify-end gap-2 pt-3">
                 <button
@@ -653,8 +684,9 @@ export function MarketPage({
                   Cancel
                 </button>
                 <button
-                  onClick={() => {
-                    alert(`Purchase Bid for ${activeListing.crop} submitted successfully!`)
+                  onClick={async () => {
+                    if (!onPurchaseBatch) return
+                    await onPurchaseBatch(activeListing.id, { quantity: Number(purchaseQuantity), buyerLocation: { address: deliveryAddress, latitude: Number(deliveryLatitude), longitude: Number(deliveryLongitude) } })
                     setShowBidModal(false)
                   }}
                   className="rounded-xl bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90"

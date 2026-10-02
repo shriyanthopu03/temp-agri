@@ -34,7 +34,7 @@ import { MarketPage } from './components/MarketPage'
 import { SettingsPage } from './components/SettingsPage'
 import { firebaseAuth } from './firebase'
 
-const referenceImage = 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202026-09-07%20183007-1ZZ814lv9Jftsz45jf0tRvpAGec7FV.png'
+const referenceImage = '/backgroundimg.jpg'
 const defaultOrganizationId = '507f1f77bcf86cd799439011'
 const defaultRegionId = '507f1f77bcf86cd799439012'
 
@@ -89,6 +89,28 @@ async function requestFarms(path, options, token) {
   const data = await response.json().catch(() => ({}))
   if (!response.ok) throw new Error(data.message || 'Unable to load farms')
   return data
+}
+
+async function requestWorkflow(path, options, token) {
+  const response = await fetch(`/api/workflow${path}`, {
+    ...options,
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, ...(options?.headers || {}) },
+  })
+  const data = await response.json().catch(() => ({}))
+  if (!response.ok) throw new Error(data.message || 'Unable to complete workflow request')
+  return data
+}
+
+function mapLot(lot) {
+  return {
+    ...lot,
+    id: lot._id || lot.id,
+    lotCode: lot.lotCode || `LOT-${String(lot._id || lot.id).slice(-6)}`,
+    category: lot.category,
+    farmerName: lot.farmer?.name || lot.farmerName,
+    farmName: lot.farm?.farmName || lot.farmName,
+    qualityGrade: lot.qualityGrade || 'Pending Inspection',
+  }
 }
 
 function LoginScreen({ onLogin, onSignUp }) {
@@ -460,12 +482,10 @@ export default function App() {
 
   // Operational State
   const [lots, setLots] = useState([])
-  const [shipments, setShipments] = useState([
-    { id: 's1', reference: 'SHP-2026-001', vehicle: 'MH-12-AB-4081', status: 'in_transit', driver: 'Suresh Kumar' },
-    { id: 's2', reference: 'SHP-2026-002', vehicle: 'MH-14-GH-9912', status: 'dispatched', driver: 'Ramesh Pawar' },
-  ])
+  const [shipments, setShipments] = useState([])
   const [purchaseOrders, setPurchaseOrders] = useState([])
   const [warehouses, setWarehouses] = useState([])
+  const [availableBatches, setAvailableBatches] = useState([])
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode)
@@ -504,6 +524,34 @@ export default function App() {
 
   // Active Role Persona Switcher
   const currentRoleValue = session?.user?.role || session?.role || 'farmer'
+
+  useEffect(() => {
+    if (!session?.token) return
+    let activeRequest = true
+    const loadWorkflow = async () => {
+      try {
+        const lotPath = currentRoleValue === 'buyer' ? '/available-batches' : currentRoleValue === 'quality_inspector' ? '/inspections/pending' : '/lots'
+        const lotData = await (lotPath === '/lots' ? fetch(`/api/lots`, { headers: { Authorization: `Bearer ${session.token}` } }).then((response) => response.json()) : requestWorkflow(lotPath, {}, session.token))
+        if (activeRequest) {
+          const mappedLots = Array.isArray(lotData) ? lotData.map(mapLot) : []
+          setLots(mappedLots)
+          if (currentRoleValue === 'buyer') setAvailableBatches(mappedLots)
+        }
+      } catch { /* dashboards retain their existing empty/demo state when the API is unavailable */ }
+      try {
+        const orders = await requestWorkflow('/orders', {}, session.token)
+        if (activeRequest) setPurchaseOrders(Array.isArray(orders) ? orders.map((order) => ({ ...order, id: order._id, reference: order.number, buyerName: order.buyer?.name, crop: order.crop, totalBudget: order.totalAmount })) : [])
+      } catch { /* role-specific order access is enforced by the API */ }
+      if (currentRoleValue === 'logistics_coordinator' || currentRoleValue === 'admin' || currentRoleValue === 'platform_admin') {
+        try {
+          const shipmentData = await requestWorkflow('/shipments', {}, session.token)
+          if (activeRequest) setShipments(Array.isArray(shipmentData) ? shipmentData.map((shipment) => ({ ...shipment, id: shipment._id, reference: shipment.shipmentNumber })) : [])
+        } catch { /* leave the current dashboard state intact */ }
+      }
+    }
+    loadWorkflow()
+    return () => { activeRequest = false }
+  }, [session, currentRoleValue])
 
   const handleRoleChange = (newRole) => {
     const updated = {
@@ -762,6 +810,14 @@ export default function App() {
               shipments={shipments}
               purchaseOrders={purchaseOrders}
               warehouses={warehouses}
+              onAssignShipment={async (shipmentId, vehicleId) => {
+                const saved = await requestWorkflow(`/shipments/${shipmentId}/assign`, { method: 'PUT', body: JSON.stringify({ vehicleId }) }, session.token)
+                setShipments((current) => current.map((shipment) => shipment.id === shipmentId ? { ...shipment, ...saved } : shipment))
+              }}
+              onDispatchShipment={async (shipmentId) => {
+                const saved = await requestWorkflow(`/shipments/${shipmentId}/dispatch`, { method: 'PUT', body: JSON.stringify({}) }, session.token)
+                setShipments((current) => current.map((shipment) => shipment.id === shipmentId ? { ...shipment, ...saved } : shipment))
+              }}
             />
           )}
 
@@ -794,8 +850,17 @@ export default function App() {
               lots={lots}
               farms={farms}
               session={session}
-              onCreateLot={(newLot) => setLots([newLot, ...lots])}
-              onInspectLot={() => undefined}
+              onCreateLot={async (newLot) => {
+                if (!session?.token) return setLots([newLot, ...lots])
+                const response = await fetch('/api/lots', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.token}` }, body: JSON.stringify({ category: newLot.category, quantity: newLot.quantity, unit: newLot.unit, farmer: session.user.id, farm: farms[0]?.id }) })
+                const saved = await response.json()
+                if (!response.ok) throw new Error(saved.message || 'Unable to create harvest batch')
+                setLots((current) => [mapLot(saved), ...current])
+              }}
+              onInspectLot={async (lotId, inspection) => {
+                const saved = await requestWorkflow('/inspections', { method: 'POST', body: JSON.stringify({ batchId: lotId, grade: inspection.grade.replace('Grade ', ''), rating: inspection.rating || 4.5, measuredQuantity: inspection.measuredQuantity, remarks: inspection.notes }) }, session.token)
+                setLots((current) => current.map((lot) => lot.id === lotId ? mapLot(saved) : lot))
+              }}
               onWarehouseMove={() => undefined}
               onDispatchShipment={() => undefined}
               onDeliverShipment={() => undefined}
@@ -807,7 +872,12 @@ export default function App() {
               role={currentRoleValue}
               purchaseOrders={purchaseOrders}
               lots={lots}
+              availableBatches={availableBatches}
               onCreatePO={(newPO) => setPurchaseOrders([newPO, ...purchaseOrders])}
+              onPurchaseBatch={async (batchId, order) => {
+                const saved = await requestWorkflow('/orders', { method: 'POST', body: JSON.stringify({ batchId, quantity: order.quantity, buyerLocation: order.buyerLocation }) }, session.token)
+                setPurchaseOrders((current) => [{ ...saved, id: saved._id, reference: saved.number, crop: saved.crop, totalBudget: saved.totalAmount }, ...current])
+              }}
             />
           )}
 

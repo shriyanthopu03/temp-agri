@@ -41,6 +41,8 @@ export function OverviewPage({
   purchaseOrders,
   warehouses,
   qualityReports,
+  onAssignShipment,
+  onDispatchShipment,
 }) {
   const [selectedLot, setSelectedLot] = useState(null)
 
@@ -267,14 +269,17 @@ export function OverviewPage({
                       <div className="p-2.5 rounded-xl bg-[#e4eef1] text-[#2e7080]">
                         <Truck size={18} />
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <p className="text-sm font-semibold">{s.reference || `SHP-2026-0${i + 1}`}</p>
                         <p className="text-xs text-muted-foreground">Vehicle: {s.vehicle || 'MH-12-AB-4081'}</p>
+                        <p className="text-[11px] text-muted-foreground">Pickup {s.pickupLocation?.latitude}, {s.pickupLocation?.longitude} → Destination {s.destination?.latitude}, {s.destination?.longitude}</p>
                       </div>
                     </div>
-                    <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-primary capitalize">
-                      {s.status || 'in_transit'}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      {s.status === 'ready_for_pickup' && <button onClick={() => onAssignShipment?.(s.id, 'FLEET-DEFAULT')} className="rounded-lg bg-secondary px-2.5 py-1 text-[11px] font-semibold text-primary">Assign vehicle</button>}
+                      {s.status === 'assigned' && <button onClick={() => onDispatchShipment?.(s.id)} className="rounded-lg bg-primary px-2.5 py-1 text-[11px] font-semibold text-primary-foreground">Dispatch</button>}
+                      <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-primary capitalize">{s.status || 'in_transit'}</span>
+                    </div>
                   </div>
                 ))}
               </div>

@@ -15,6 +15,7 @@ import operations from './routes/operations.js'
 import audit from './routes/audit.js'
 import notifications from './routes/notifications.js'
 import enterprise from './routes/enterprise.js'
+import workflow from './routes/workflow.js'
 
 const app = express()
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
@@ -60,6 +61,7 @@ app.use(`${apiPrefix}/operations`, operations)
 app.use(`${apiPrefix}/audit`, audit)
 app.use(`${apiPrefix}/notifications`, notifications)
 app.use(`${apiPrefix}/enterprise`, enterprise)
+app.use(`${apiPrefix}/workflow`, workflow)
 app.use(express.static(frontendDist))
 app.get('/*splat', (request, response, next) => {
   if (request.path.startsWith('/api/')) return next()
