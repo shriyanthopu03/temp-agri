@@ -80,6 +80,7 @@ export function MyFarmsPage({
         </div>
         <div className="flex items-center gap-3">
           <button
+            hidden={!['farmer', 'admin'].includes(role)}
             onClick={() => setShowForm(true)}
             className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:opacity-90"
           >

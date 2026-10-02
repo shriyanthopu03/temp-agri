@@ -839,6 +839,7 @@ export default function App() {
 
               <div className="min-h-[340px] bg-muted">
                 <FarmMap
+                  editable={['farmer', 'admin'].includes(currentRoleValue)}
                   points={points}
                   onAdd={(point) => {
                     setPoints((current) => [...current, point])
