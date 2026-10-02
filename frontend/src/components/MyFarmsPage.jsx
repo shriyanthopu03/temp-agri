@@ -154,6 +154,7 @@ export function MyFarmsPage({
           <div className="relative flex-1 min-h-[420px]">
             <FarmMap
               points={selectedFarm?.points || []}
+              farmName={selectedFarm?.name}
               onAdd={() => undefined}
               onUndo={() => undefined}
               onClear={() => undefined}

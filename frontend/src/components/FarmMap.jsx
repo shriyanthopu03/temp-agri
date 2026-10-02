@@ -7,7 +7,7 @@ const DEFAULT_CENTER = [78.9629, 20.5937]
 const apiKey = (typeof process !== 'undefined' && process.env?.MAPTILER_API_KEY) || (import.meta?.env && import.meta.env.VITE_MAPTILER_API_KEY) || 'fqDiQwYmuIvVrorFowV3'
 
 
-export function FarmMap({ points, onAdd, onUndo, onClear, onFinish, onEdit, finished }) {
+export function FarmMap({ points, farmName, onAdd, onUndo, onClear, onFinish, onEdit, finished }) {
   const mapContainer = useRef(null)
   const mapRef = useRef(null)
   const markersRef = useRef([])
@@ -43,6 +43,14 @@ export function FarmMap({ points, onAdd, onUndo, onClear, onFinish, onEdit, fini
       element.textContent = String(index + 1)
       return new maptilersdk.Marker({ element }).setLngLat([longitude, latitude]).addTo(map)
     })
+    if (farmName && points.length) {
+      const center = points.reduce((sum, [longitude, latitude]) => [sum[0] + longitude, sum[1] + latitude], [0, 0]).map((value) => value / points.length)
+      const label = document.createElement('div')
+      label.className = 'farm-name-marker'
+      label.textContent = farmName
+      markersRef.current.push(new maptilersdk.Marker({ element: label, anchor: 'bottom' }).setLngLat(center).addTo(map))
+      map.flyTo({ center, zoom: 14, essential: true })
+    }
     const coordinates = points.length >= 3 ? [...points, points[0]] : points
     const data = { type: 'FeatureCollection', features: coordinates.length >= 2 ? [{ type: 'Feature', properties: {}, geometry: { type: coordinates.length >= 3 ? 'Polygon' : 'LineString', coordinates: coordinates.length >= 3 ? [coordinates] : coordinates } }] : [] }
     const source = map.getSource('farm-boundary')

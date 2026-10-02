@@ -193,6 +193,7 @@ export function OverviewPage({
           <div className="h-[420px]">
             <FarmMap
               points={selectedFarm?.points || []}
+              farmName={selectedFarm?.name}
               onAdd={() => undefined}
               onUndo={() => undefined}
               onClear={() => undefined}
