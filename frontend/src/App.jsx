@@ -526,19 +526,24 @@ export default function App() {
       .slice(0, 2)
       .map((part) => part[0].toUpperCase())
       .join('') || 'WU'
-  const canAccessMyFarms = currentRoleValue !== 'quality_inspector'
+  const isBuyerWorkspace = currentRoleValue === 'buyer'
+  const canAccessMyFarms = !isBuyerWorkspace && currentRoleValue !== 'quality_inspector'
 
-  const navItems = [
-    { label: 'Overview', icon: LayoutDashboard },
-    ...(canAccessMyFarms ? [{ label: 'My Farms', icon: Leaf }] : []),
-    { label: 'Produce Lots', icon: Sprout },
-    { label: 'Market', icon: AreaChart },
-    { label: 'Settings', icon: Settings },
-  ]
+  const navItems = isBuyerWorkspace
+    ? [{ label: 'Market', icon: AreaChart }]
+    : [
+        { label: 'Overview', icon: LayoutDashboard },
+        ...(canAccessMyFarms ? [{ label: 'My Farms', icon: Leaf }] : []),
+        { label: 'Produce Lots', icon: Sprout },
+        { label: 'Market', icon: AreaChart },
+        { label: 'Settings', icon: Settings },
+      ]
 
   useEffect(() => {
-    if (!canAccessMyFarms && active === 'My Farms') setActive('Overview')
-  }, [canAccessMyFarms, active])
+    if ((isBuyerWorkspace && active !== 'Market') || (!canAccessMyFarms && active === 'My Farms')) {
+      setActive(isBuyerWorkspace ? 'Market' : 'Overview')
+    }
+  }, [active, canAccessMyFarms, isBuyerWorkspace])
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -679,7 +684,7 @@ export default function App() {
 
         {/* Dynamic Page Views */}
         <div className="mx-auto max-w-[1500px] p-5 md:p-8">
-          {active === 'Overview' && (
+          {active === 'Overview' && !isBuyerWorkspace && (
             <OverviewPage
               role={currentRoleValue}
               userName={userName}
@@ -726,7 +731,7 @@ export default function App() {
             />
           )}
 
-          {active === 'Produce Lots' && (
+          {active === 'Produce Lots' && !isBuyerWorkspace && (
             <ProduceLotsPage
               role={currentRoleValue}
               lots={lots}
@@ -765,7 +770,7 @@ export default function App() {
             />
           )}
 
-          {active === 'Settings' && (
+          {active === 'Settings' && !isBuyerWorkspace && (
             <SettingsPage
               session={session}
               role={currentRoleValue}

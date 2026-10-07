@@ -111,7 +111,9 @@ export function MarketPage({
   }
 
   const calcNetTotal = Math.max(0, Number(calcQty) * Number(calcPrice) - Number(calcDeduction) + Number(calcBonus))
-  const marketListings = availableBatches.map((batch) => ({
+  const marketListings = availableBatches
+    .filter((batch) => batch.status === 'accepted' && Number(batch.availableQuantity ?? batch.quantity) > 0)
+    .map((batch) => ({
         ...batch,
         id: batch.id || batch._id,
         crop: batch.category,
