@@ -449,10 +449,12 @@ export default function App() {
     let activeRequest = true
     const loadWorkflow = async () => {
       try {
-        const lotPath = currentRoleValue === 'buyer' ? '/available-batches' : currentRoleValue === 'quality_inspector' ? '/inspections/pending' : '/lots'
+        const lotPath = currentRoleValue === 'buyer' ? '/available-batches' : '/lots'
         const lotData = await (lotPath === '/lots' ? fetch(`/api/lots`, { headers: { Authorization: `Bearer ${session.token}` } }).then((response) => response.json()) : requestWorkflow(lotPath, {}, session.token))
         if (activeRequest) {
-          const mappedLots = Array.isArray(lotData) ? lotData.map(mapLot) : []
+          const mappedLots = Array.isArray(lotData)
+            ? lotData.filter((lot) => currentRoleValue !== 'quality_inspector' || ['created', 'received'].includes(lot.status)).map(mapLot)
+            : []
           setLots(mappedLots)
           if (currentRoleValue === 'buyer') setAvailableBatches(mappedLots)
         }
