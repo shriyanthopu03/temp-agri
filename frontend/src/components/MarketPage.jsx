@@ -111,9 +111,8 @@ export function MarketPage({
   }
 
   const calcNetTotal = Math.max(0, Number(calcQty) * Number(calcPrice) - Number(calcDeduction) + Number(calcBonus))
-  const rawSource = (availableBatches && availableBatches.length > 0)
-    ? availableBatches
-    : (lots || []).filter((batch) => batch.status === 'accepted' || batch.status === 'inspected')
+  const combined = [...(lots || []), ...(availableBatches || [])]
+  const rawSource = Array.from(new Map(combined.map((item) => [item.id || item._id, item])).values())
 
   const marketListings = rawSource
     .filter((batch) => (batch.status === 'accepted' || batch.status === 'inspected') && Number(batch.availableQuantity ?? batch.quantity) > 0)
@@ -125,10 +124,12 @@ export function MarketPage({
       quantity: `${batch.availableQuantity ?? batch.quantity} ${batch.unit || 'kg'}`,
       availableQuantity: Number(batch.availableQuantity ?? batch.quantity),
       grade: `${batch.qualityGrade || 'Inspected'}${batch.qualityRating ? ` (${batch.qualityRating}/5)` : ''}`,
-      price: `₹${batch.marketPrice || 0} / ${batch.unit || 'kg'}`,
+      price: `₹${batch.marketPrice || 50} / ${batch.unit || 'kg'}`,
       location: batch.farmName || batch.farm?.farmName || batch.farm?.location?.address || 'Farm location',
       verified: true,
     }))
+
+  const canBuyRole = role === 'buyer' || role === 'platform_admin' || role === 'admin'
 
   return (
     <div className="space-y-6">
@@ -248,7 +249,7 @@ export function MarketPage({
                 </div>
 
                 <button
-                  disabled={!item.verified || role !== 'buyer'}
+                  disabled={!item.verified || !canBuyRole}
                   onClick={() => {
                     setActiveListing(item)
                     setPurchaseQuantity(String(Math.min(100, item.availableQuantity || 100)))
@@ -256,7 +257,7 @@ export function MarketPage({
                   }}
                   className="w-full rounded-xl bg-primary py-2.5 text-xs font-semibold text-primary-foreground hover:opacity-90 transition disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  {role === 'buyer' && item.verified ? 'Purchase inspected batch' : 'Purchase unavailable'}
+                  {canBuyRole && item.verified ? 'Purchase inspected batch' : 'Purchase unavailable'}
                 </button>
               </div>
             ))}
