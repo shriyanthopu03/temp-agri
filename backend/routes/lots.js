@@ -10,7 +10,10 @@ router.use(requireAuth)
 router.get('/', async (req, res, next) => {
   try {
     const ownership = req.user.role === 'farmer' ? { farmer: req.user.userId } : {}
-    res.json(await ProduceLot.find(scopedFilter(req, ownership)).sort({ createdAt: -1 }))
+    res.json(await ProduceLot.find(scopedFilter(req, ownership))
+      .populate('farmer', 'name email')
+      .populate('farm', 'farmName location areaAcres areaHectares')
+      .sort({ createdAt: -1 }))
   } catch (error) { next(error) }
 })
 

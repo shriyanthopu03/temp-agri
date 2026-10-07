@@ -57,7 +57,6 @@ export function OverviewPage({
         { label: 'Total farm area', value: `${farms.reduce((acc, f) => acc + (f.area || 0), 0).toFixed(1)} ac`, suffix: 'acres', icon: Tractor, tone: 'bg-[#e7efe5] text-primary' },
         { label: 'Active farms', value: String(farms.length), suffix: 'registered', icon: Leaf, tone: 'bg-[#f7ecd8] text-[#a56a17]' },
         { label: 'Harvested lots', value: String(lots.length), suffix: 'active', icon: Sprout, tone: 'bg-[#e4eef1] text-[#2e7080]' },
-        { label: 'Market value', value: '—', suffix: 'estimated', icon: TrendingUp, tone: 'bg-[#eee8f4] text-[#76518e]' },
       ],
     },
     logistics_coordinator: {
@@ -403,8 +402,7 @@ export function OverviewPage({
           </div>
         </section>
 
-        {/* Market Snapshot Card */}
-        <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+        {role !== 'farmer' && <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="font-semibold">Live Market Snapshot</h2>
@@ -427,7 +425,7 @@ export function OverviewPage({
               <p className="text-sm font-bold text-primary">—</p>
             </div>
           </div>
-        </section>
+        </section>}
       </div>
     </div>
   )

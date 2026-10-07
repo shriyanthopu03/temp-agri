@@ -107,8 +107,8 @@ function mapLot(lot) {
     id: lot._id || lot.id,
     lotCode: lot.lotCode || `LOT-${String(lot._id || lot.id).slice(-6)}`,
     category: lot.category,
-    farmerName: lot.farmer?.name || lot.farmerName,
-    farmName: lot.farm?.farmName || lot.farmName,
+    farmerName: lot.farmer?.name || lot.farmerName || 'Farmer name unavailable',
+    farmName: lot.farm?.farmName || lot.farmName || 'Farm name unavailable',
     qualityGrade: lot.qualityGrade || 'Pending Inspection',
   }
 }
