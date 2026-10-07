@@ -457,10 +457,12 @@ export default function App() {
           if (currentRoleValue === 'buyer') setAvailableBatches(mappedLots)
         }
       } catch { /* dashboards retain their existing empty/demo state when the API is unavailable */ }
-      try {
-        const orders = await requestWorkflow('/orders', {}, session.token)
+      if (['admin', 'platform_admin', 'buyer', 'farmer', 'logistics_coordinator'].includes(currentRoleValue)) {
+        try {
+          const orders = await requestWorkflow('/orders', {}, session.token)
         if (activeRequest) setPurchaseOrders(Array.isArray(orders) ? orders.map((order) => ({ ...order, id: order._id, reference: order.number, buyerName: order.buyer?.name, crop: order.crop, totalBudget: order.totalAmount })) : [])
-      } catch { /* role-specific order access is enforced by the API */ }
+        } catch { /* role-specific order access is enforced by the API */ }
+      }
       if (currentRoleValue === 'logistics_coordinator' || currentRoleValue === 'admin' || currentRoleValue === 'platform_admin') {
         try {
           const shipmentData = await requestWorkflow('/shipments', {}, session.token)
@@ -469,6 +471,22 @@ export default function App() {
       }
     }
     loadWorkflow()
+    return () => { activeRequest = false }
+  }, [session, currentRoleValue])
+
+  useEffect(() => {
+    if (!session?.token || currentRoleValue !== 'quality_inspector') return
+    let activeRequest = true
+    fetch('/api/lots', { headers: { Authorization: `Bearer ${session.token}` } })
+      .then((response) => {
+        if (!response.ok) throw new Error('Unable to load produce lots')
+        return response.json()
+      })
+      .then((allLots) => {
+        if (!activeRequest || !Array.isArray(allLots)) return
+        setLots(allLots.filter((lot) => ['created', 'received'].includes(lot.status)).map(mapLot))
+      })
+      .catch(() => undefined)
     return () => { activeRequest = false }
   }, [session, currentRoleValue])
 
