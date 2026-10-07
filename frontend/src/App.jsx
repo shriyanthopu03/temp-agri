@@ -527,10 +527,13 @@ export default function App() {
       .map((part) => part[0].toUpperCase())
       .join('') || 'WU'
   const isBuyerWorkspace = currentRoleValue === 'buyer'
+  const isQualityInspectionWorkspace = currentRoleValue === 'quality_inspector'
   const canAccessMyFarms = !isBuyerWorkspace && currentRoleValue !== 'quality_inspector'
 
   const navItems = isBuyerWorkspace
     ? [{ label: 'Market', icon: AreaChart }]
+    : isQualityInspectionWorkspace
+      ? [{ label: 'Produce Lots', icon: Sprout }]
     : [
         { label: 'Overview', icon: LayoutDashboard },
         ...(canAccessMyFarms ? [{ label: 'My Farms', icon: Leaf }] : []),
@@ -540,10 +543,14 @@ export default function App() {
       ]
 
   useEffect(() => {
-    if ((isBuyerWorkspace && active !== 'Market') || (!canAccessMyFarms && active === 'My Farms')) {
-      setActive(isBuyerWorkspace ? 'Market' : 'Overview')
+    if (
+      (isBuyerWorkspace && active !== 'Market') ||
+      (isQualityInspectionWorkspace && active !== 'Produce Lots') ||
+      (!canAccessMyFarms && active === 'My Farms')
+    ) {
+      setActive(isBuyerWorkspace ? 'Market' : isQualityInspectionWorkspace ? 'Produce Lots' : 'Overview')
     }
-  }, [active, canAccessMyFarms, isBuyerWorkspace])
+  }, [active, canAccessMyFarms, isBuyerWorkspace, isQualityInspectionWorkspace])
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -684,7 +691,7 @@ export default function App() {
 
         {/* Dynamic Page Views */}
         <div className="mx-auto max-w-[1500px] p-5 md:p-8">
-          {active === 'Overview' && !isBuyerWorkspace && (
+          {active === 'Overview' && !isBuyerWorkspace && !isQualityInspectionWorkspace && (
             <OverviewPage
               role={currentRoleValue}
               userName={userName}
@@ -756,7 +763,7 @@ export default function App() {
             />
           )}
 
-          {active === 'Market' && (
+          {active === 'Market' && !isQualityInspectionWorkspace && (
             <MarketPage
               role={currentRoleValue}
               purchaseOrders={purchaseOrders}
@@ -770,7 +777,7 @@ export default function App() {
             />
           )}
 
-          {active === 'Settings' && !isBuyerWorkspace && (
+          {active === 'Settings' && !isBuyerWorkspace && !isQualityInspectionWorkspace && (
             <SettingsPage
               session={session}
               role={currentRoleValue}
