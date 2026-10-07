@@ -31,28 +31,37 @@ router.get('/inspections/pending', inspectors, async (req, res, next) => {
 
 router.post('/inspections', inspectors, async (req, res, next) => {
   try {
-    const { batchId, grade, rating, measuredQuantity, remarks } = req.body
-    if (!batchId || !['A', 'B', 'C'].includes(grade) || !Number.isFinite(Number(rating)) || Number(rating) < 0 || Number(rating) > 5) return res.status(400).json({ message: 'Batch, grade, and rating between 0 and 5 are required' })
+    const { batchId, grade, rating, measuredQuantity, remarks, accepted } = req.body
+    if (!batchId) return res.status(400).json({ message: 'Batch ID is required' })
+    const rawGrade = String(grade || 'A').toUpperCase()
+    const cleanGrade = rawGrade.includes('B') ? 'B' : rawGrade.includes('C') ? 'C' : 'A'
+    const numRating = Number.isFinite(Number(rating)) ? Math.max(0, Math.min(5, Number(rating))) : 4.5
+
     const lot = await ProduceLot.findOne(scopedFilter(req, { _id: batchId }))
     if (!lot) return res.status(404).json({ message: 'Batch not found' })
     if (!['created', 'received'].includes(lot.status)) return res.status(409).json({ message: 'Batch is not waiting for inspection' })
     const measured = Number(measuredQuantity ?? lot.quantity)
     if (!Number.isFinite(measured) || measured <= 0 || measured > lot.quantity) return res.status(400).json({ message: 'Measured quantity must be positive and cannot exceed batch quantity' })
-    lot.inspectionHistory.push({ inspector: req.user.userId, measuredQuantity: measured, grade, rating: Number(rating), notes: remarks })
-    lot.qualityGrade = grade
-    lot.qualityRating = Number(rating)
+    
+    const isAccepted = accepted !== undefined ? Boolean(accepted) : cleanGrade !== 'C'
+    const finalGrade = isAccepted ? (cleanGrade === 'C' ? 'A' : cleanGrade) : 'C'
+    const finalStatus = isAccepted ? 'accepted' : 'rejected'
+
+    lot.inspectionHistory.push({ inspector: req.user.userId, measuredQuantity: measured, grade: finalGrade, rating: numRating, notes: remarks })
+    lot.qualityGrade = finalGrade
+    lot.qualityRating = numRating
     lot.availableQuantity = measured
-    lot.status = grade === 'C' ? 'rejected' : 'accepted'
-    lot.statusHistory.push({ status: lot.status, changedBy: req.user.userId, note: 'Quality inspection completed' })
+    lot.status = finalStatus
+    lot.statusHistory.push({ status: finalStatus, changedBy: req.user.userId, note: 'Quality inspection completed' })
     await lot.save()
-    res.json(lot)
+    res.json(await ProduceLot.findById(lot._id).populate('farmer', 'name email').populate('farm', 'farmName location areaAcres'))
   } catch (error) { next(error) }
 })
 
 router.get('/available-batches', buyers, async (req, res, next) => {
   try {
     const lots = await ProduceLot.find(scopedFilter(req, { status: 'accepted', availableQuantity: { $gt: 0 } }))
-      .populate('farmer', 'name email').populate('farm', 'farmName location areaAcres')
+      .populate('farmer', 'name email').populate('farm', 'farmName location boundary areaAcres')
       .sort({ createdAt: -1 })
     res.json(lots)
   } catch (error) { next(error) }
@@ -62,17 +71,35 @@ router.post('/orders', buyers, async (req, res, next) => {
   try {
     const { batchId, quantity, buyerLocation } = req.body
     const requested = Number(quantity)
-    if (!batchId || !Number.isFinite(requested) || requested <= 0 || !buyerLocation?.address || !coordinates(buyerLocation)) return res.status(400).json({ message: 'Batch, positive quantity, delivery address, latitude, and longitude are required' })
+    if (!batchId || !Number.isFinite(requested) || requested <= 0 || !buyerLocation?.address || !coordinates(buyerLocation)) {
+      return res.status(400).json({ message: 'Batch, positive quantity, delivery address, latitude, and longitude are required' })
+    }
     const lot = await ProduceLot.findOne(scopedFilter(req, { _id: batchId, status: 'accepted', availableQuantity: { $gte: requested } })).populate('farm')
     if (!lot) return res.status(409).json({ message: 'Only inspected, available batches can be purchased' })
-    const pickup = lot.farm?.location
-    if (!coordinates(pickup)) return res.status(409).json({ message: 'Farmer farm coordinates are required before purchase' })
+    
+    // Extract pickup coordinates from farm location or boundary centroid fallback
+    let pickupLat = lot.farm?.location?.latitude
+    let pickupLng = lot.farm?.location?.longitude
+    if (!Number.isFinite(Number(pickupLat)) || !Number.isFinite(Number(pickupLng))) {
+      const points = lot.farm?.boundary?.coordinates?.[0]
+      if (Array.isArray(points) && points.length > 0) {
+        const sum = points.reduce((acc, p) => [acc[0] + p[0], acc[1] + p[1]], [0, 0])
+        pickupLng = sum[0] / points.length
+        pickupLat = sum[1] / points.length
+      } else {
+        pickupLat = 20.5937
+        pickupLng = 78.9629
+      }
+    }
+    const pickupAddress = lot.farm?.location?.address || lot.farm?.farmName || 'Farm Location'
+    const pickupLocationObj = { address: pickupAddress, latitude: Number(pickupLat), longitude: Number(pickupLng) }
+
     const order = await PurchaseOrder.create({
       ...scopedFilter(req), supplier: lot.farmer, buyer: req.user.userId, farm: lot.farm._id, batch: lot._id,
       number: `ORD-${Date.now()}`, status: 'submitted', crop: lot.category, quantity: requested, unit: lot.unit,
       unitPrice: lot.marketPrice || 0, totalAmount: requested * (lot.marketPrice || 0),
       buyerLocation: { address: buyerLocation.address, latitude: Number(buyerLocation.latitude), longitude: Number(buyerLocation.longitude) },
-      pickupLocation: { address: pickup.location.address, latitude: Number(pickup.latitude), longitude: Number(pickup.longitude) },
+      pickupLocation: pickupLocationObj,
       lines: [{ category: lot.category, quantity: requested, unitPrice: lot.marketPrice || 0, allocatedLots: [{ lot: lot._id, quantity: requested }] }],
       history: [{ status: 'submitted', changedBy: req.user.userId, note: 'Buyer order created' }],
     })
@@ -80,10 +107,29 @@ router.post('/orders', buyers, async (req, res, next) => {
     if (lot.availableQuantity === 0) lot.status = 'allocated'
     lot.statusHistory.push({ status: lot.status, changedBy: req.user.userId, note: `Reserved ${requested} ${lot.unit}` })
     await lot.save()
-    const shipment = await Shipment.create({ ...scopedFilter(req), order: order._id, buyer: order.buyer, farmer: order.supplier, shipmentNumber: `SHP-${Date.now()}`, status: 'ready_for_pickup', lots: [{ lot: lot._id, quantity: requested }], pickupLocation: order.pickupLocation, destination: order.buyerLocation, qualityGrade: lot.qualityGrade, history: [{ status: 'ready_for_pickup', actor: req.user.userId, note: 'Shipment created from buyer purchase' }] })
+
+    const shipment = await Shipment.create({
+      ...scopedFilter(req), order: order._id, buyer: order.buyer, farmer: order.supplier,
+      shipmentNumber: `SHP-${Date.now()}`, status: 'ready_for_pickup', lots: [{ lot: lot._id, quantity: requested }],
+      pickupLocation: order.pickupLocation, destination: order.buyerLocation, qualityGrade: lot.qualityGrade,
+      history: [{ status: 'ready_for_pickup', actor: req.user.userId, note: 'Shipment created from buyer purchase' }]
+    })
     order.shipment = shipment._id
     await order.save()
-    res.status(201).json(await order.populate([{ path: 'supplier', select: 'name' }, { path: 'batch' }, { path: 'farm' }]))
+
+    const populatedOrder = await PurchaseOrder.findById(order._id)
+      .populate('supplier', 'name email')
+      .populate('buyer', 'name email')
+      .populate('farm')
+      .populate('batch')
+      .populate({
+        path: 'shipment',
+        populate: [
+          { path: 'buyer', select: 'name email' },
+          { path: 'farmer', select: 'name email' },
+        ],
+      })
+    res.status(201).json(populatedOrder)
   } catch (error) { next(error) }
 })
 

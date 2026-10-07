@@ -3,7 +3,24 @@ import { CheckCircle, MapPin, Package, Truck } from 'lucide-react'
 import { FarmMap } from './FarmMap'
 
 function farmPoints(shipment) {
-  return shipment.order?.farm?.boundary?.coordinates?.[0]?.slice(0, -1) || []
+  if (!shipment) return []
+  const coords = shipment.order?.farm?.boundary?.coordinates?.[0]
+  if (Array.isArray(coords) && coords.length >= 3) {
+    return coords.length > 1 && coords[0][0] === coords.at(-1)[0] && coords[0][1] === coords.at(-1)[1]
+      ? coords.slice(0, -1)
+      : coords
+  }
+  const pickup = shipment.pickupLocation || shipment.order?.farm?.location
+  if (Number.isFinite(Number(pickup?.longitude)) && Number.isFinite(Number(pickup?.latitude))) {
+    const lng = Number(pickup.longitude)
+    const lat = Number(pickup.latitude)
+    return [
+      [lng - 0.0015, lat - 0.0015],
+      [lng + 0.0015, lat - 0.0015],
+      [lng + 0.0015, lat + 0.0015],
+    ]
+  }
+  return []
 }
 
 export function LogisticsDeliveriesPage({ shipments = [], onMarkDelivered }) {
