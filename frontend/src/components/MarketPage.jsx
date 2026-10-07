@@ -120,13 +120,13 @@ export function MarketPage({
     .map((batch) => ({
       ...batch,
       id: batch.id || batch._id,
-      crop: batch.category || batch.crop || 'Produce Lot',
-      farmerName: batch.farmerName || batch.farmer?.name || 'Verified Farmer',
+      crop: batch.category || 'Produce Lot',
+      farmerName: batch.farmerName || batch.farmer?.name || 'Farmer',
       quantity: `${batch.availableQuantity ?? batch.quantity} ${batch.unit || 'kg'}`,
       availableQuantity: Number(batch.availableQuantity ?? batch.quantity),
-      grade: `${batch.qualityGrade || 'Grade A'}${batch.qualityRating ? ` (${batch.qualityRating}/5)` : ''}`,
-      price: `₹${batch.marketPrice || 50} / ${batch.unit || 'kg'}`,
-      location: batch.farmName || batch.farm?.farmName || 'Nashik Agriculture Belt, MH',
+      grade: `${batch.qualityGrade || 'Inspected'}${batch.qualityRating ? ` (${batch.qualityRating}/5)` : ''}`,
+      price: `₹${batch.marketPrice || 0} / ${batch.unit || 'kg'}`,
+      location: batch.farmName || batch.farm?.farmName || batch.farm?.location?.address || 'Farm location',
       verified: true,
     }))
 
