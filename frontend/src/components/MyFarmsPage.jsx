@@ -77,6 +77,7 @@ export function MyFarmsPage({
           <p className="mt-1 text-sm text-muted-foreground">
             Manage boundary coordinates, crop varieties, soil types, and verification certificates.
           </p>
+          {farmError && <p className="mt-2 text-sm font-medium text-destructive">{farmError}</p>}
         </div>
         <div className="flex items-center gap-3">
           <button

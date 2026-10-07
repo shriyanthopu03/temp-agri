@@ -31,6 +31,7 @@ import { MyFarmsPage } from './components/MyFarmsPage'
 import { ProduceLotsPage } from './components/ProduceLotsPage'
 import { MarketPage } from './components/MarketPage'
 import { SettingsPage } from './components/SettingsPage'
+import { LogisticsDeliveriesPage } from './components/LogisticsDeliveriesPage'
 import { firebaseAuth } from './firebase'
 
 const referenceImage = '/backgroundimg.jpg'
@@ -505,10 +506,19 @@ export default function App() {
     }
   }
 
-  const handleDeleteFarm = (farmId) => {
-    setFarms((current) => current.filter((f) => f.id !== farmId))
-    if (selectedFarm?.id === farmId) {
-      setSelectedFarm(farms.find((f) => f.id !== farmId) || null)
+  const handleDeleteFarm = async (farmId) => {
+    if (!session?.token) {
+      setFarmError('You must be signed in to delete a farm.')
+      return
+    }
+    try {
+      setFarmError('')
+      await requestFarms(`/${farmId}`, { method: 'DELETE' }, session.token)
+      const remaining = farms.filter((farm) => farm.id !== farmId)
+      setFarms(remaining)
+      if (selectedFarm?.id === farmId) setSelectedFarm(remaining[0] || null)
+    } catch (error) {
+      setFarmError(error.message)
     }
   }
 
@@ -528,12 +538,15 @@ export default function App() {
       .join('') || 'WU'
   const isBuyerWorkspace = currentRoleValue === 'buyer'
   const isQualityInspectionWorkspace = currentRoleValue === 'quality_inspector'
+  const isLogisticsWorkspace = currentRoleValue === 'logistics_coordinator'
   const canAccessMyFarms = !isBuyerWorkspace && currentRoleValue !== 'quality_inspector'
 
   const navItems = isBuyerWorkspace
     ? [{ label: 'Market', icon: AreaChart }]
     : isQualityInspectionWorkspace
       ? [{ label: 'Produce Lots', icon: Sprout }]
+      : isLogisticsWorkspace
+        ? [{ label: 'Deliveries', icon: Tractor }]
     : [
         { label: 'Overview', icon: LayoutDashboard },
         ...(canAccessMyFarms ? [{ label: 'My Farms', icon: Leaf }] : []),
@@ -546,11 +559,12 @@ export default function App() {
     if (
       (isBuyerWorkspace && active !== 'Market') ||
       (isQualityInspectionWorkspace && active !== 'Produce Lots') ||
+      (isLogisticsWorkspace && active !== 'Deliveries') ||
       (!canAccessMyFarms && active === 'My Farms')
     ) {
-      setActive(isBuyerWorkspace ? 'Market' : isQualityInspectionWorkspace ? 'Produce Lots' : 'Overview')
+      setActive(isBuyerWorkspace ? 'Market' : isQualityInspectionWorkspace ? 'Produce Lots' : isLogisticsWorkspace ? 'Deliveries' : 'Overview')
     }
-  }, [active, canAccessMyFarms, isBuyerWorkspace, isQualityInspectionWorkspace])
+  }, [active, canAccessMyFarms, isBuyerWorkspace, isLogisticsWorkspace, isQualityInspectionWorkspace])
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -691,7 +705,7 @@ export default function App() {
 
         {/* Dynamic Page Views */}
         <div className="mx-auto max-w-[1500px] p-5 md:p-8">
-          {active === 'Overview' && !isBuyerWorkspace && !isQualityInspectionWorkspace && (
+          {active === 'Overview' && !isBuyerWorkspace && !isQualityInspectionWorkspace && !isLogisticsWorkspace && (
             <OverviewPage
               role={currentRoleValue}
               userName={userName}
@@ -763,6 +777,17 @@ export default function App() {
             />
           )}
 
+          {active === 'Deliveries' && isLogisticsWorkspace && (
+            <LogisticsDeliveriesPage
+              shipments={shipments}
+              onMarkDelivered={async (shipmentId) => {
+                const saved = await requestWorkflow(`/shipments/${shipmentId}/status`, { method: 'PUT', body: JSON.stringify({ status: 'delivered' }) }, session.token)
+                setShipments((current) => current.map((shipment) => shipment.id === shipmentId ? { ...shipment, ...saved } : shipment))
+                setLots((current) => current.map((lot) => lot.id === saved.lot ? { ...lot, status: 'delivered' } : lot))
+              }}
+            />
+          )}
+
           {active === 'Market' && !isQualityInspectionWorkspace && (
             <MarketPage
               role={currentRoleValue}
@@ -777,7 +802,7 @@ export default function App() {
             />
           )}
 
-          {active === 'Settings' && !isBuyerWorkspace && !isQualityInspectionWorkspace && (
+          {active === 'Settings' && !isBuyerWorkspace && !isQualityInspectionWorkspace && !isLogisticsWorkspace && (
             <SettingsPage
               session={session}
               role={currentRoleValue}

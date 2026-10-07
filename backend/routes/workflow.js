@@ -95,7 +95,22 @@ router.get('/orders', orderViewers, async (req, res, next) => {
 })
 
 router.get('/shipments', logistics, async (req, res, next) => {
-  try { res.json(await Shipment.find(scopedFilter(req)).populate('order').populate('buyer', 'name').populate('farmer', 'name').sort({ createdAt: -1 })) } catch (error) { next(error) }
+  try {
+    const shipments = await Shipment.find(scopedFilter(req))
+      .populate('order')
+      .populate('buyer', 'name email')
+      .populate('farmer', 'name email')
+      .populate({
+        path: 'order',
+        populate: [
+          { path: 'farm', select: 'farmName location boundary areaAcres areaHectares crops' },
+          { path: 'batch', select: 'category variety quantity availableQuantity unit qualityGrade qualityRating status' },
+          { path: 'buyer', select: 'name email' },
+        ],
+      })
+      .sort({ createdAt: -1 })
+    res.json(shipments)
+  } catch (error) { next(error) }
 })
 
 router.post('/shipments', logistics, async (req, res, next) => {
