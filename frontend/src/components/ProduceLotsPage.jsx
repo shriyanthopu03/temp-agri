@@ -55,7 +55,7 @@ export function ProduceLotsPage({
   const [newFarm, setNewFarm] = useState(farms[0]?.name || '')
 
   // Quality Form
-  const [inspectGrade, setInspectGrade] = useState('')
+  const [inspectGrade, setInspectGrade] = useState('Grade A (Export Quality)')
   const [inspectMoisture, setInspectMoisture] = useState('')
   const [inspectPurity, setInspectPurity] = useState('')
   const [inspectNotes, setInspectNotes] = useState('')
@@ -431,6 +431,8 @@ export function ProduceLotsPage({
                     <button
                       onClick={() => {
                         setActiveLot(lot)
+                        setInspectGrade('Grade A (Export Quality)')
+                        setInspectAccepted(true)
                         setShowInspectModal(true)
                       }}
                       className="rounded-xl bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90 transition"
