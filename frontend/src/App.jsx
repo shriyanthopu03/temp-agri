@@ -522,6 +522,34 @@ export default function App() {
     }
   }
 
+  useEffect(() => {
+    const isBuyer = currentRoleValue === 'buyer'
+    const isQualityInspector = currentRoleValue === 'quality_inspector'
+    const isLogisticsCoordinator = currentRoleValue === 'logistics_coordinator'
+    const isFarmer = currentRoleValue === 'farmer'
+    const canAccessFarms = !isBuyer && !isQualityInspector
+
+    if (
+      (isBuyer && active !== 'Market') ||
+      (isQualityInspector && active !== 'Produce Lots') ||
+      (isLogisticsCoordinator && active !== 'Deliveries') ||
+      (isFarmer && active === 'Market') ||
+      (!canAccessFarms && active === 'My Farms')
+    ) {
+      setActive(
+        isBuyer
+          ? 'Market'
+          : isQualityInspector
+            ? 'Produce Lots'
+            : isLogisticsCoordinator
+              ? 'Deliveries'
+              : isFarmer && active === 'Market'
+                ? 'My Farms'
+                : 'Overview',
+      )
+    }
+  }, [active, currentRoleValue])
+
   if (!session) {
     if (authMode === 'signup') return <SignUpScreen onLogin={() => setAuthMode('login')} onSignUp={saveSession} />
     return <LoginScreen onLogin={saveSession} onSignUp={() => setAuthMode('signup')} />
@@ -539,6 +567,7 @@ export default function App() {
   const isBuyerWorkspace = currentRoleValue === 'buyer'
   const isQualityInspectionWorkspace = currentRoleValue === 'quality_inspector'
   const isLogisticsWorkspace = currentRoleValue === 'logistics_coordinator'
+  const isFarmerWorkspace = currentRoleValue === 'farmer'
   const canAccessMyFarms = !isBuyerWorkspace && currentRoleValue !== 'quality_inspector'
 
   const navItems = isBuyerWorkspace
@@ -547,6 +576,13 @@ export default function App() {
       ? [{ label: 'Produce Lots', icon: Sprout }]
       : isLogisticsWorkspace
         ? [{ label: 'Deliveries', icon: Tractor }]
+        : isFarmerWorkspace
+          ? [
+              { label: 'Overview', icon: LayoutDashboard },
+              { label: 'My Farms', icon: Leaf },
+              { label: 'Produce Lots', icon: Sprout },
+              { label: 'Settings', icon: Settings },
+            ]
     : [
         { label: 'Overview', icon: LayoutDashboard },
         ...(canAccessMyFarms ? [{ label: 'My Farms', icon: Leaf }] : []),
@@ -554,17 +590,6 @@ export default function App() {
         { label: 'Market', icon: AreaChart },
         { label: 'Settings', icon: Settings },
       ]
-
-  useEffect(() => {
-    if (
-      (isBuyerWorkspace && active !== 'Market') ||
-      (isQualityInspectionWorkspace && active !== 'Produce Lots') ||
-      (isLogisticsWorkspace && active !== 'Deliveries') ||
-      (!canAccessMyFarms && active === 'My Farms')
-    ) {
-      setActive(isBuyerWorkspace ? 'Market' : isQualityInspectionWorkspace ? 'Produce Lots' : isLogisticsWorkspace ? 'Deliveries' : 'Overview')
-    }
-  }, [active, canAccessMyFarms, isBuyerWorkspace, isLogisticsWorkspace, isQualityInspectionWorkspace])
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -788,7 +813,7 @@ export default function App() {
             />
           )}
 
-          {active === 'Market' && !isQualityInspectionWorkspace && (
+          {active === 'Market' && !isQualityInspectionWorkspace && !isFarmerWorkspace && (
             <MarketPage
               role={currentRoleValue}
               purchaseOrders={purchaseOrders}
