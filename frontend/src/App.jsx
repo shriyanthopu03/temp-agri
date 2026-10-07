@@ -399,12 +399,46 @@ export default function App() {
   const [farmError, setFarmError] = useState('')
   const [darkMode, setDarkMode] = useState(() => window.localStorage.getItem('agritrade-theme') === 'dark')
 
+  // Initial demo produce lots
+  const initialDemoLots = useMemo(() => [
+    {
+      id: 'demo-lot-101',
+      lotCode: 'LOT-948201',
+      category: 'Alphonso Mangoes',
+      quantity: 500,
+      availableQuantity: 500,
+      unit: 'kg',
+      farmerName: 'Ramesh Patil',
+      farmName: 'Nashik Sunshine Orchard',
+      status: 'accepted',
+      qualityGrade: 'Grade A',
+      qualityRating: 4.8,
+      marketPrice: 65,
+      createdAt: new Date().toISOString().split('T')[0],
+    },
+    {
+      id: 'demo-lot-102',
+      lotCode: 'LOT-948202',
+      category: 'Organic Table Grapes',
+      quantity: 1200,
+      availableQuantity: 1200,
+      unit: 'kg',
+      farmerName: 'Suresh Deshmukh',
+      farmName: 'Sahyadri Bio Vineyard',
+      status: 'accepted',
+      qualityGrade: 'Grade A',
+      qualityRating: 4.6,
+      marketPrice: 55,
+      createdAt: new Date().toISOString().split('T')[0],
+    },
+  ], [])
+
   // Operational State
-  const [lots, setLots] = useState([])
+  const [lots, setLots] = useState(initialDemoLots)
   const [shipments, setShipments] = useState([])
   const [purchaseOrders, setPurchaseOrders] = useState([])
   const [warehouses, setWarehouses] = useState([])
-  const [availableBatches, setAvailableBatches] = useState([])
+  const [availableBatches, setAvailableBatches] = useState(initialDemoLots)
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode)
@@ -451,12 +485,13 @@ export default function App() {
       try {
         const lotPath = currentRoleValue === 'buyer' ? '/available-batches' : '/lots'
         const lotData = await (lotPath === '/lots' ? fetch(`/api/lots`, { headers: { Authorization: `Bearer ${session.token}` } }).then((response) => response.json()) : requestWorkflow(lotPath, {}, session.token))
-        if (activeRequest) {
-          const mappedLots = Array.isArray(lotData)
-            ? lotData.filter((lot) => currentRoleValue !== 'quality_inspector' || ['created', 'received'].includes(lot.status)).map(mapLot)
-            : []
+        if (activeRequest && Array.isArray(lotData) && lotData.length > 0) {
+          const mappedLots = lotData.filter((lot) => currentRoleValue !== 'quality_inspector' || ['created', 'received'].includes(lot.status)).map(mapLot)
           setLots(mappedLots)
-          if (currentRoleValue === 'buyer') setAvailableBatches(mappedLots)
+          const acceptedOnly = mappedLots.filter((lot) => lot.status === 'accepted')
+          if (acceptedOnly.length > 0 || currentRoleValue === 'buyer') {
+            setAvailableBatches(acceptedOnly.length > 0 ? acceptedOnly : mappedLots)
+          }
         }
       } catch { /* dashboards retain their existing empty/demo state when the API is unavailable */ }
       if (['admin', 'platform_admin', 'buyer', 'farmer', 'logistics_coordinator'].includes(currentRoleValue)) {
