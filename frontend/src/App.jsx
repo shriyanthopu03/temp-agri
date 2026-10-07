@@ -813,8 +813,12 @@ export default function App() {
                 return mappedLot
               }}
               onInspectLot={async (lotId, inspection) => {
-                const saved = await requestWorkflow('/inspections', { method: 'POST', body: JSON.stringify({ batchId: lotId, grade: inspection.grade.replace('Grade ', ''), rating: inspection.rating || 4.5, measuredQuantity: inspection.measuredQuantity, remarks: inspection.notes }) }, session.token)
-                setLots((current) => current.map((lot) => lot.id === lotId ? mapLot(saved) : lot))
+                const saved = await requestWorkflow('/inspections', { method: 'POST', body: JSON.stringify({ batchId: lotId, grade: inspection.grade ? inspection.grade.replace('Grade ', '') : 'A', rating: inspection.rating || 4.5, measuredQuantity: inspection.measuredQuantity, remarks: inspection.notes, accepted: inspection.accepted }) }, session.token)
+                const mapped = mapLot(saved)
+                setLots((current) => current.map((lot) => lot.id === lotId ? mapped : lot))
+                if (saved.status === 'accepted') {
+                  setAvailableBatches((current) => [mapped, ...current.filter((l) => l.id !== lotId)])
+                }
               }}
               onWarehouseMove={() => undefined}
               onDispatchShipment={() => undefined}
@@ -842,7 +846,20 @@ export default function App() {
               onCreatePO={(newPO) => setPurchaseOrders([newPO, ...purchaseOrders])}
               onPurchaseBatch={async (batchId, order) => {
                 const saved = await requestWorkflow('/orders', { method: 'POST', body: JSON.stringify({ batchId, quantity: order.quantity, buyerLocation: order.buyerLocation }) }, session.token)
-                setPurchaseOrders((current) => [{ ...saved, id: saved._id, reference: saved.number, crop: saved.crop, totalBudget: saved.totalAmount }, ...current])
+                const mappedPO = { ...saved, id: saved._id, reference: saved.number, crop: saved.crop, totalBudget: saved.totalAmount }
+                setPurchaseOrders((current) => [mappedPO, ...current])
+                if (saved.shipment) {
+                  const newShipment = typeof saved.shipment === 'object' ? { ...saved.shipment, id: saved.shipment._id, reference: saved.shipment.shipmentNumber, order: saved } : null
+                  if (newShipment) setShipments((current) => [newShipment, ...current])
+                }
+                // Refresh shipments list for logistics
+                try {
+                  const updatedShipments = await requestWorkflow('/shipments', {}, session.token)
+                  if (Array.isArray(updatedShipments)) {
+                    setShipments(updatedShipments.map((s) => ({ ...s, id: s._id, reference: s.shipmentNumber })))
+                  }
+                } catch { /* retain existing state */ }
+                setAvailableBatches((current) => current.map((b) => b.id === batchId ? { ...b, availableQuantity: Math.max(0, (b.availableQuantity || b.quantity) - order.quantity) } : b).filter((b) => (b.availableQuantity ?? 1) > 0))
               }}
             />
           )}

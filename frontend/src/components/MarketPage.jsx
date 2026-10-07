@@ -39,9 +39,9 @@ export function MarketPage({
   const [showSettlementModal, setShowSettlementModal] = useState(false)
   const [activeListing, setActiveListing] = useState(null)
   const [purchaseQuantity, setPurchaseQuantity] = useState('100')
-  const [deliveryAddress, setDeliveryAddress] = useState('')
-  const [deliveryLatitude, setDeliveryLatitude] = useState('')
-  const [deliveryLongitude, setDeliveryLongitude] = useState('')
+  const [deliveryAddress, setDeliveryAddress] = useState('Central APMC Buyer Hub, Mumbai')
+  const [deliveryLatitude, setDeliveryLatitude] = useState('19.0760')
+  const [deliveryLongitude, setDeliveryLongitude] = useState('72.8777')
 
   // PO Form
   const [poCrop, setPoCrop] = useState('')
