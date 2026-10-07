@@ -837,7 +837,6 @@ export function ProduceLotsPage({
                     <span className="flex items-center gap-2 font-medium">
                       <ShieldCheck size={14} /> Quality Certified: {activeLot.qualityGrade}
                     </span>
-                    <span className="text-xs">Moisture: {activeLot.moisture || '12%'}</span>
                   </div>
                 )}
                 {activeLot.warehouseBin && (
