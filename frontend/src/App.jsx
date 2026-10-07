@@ -798,7 +798,8 @@ export default function App() {
                 return mappedLot
               }}
               onInspectLot={async (lotId, inspection) => {
-                const saved = await requestWorkflow('/inspections', { method: 'POST', body: JSON.stringify({ batchId: lotId, grade: inspection.grade ? inspection.grade.replace('Grade ', '') : 'A', rating: inspection.rating || 4.5, measuredQuantity: inspection.measuredQuantity, remarks: inspection.notes, accepted: inspection.accepted }) }, session.token)
+                const targetLot = lots.find((l) => l.id === lotId || l._id === lotId)
+                const saved = await requestWorkflow('/inspections', { method: 'POST', body: JSON.stringify({ batchId: lotId, category: targetLot?.category || inspection.category, grade: inspection.grade ? inspection.grade.replace('Grade ', '') : 'A', rating: inspection.rating || 4.5, measuredQuantity: inspection.measuredQuantity, remarks: inspection.notes, accepted: inspection.accepted }) }, session.token)
                 const mapped = mapLot(saved)
                 setLots((current) => current.map((lot) => (lot.id === lotId || lot._id === lotId) ? mapped : lot))
                 setAvailableBatches((current) => [mapped, ...current.filter((l) => l.id !== lotId && l._id !== lotId)])

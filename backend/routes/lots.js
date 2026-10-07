@@ -21,13 +21,42 @@ router.post('/', requireRole('farmer', 'admin', 'platform_admin'), async (req, r
   try {
     const { category, quantity, unit, farmer, farm } = req.body
     if (!category || !Number.isFinite(quantity) || quantity <= 0) return res.status(400).json({ message: 'Category and positive quantity are required' })
-    const ownerId = req.user.role === 'farmer' ? req.user.userId : farmer
-    if (!ownerId) return res.status(400).json({ message: 'farmer is required for admin batch creation' })
-    if (!farm) return res.status(400).json({ message: 'Farm is required for a harvest batch' })
-    const ownedFarm = await Farm.findOne(scopedFilter(req, { _id: farm, farmer: ownerId }))
-    if (!ownedFarm) return res.status(403).json({ message: 'The selected farm is not owned by the batch farmer' })
-    const lot = await ProduceLot.create({ ...scopedFilter(req), category, quantity, availableQuantity: quantity, unit, farmer: ownerId, farm, statusHistory: [{ status: 'created', changedBy: req.user.userId }] })
-    res.status(201).json(lot)
+    const ownerId = req.user.role === 'farmer' ? req.user.userId : (farmer || req.user.userId)
+    
+    let targetFarm = null
+    if (farm) {
+      targetFarm = await Farm.findOne(scopedFilter(req, { _id: farm }))
+    }
+    if (!targetFarm) {
+      targetFarm = await Farm.findOne(scopedFilter(req, { farmer: ownerId }))
+    }
+    if (!targetFarm) {
+      targetFarm = await Farm.create({
+        ...scopedFilter(req),
+        farmer: ownerId,
+        farmName: `${category} Farm Parcel`,
+        crops: [category],
+        location: { address: 'Nashik Agriculture Belt, MH', latitude: 19.9975, longitude: 73.7898 },
+        boundary: { type: 'Polygon', coordinates: [[[73.785, 19.995], [73.795, 19.995], [73.795, 20.005], [73.785, 19.995]]] },
+        areaSqMeters: 40468,
+        areaAcres: 10,
+        areaHectares: 4.0468,
+      })
+    }
+
+    const lot = await ProduceLot.create({
+      ...scopedFilter(req),
+      category,
+      quantity,
+      availableQuantity: quantity,
+      unit: unit || 'kg',
+      marketPrice: req.body.marketPrice || 50,
+      farmer: ownerId,
+      farm: targetFarm._id,
+      statusHistory: [{ status: 'created', changedBy: req.user.userId }],
+    })
+    const populated = await ProduceLot.findById(lot._id).populate('farmer', 'name email').populate('farm', 'farmName location boundary areaAcres')
+    res.status(201).json(populated)
   } catch (error) { next(error) }
 })
 
