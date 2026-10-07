@@ -424,7 +424,7 @@ export function ProduceLotsPage({
                   </button>
 
                   {/* Role Specific Quick Action */}
-                  {(role === 'quality_inspector' || role === 'platform_admin') && lot.status === 'created' && (
+                  {(role === 'quality_inspector' || role === 'platform_admin') && ['created', 'received'].includes(lot.status) && (
                     <button
                       onClick={() => {
                         setActiveLot(lot)
