@@ -124,29 +124,32 @@ export function ProduceLotsPage({
   const handleInspectSubmit = async (e) => {
     e.preventDefault()
     if (!activeLot) return
+    const finalGrade = inspectGrade || 'Grade A'
     const updatedStatus = inspectAccepted ? 'accepted' : 'rejected'
-    const updatedGrade = inspectAccepted ? inspectGrade : 'Rejected'
     const updatedLots = localLots.map((l) =>
-      l.id === activeLot.id
+      (l.id === activeLot.id || l._id === activeLot.id)
         ? {
             ...l,
             status: updatedStatus,
-            qualityGrade: updatedGrade,
+            qualityGrade: finalGrade,
             moisture: inspectMoisture,
             purity: inspectPurity,
             notes: inspectNotes,
           }
         : l
     )
+    setLocalLots(updatedLots)
+    setShowInspectModal(false)
     if (onInspectLot) {
       try {
-        await onInspectLot(activeLot.id, { grade: inspectGrade, accepted: inspectAccepted, notes: inspectNotes })
+        const saved = await onInspectLot(activeLot.id, { grade: finalGrade, accepted: inspectAccepted, notes: inspectNotes })
+        if (saved) {
+          setLocalLots((current) => current.map((l) => (l.id === activeLot.id || l._id === activeLot.id) ? { ...l, ...saved, status: saved.status || updatedStatus, qualityGrade: saved.qualityGrade || finalGrade } : l))
+        }
       } catch (err) {
         console.error(err)
       }
     }
-    setLocalLots(updatedLots)
-    setShowInspectModal(false)
   }
 
   const handleWarehouseSubmit = async (e) => {
