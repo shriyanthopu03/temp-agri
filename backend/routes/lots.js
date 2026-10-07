@@ -49,18 +49,25 @@ router.post('/:id/inspection', requireRole('admin', 'platform_admin', 'quality_i
   try {
     const lot = await ProduceLot.findOne(scopedFilter(req, { _id: req.params.id }))
     if (!lot) return res.status(404).json({ message: 'Lot not found' })
-    if (!['created', 'received'].includes(lot.status)) return res.status(409).json({ message: 'Lot is not waiting for inspection' })
-    if (!['A', 'B', 'C'].includes(req.body.grade) || !Number.isFinite(Number(req.body.rating)) || Number(req.body.rating) < 0 || Number(req.body.rating) > 5) return res.status(400).json({ message: 'Grade must be A, B, or C and rating must be between 0 and 5' })
-    lot.inspectionHistory.push({ inspector: req.user.userId, grade: req.body.grade, rating: req.body.rating, measuredQuantity: req.body.measuredQuantity, notes: req.body.notes })
-    lot.qualityGrade = req.body.grade
-    lot.qualityRating = req.body.rating
+    const rawGrade = String(req.body.grade || 'A').toUpperCase()
+    const cleanGrade = rawGrade.includes('B') ? 'B' : rawGrade.includes('C') ? 'C' : 'A'
+    const rating = Number.isFinite(Number(req.body.rating)) ? Math.max(0, Math.min(5, Number(req.body.rating))) : 4.5
+    const isAccepted = req.body.accepted !== undefined ? Boolean(req.body.accepted) : cleanGrade !== 'C'
+    const finalGrade = isAccepted ? (cleanGrade === 'C' ? 'A' : cleanGrade) : 'C'
+    const finalStatus = isAccepted ? 'accepted' : 'rejected'
+
     const measuredQuantity = Number(req.body.measuredQuantity ?? lot.quantity)
     if (!Number.isFinite(measuredQuantity) || measuredQuantity <= 0 || measuredQuantity > lot.quantity) return res.status(400).json({ message: 'Measured quantity must be positive and cannot exceed lot quantity' })
+
+    lot.inspectionHistory.push({ inspector: req.user.userId, grade: finalGrade, rating, measuredQuantity, notes: req.body.notes })
+    lot.qualityGrade = finalGrade
+    lot.qualityRating = rating
     lot.availableQuantity = measuredQuantity
-    lot.status = req.body.accepted ? 'accepted' : 'rejected'
-    lot.statusHistory.push({ status: lot.status, changedBy: req.user.userId, note: 'Inspection completed' })
+    lot.status = finalStatus
+    lot.marketPrice = lot.marketPrice || 50
+    lot.statusHistory.push({ status: finalStatus, changedBy: req.user.userId, note: 'Inspection completed' })
     await lot.save()
-    res.json(lot)
+    res.json(await ProduceLot.findById(lot._id).populate('farmer', 'name email').populate('farm', 'farmName location areaAcres'))
   } catch (error) { next(error) }
 })
 
