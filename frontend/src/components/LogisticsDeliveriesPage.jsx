@@ -43,7 +43,7 @@ export function LogisticsDeliveriesPage({ shipments = [], onMarkDelivered }) {
   const farm = selectedShipment.order?.farm
   const batch = selectedShipment.order?.batch
   const buyer = selectedShipment.buyer?.name || selectedShipment.order?.buyer?.name || 'Buyer'
-  const canMarkDelivered = ['dispatched', 'in_transit'].includes(selectedShipment.status)
+  const canMarkDelivered = selectedShipment.status !== 'delivered'
 
   return (
     <div className="space-y-6">

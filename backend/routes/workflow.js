@@ -190,7 +190,14 @@ router.put('/shipments/:id/assign', logistics, async (req, res, next) => {
 
 router.put('/shipments/:id/status', logistics, async (req, res, next) => {
   try {
-    const allowed = { assigned: ['picked_up'], picked_up: ['in_transit'], in_transit: ['dispatched', 'delivered'], dispatched: ['delivered'] }
+    const allowed = {
+      created: ['assigned', 'dispatched', 'delivered'],
+      ready_for_pickup: ['assigned', 'dispatched', 'in_transit', 'delivered'],
+      assigned: ['picked_up', 'dispatched', 'delivered'],
+      picked_up: ['in_transit', 'delivered'],
+      in_transit: ['dispatched', 'delivered'],
+      dispatched: ['delivered'],
+    }
     const shipment = await Shipment.findOne(scopedFilter(req, { _id: req.params.id }))
     if (!shipment) return res.status(404).json({ message: 'Shipment not found' })
     if (!allowed[shipment.status]?.includes(req.body.status)) return res.status(409).json({ message: `Cannot move shipment from ${shipment.status} to ${req.body.status}` })
