@@ -1,5 +1,18 @@
 # Features
 
+## Shared workspace accounts
+
+The seed command creates these shared workspace accounts:
+
+| Workspace | Email | Password |
+| --- | --- | --- |
+| Quality Inspection | `qi@gmail.com` | `12345678` |
+| Buyer | `buyer@gmail.com` | `12345678` |
+| Platform Admin | `admin@gmail.com` | `12345678` |
+| Logistics Coordinator | `l@gmail.com` | `12345678` |
+
+Run `npm run seed` after configuring `MONGODB_URL` to create or update them. New users registered through the normal sign-up flow continue to receive the `farmer` role.
+
 * **Authentication & Role-Based Access Control**
 
   * Secure authentication with region- and organization-scoped RBAC.

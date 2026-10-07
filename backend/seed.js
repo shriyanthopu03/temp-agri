@@ -27,29 +27,52 @@ async function seed() {
       role: 'farmer',
     },
     {
-      name: 'Demo Admin',
-      email: 'admin@agritrade.com',
-      password: 'Admin123!',
-      role: 'admin',
+      name: 'Quality Inspector',
+      email: 'qi@gmail.com',
+      password: '12345678',
+      role: 'quality_inspector',
+    },
+    {
+      name: 'Buyer',
+      email: 'buyer@gmail.com',
+      password: '12345678',
+      role: 'buyer',
+    },
+    {
+      name: 'Platform Admin',
+      email: 'admin@gmail.com',
+      password: '12345678',
+      role: 'platform_admin',
+    },
+    {
+      name: 'Logistics Coordinator',
+      email: 'l@gmail.com',
+      password: '12345678',
+      role: 'logistics_coordinator',
     },
   ]
 
   for (const demo of demoUsers) {
-    const existing = await User.findOne({ email: demo.email.toLowerCase() })
-    if (!existing) {
-      const passwordHash = await bcrypt.hash(demo.password, 12)
-      await User.create({
-        name: demo.name,
-        email: demo.email,
-        passwordHash,
-        role: demo.role,
-        organizationId: defaultOrgId,
-        regionId: defaultRegId,
-        active: true,
-      })
+    const passwordHash = await bcrypt.hash(demo.password, 12)
+    const user = await User.findOneAndUpdate(
+      { email: demo.email.toLowerCase() },
+      {
+        $set: {
+          name: demo.name,
+          email: demo.email.toLowerCase(),
+          passwordHash,
+          role: demo.role,
+          organizationId: defaultOrgId,
+          regionId: defaultRegId,
+          active: true,
+        },
+      },
+      { new: true, upsert: true, setDefaultsOnInsert: true },
+    )
+    if (user.createdAt && user.createdAt.getTime() === user.updatedAt.getTime()) {
       console.log(`Created demo user: ${demo.email} / ${demo.password}`)
     } else {
-      console.log(`User already exists: ${demo.email}`)
+      console.log(`Updated demo user: ${demo.email} / ${demo.password}`)
     }
   }
 
