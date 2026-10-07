@@ -486,7 +486,7 @@ export default function App() {
         const lotPath = currentRoleValue === 'buyer' ? '/available-batches' : '/lots'
         const lotData = await (lotPath === '/lots' ? fetch(`/api/lots`, { headers: { Authorization: `Bearer ${session.token}` } }).then((response) => response.json()) : requestWorkflow(lotPath, {}, session.token))
         if (activeRequest && Array.isArray(lotData) && lotData.length > 0) {
-          const mappedLots = lotData.filter((lot) => currentRoleValue !== 'quality_inspector' || ['created', 'received'].includes(lot.status)).map(mapLot)
+          const mappedLots = lotData.map(mapLot)
           setLots(mappedLots)
           const acceptedOnly = mappedLots.filter((lot) => lot.status === 'accepted')
           if (acceptedOnly.length > 0 || currentRoleValue === 'buyer') {
@@ -508,22 +508,6 @@ export default function App() {
       }
     }
     loadWorkflow()
-    return () => { activeRequest = false }
-  }, [session, currentRoleValue])
-
-  useEffect(() => {
-    if (!session?.token || currentRoleValue !== 'quality_inspector') return
-    let activeRequest = true
-    fetch('/api/lots', { headers: { Authorization: `Bearer ${session.token}` } })
-      .then((response) => {
-        if (!response.ok) throw new Error('Unable to load produce lots')
-        return response.json()
-      })
-      .then((allLots) => {
-        if (!activeRequest || !Array.isArray(allLots)) return
-        setLots(allLots.filter((lot) => ['created', 'received'].includes(lot.status)).map(mapLot))
-      })
-      .catch(() => undefined)
     return () => { activeRequest = false }
   }, [session, currentRoleValue])
 
