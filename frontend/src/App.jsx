@@ -526,14 +526,19 @@ export default function App() {
       .slice(0, 2)
       .map((part) => part[0].toUpperCase())
       .join('') || 'WU'
+  const canAccessMyFarms = currentRoleValue !== 'quality_inspector'
 
   const navItems = [
     { label: 'Overview', icon: LayoutDashboard },
-    { label: 'My Farms', icon: Leaf },
+    ...(canAccessMyFarms ? [{ label: 'My Farms', icon: Leaf }] : []),
     { label: 'Produce Lots', icon: Sprout },
     { label: 'Market', icon: AreaChart },
     { label: 'Settings', icon: Settings },
   ]
+
+  useEffect(() => {
+    if (!canAccessMyFarms && active === 'My Farms') setActive('Overview')
+  }, [canAccessMyFarms, active])
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -698,7 +703,7 @@ export default function App() {
             />
           )}
 
-          {active === 'My Farms' && (
+          {active === 'My Farms' && canAccessMyFarms && (
             <MyFarmsPage
               role={currentRoleValue}
               farms={farms}
