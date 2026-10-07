@@ -399,46 +399,12 @@ export default function App() {
   const [farmError, setFarmError] = useState('')
   const [darkMode, setDarkMode] = useState(() => window.localStorage.getItem('agritrade-theme') === 'dark')
 
-  // Initial demo produce lots
-  const initialDemoLots = useMemo(() => [
-    {
-      id: 'demo-lot-101',
-      lotCode: 'LOT-948201',
-      category: 'Alphonso Mangoes',
-      quantity: 500,
-      availableQuantity: 500,
-      unit: 'kg',
-      farmerName: 'Ramesh Patil',
-      farmName: 'Nashik Sunshine Orchard',
-      status: 'accepted',
-      qualityGrade: 'Grade A',
-      qualityRating: 4.8,
-      marketPrice: 65,
-      createdAt: new Date().toISOString().split('T')[0],
-    },
-    {
-      id: 'demo-lot-102',
-      lotCode: 'LOT-948202',
-      category: 'Organic Table Grapes',
-      quantity: 1200,
-      availableQuantity: 1200,
-      unit: 'kg',
-      farmerName: 'Suresh Deshmukh',
-      farmName: 'Sahyadri Bio Vineyard',
-      status: 'accepted',
-      qualityGrade: 'Grade A',
-      qualityRating: 4.6,
-      marketPrice: 55,
-      createdAt: new Date().toISOString().split('T')[0],
-    },
-  ], [])
-
   // Operational State
-  const [lots, setLots] = useState(initialDemoLots)
+  const [lots, setLots] = useState([])
   const [shipments, setShipments] = useState([])
   const [purchaseOrders, setPurchaseOrders] = useState([])
   const [warehouses, setWarehouses] = useState([])
-  const [availableBatches, setAvailableBatches] = useState(initialDemoLots)
+  const [availableBatches, setAvailableBatches] = useState([])
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode)
