@@ -1,19 +1,11 @@
 import { useEffect, useState } from 'react'
 import {
   AlertCircle,
-  Award,
-  Bell,
-  Check,
   CheckCircle,
   CreditCard,
   Edit2,
-  Moon,
-  Package,
   Phone,
   Save,
-  Shield,
-  ShieldCheck,
-  Sun,
   User,
   X,
 } from 'lucide-react'
@@ -26,11 +18,6 @@ export function SettingsPage({
   setDarkMode,
   onUpdateUser,
 }) {
-  const [region, setRegion] = useState('West Agro Region (MH-401)')
-  const [landUnit, setLandUnit] = useState('acres')
-  const [weightUnit, setWeightUnit] = useState('kg')
-  const [currency, setCurrency] = useState('INR (₹)')
-
   // Profile Edit State
   const [isEditingProfile, setIsEditingProfile] = useState(false)
   const [name, setName] = useState('')
@@ -119,7 +106,7 @@ export function SettingsPage({
       <div>
         <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Workspace Settings & Preferences</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Configure active role persona, personal credentials, regional preferences, and notification channels.
+          Configure active role persona, personal credentials, phone number, and verified Aadhaar details.
         </p>
       </div>
 
@@ -365,62 +352,6 @@ export function SettingsPage({
             </div>
           </div>
         )}
-      </section>
-
-      {/* SECTION 3: Regional & Unit Preferences */}
-      <section className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-4">
-        <h2 className="font-bold text-lg text-foreground border-b border-border pb-3">Regional & Measurement Preferences</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
-          <label className="block space-y-1">
-            <span className="font-medium text-foreground">Operational Region</span>
-            <select
-              value={region}
-              onChange={(e) => setRegion(e.target.value)}
-              className="w-full rounded-xl border border-border bg-background p-2.5 text-xs outline-none focus:border-primary"
-            >
-              <option value="West Agro Region (MH-401)">West Agro Region (MH-401)</option>
-              <option value="North Grain Belt (PB-102)">North Grain Belt (PB-102)</option>
-              <option value="South Spices Hub (KL-301)">South Spices Hub (KL-301)</option>
-            </select>
-          </label>
-
-          <label className="block space-y-1">
-            <span className="font-medium text-foreground">Land Area Unit</span>
-            <select
-              value={landUnit}
-              onChange={(e) => setLandUnit(e.target.value)}
-              className="w-full rounded-xl border border-border bg-background p-2.5 text-xs outline-none focus:border-primary"
-            >
-              <option value="acres">Acres (ac)</option>
-              <option value="hectares">Hectares (ha)</option>
-            </select>
-          </label>
-
-          <label className="block space-y-1">
-            <span className="font-medium text-foreground">Weight Unit</span>
-            <select
-              value={weightUnit}
-              onChange={(e) => setWeightUnit(e.target.value)}
-              className="w-full rounded-xl border border-border bg-background p-2.5 text-xs outline-none focus:border-primary"
-            >
-              <option value="kg">Kilograms (kg)</option>
-              <option value="tons">Metric Tons</option>
-              <option value="quintals">Quintals</option>
-            </select>
-          </label>
-
-          <label className="block space-y-1">
-            <span className="font-medium text-foreground">Market Currency</span>
-            <select
-              value={currency}
-              onChange={(e) => setCurrency(e.target.value)}
-              className="w-full rounded-xl border border-border bg-background p-2.5 text-xs outline-none focus:border-primary"
-            >
-              <option value="INR (₹)">Indian Rupee (₹)</option>
-              <option value="USD ($)">US Dollar ($)</option>
-            </select>
-          </label>
-        </div>
       </section>
     </div>
   )
