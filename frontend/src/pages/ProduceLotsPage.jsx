@@ -672,7 +672,7 @@ export function ProduceLotsPage({
           : farms.find((f) => f.id === activeLot.farm || f._id === activeLot.farm || f.name === activeLot.farmName)
         const boundaryPoints = getLotFarmPoints(activeLot, farms)
         const farmerName = activeLot.farmerName || activeFarm?.farmerName || activeFarm?.farmer?.name || 'Local Producer'
-        const farmerContact = activeLot.farmerContact || activeFarm?.farmerContact || activeFarm?.farmer?.email || 'farmer@agritrade.com'
+        const farmerContact = activeLot.farmerContact || activeFarm?.farmerContact || activeFarm?.farmer?.email || 'farmer@rythusevak.com'
         const farmName = activeFarm?.name || activeLot.farmName || 'Registered Farm Plot'
         const farmArea = activeFarm?.area || activeLot.area || 15
         const cropHealth = activeLot.cropHealth || activeFarm?.cropHealth || 'Good - Pest Free'

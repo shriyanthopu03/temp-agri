@@ -110,7 +110,7 @@ export function MarketPage({
           id: batch.id || batch._id,
           crop: batch.category || 'Agricultural Produce',
           farmerName,
-          farmerEmail: batch.farmer?.email || 'farmer@agritrade.com',
+          farmerEmail: batch.farmer?.email || 'farmer@rythusevak.com',
           farmName,
           farmLocation,
           farmArea,

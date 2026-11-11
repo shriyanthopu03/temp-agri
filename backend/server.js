@@ -40,7 +40,7 @@ app.use(morgan('dev'))
 app.get('/api/health', (_req, res) =>
   res.json({
     status: isDatabaseConnected() ? 'ok' : 'degraded',
-    service: 'agritrade-api',
+    service: 'rythu-sevak-api',
     database: isDatabaseConnected() ? 'connected' : 'disconnected',
   })
 )
@@ -79,7 +79,7 @@ const port = process.env.PORT || 5000
 
 async function startServer() {
   await connectDatabase()
-  app.listen(port, () => console.log(`AgriTrade API listening on ${port} with MongoDB connected`))
+  app.listen(port, () => console.log(`Rythu Sevak API listening on ${port} with MongoDB connected`))
 }
 
 if (process.env.NODE_ENV !== 'test' && !process.env.VERCEL) {

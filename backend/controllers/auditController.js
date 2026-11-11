@@ -31,7 +31,7 @@ export async function exportAuditEvents(req, res, next) {
       )
       .join('\n')
     res.setHeader('Content-Type', 'text/csv')
-    res.setHeader('Content-Disposition', 'attachment; filename="agritrade-audit.csv"')
+    res.setHeader('Content-Disposition', 'attachment; filename="rythu-sevak-audit.csv"')
     res.send(header + rows)
   } catch (error) {
     next(error)

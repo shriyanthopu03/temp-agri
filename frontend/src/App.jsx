@@ -107,13 +107,13 @@ function LoginScreen({ onLogin, onSignUp, onBackToHome }) {
     <main className="login-page">
       <section
         className="login-visual"
-        aria-label="AgriTrade farm operations visual"
+        aria-label="Rythu Sevak farm operations visual"
       >
         <img src={referenceImage} alt="" className="absolute inset-0 h-full w-full object-fill" />
         <div className="absolute inset-0 z-[1] bg-[linear-gradient(90deg,rgba(52,55,35,0.08)_0%,transparent_70%,rgba(239,233,215,0.9)_100%),linear-gradient(180deg,rgba(239,233,215,0.16)_0%,transparent_14%,transparent_86%,rgba(239,233,215,0.16)_100%)]" />
         <div className="login-brand-mark z-10 flex items-center gap-2 font-bold tracking-tight">
-          <span className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground text-xs font-black shadow-sm select-none">AT</span>
-          <span>AgriTrade</span>
+          <span className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground text-xs font-black shadow-sm select-none">RS</span>
+          <span>Rythu Sevak</span>
         </div>
       </section>
       <section className="login-panel">
@@ -137,10 +137,10 @@ function LoginScreen({ onLogin, onSignUp, onBackToHome }) {
         <div className="login-content">
           <div className="login-heading">
             <div className="login-icon font-black text-xs select-none">
-              AT
+              RS
             </div>
             <h1>
-              Sign in to <span>AgriTrade</span>
+              Sign in to <span>Rythu Sevak</span>
             </h1>
             <p>
               Welcome back. Please enter your login details
@@ -276,13 +276,13 @@ function SignUpScreen({ onLogin, onSignUp, onBackToHome, initialRole = 'farmer' 
     <main className="login-page">
       <section
         className="login-visual"
-        aria-label="AgriTrade farm operations visual"
+        aria-label="Rythu Sevak farm operations visual"
       >
         <img src={referenceImage} alt="" className="absolute inset-0 h-full w-full object-fill" />
         <div className="absolute inset-0 z-[1] bg-[linear-gradient(90deg,rgba(52,55,35,0.08)_0%,transparent_70%,rgba(239,233,215,0.9)_100%),linear-gradient(180deg,rgba(239,233,215,0.16)_0%,transparent_14%,transparent_86%,rgba(239,233,215,0.16)_100%)]" />
         <div className="login-brand-mark z-10 flex items-center gap-2 font-bold tracking-tight">
-          <span className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground text-xs font-black shadow-sm select-none">AT</span>
-          <span>AgriTrade</span>
+          <span className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground text-xs font-black shadow-sm select-none">RS</span>
+          <span>Rythu Sevak</span>
         </div>
       </section>
       <section className="login-panel">
@@ -306,10 +306,10 @@ function SignUpScreen({ onLogin, onSignUp, onBackToHome, initialRole = 'farmer' 
         <div className="login-content">
           <div className="login-heading">
             <div className="login-icon font-black text-xs select-none">
-              AT
+              RS
             </div>
             <h1>
-              Create your <span>AgriTrade</span> account
+              Create your <span>Rythu Sevak</span> account
             </h1>
             <p>
               Select your role and start managing your agricultural workspace.
@@ -847,10 +847,10 @@ export default function App() {
       >
         <div className="flex h-20 items-center gap-3 border-b border-border px-6">
           <div className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground font-black text-xs tracking-tight shadow-sm select-none">
-            AT
+            RS
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-semibold tracking-tight truncate">AgriTrade</p>
+            <p className="font-semibold tracking-tight truncate">Rythu Sevak</p>
             <p className="text-xs text-muted-foreground truncate">{account.workspace}</p>
           </div>
           <button
@@ -923,8 +923,8 @@ export default function App() {
               <span className="font-semibold text-foreground text-base tracking-tight">{active}</span>
             </div>
             <div className="flex items-center gap-2 md:hidden">
-              <span className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground text-[10px] font-black select-none">AT</span>
-              <span className="font-bold">AgriTrade</span>
+              <span className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground text-[10px] font-black select-none">RS</span>
+              <span className="font-bold">Rythu Sevak</span>
             </div>
           </div>
 
@@ -1112,7 +1112,7 @@ export default function App() {
                 >
                   <div className="px-3 py-2 border-b border-border">
                     <p className="text-xs font-bold text-foreground">{userName}</p>
-                    <p className="text-[11px] text-muted-foreground">{session?.user?.email || 'user@agritrade.com'}</p>
+                    <p className="text-[11px] text-muted-foreground">{session?.user?.email || 'user@rythusevak.com'}</p>
                     <span className="mt-1 inline-block rounded-md bg-secondary px-2 py-0.5 text-[10px] font-semibold text-primary capitalize">
                       {account.label}
                     </span>

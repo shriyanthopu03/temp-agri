@@ -212,13 +212,13 @@ export function LogisticsDeliveriesPage({ shipments = [], onAcceptOrder, onMarkD
             <div className="rounded-xl bg-card border border-border p-3">
               <p className="text-[10px] text-muted-foreground uppercase font-bold">Farmer Information</p>
               <p className="font-semibold text-foreground mt-1 flex items-center gap-1"><User size={13} /> {farmer}</p>
-              <p className="text-[11px] text-muted-foreground mt-0.5">{selectedShipment.farmer?.email || 'farmer@agritrade.com'}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">{selectedShipment.farmer?.email || 'farmer@rythusevak.com'}</p>
             </div>
 
             <div className="rounded-xl bg-card border border-border p-3">
               <p className="text-[10px] text-muted-foreground uppercase font-bold">Buyer Information</p>
               <p className="font-semibold text-foreground mt-1 flex items-center gap-1"><User size={13} /> {buyer}</p>
-              <p className="text-[11px] text-muted-foreground mt-0.5">{selectedShipment.buyer?.email || 'buyer@agritrade.com'}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">{selectedShipment.buyer?.email || 'buyer@rythusevak.com'}</p>
             </div>
 
             <div className="rounded-xl bg-card border border-border p-3">

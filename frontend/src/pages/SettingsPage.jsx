@@ -289,7 +289,7 @@ export function SettingsPage({
             <div className="p-3.5 rounded-xl bg-muted/50 space-y-1">
               <span className="text-muted-foreground font-medium">Email Address</span>
               <p className="font-bold text-sm text-foreground">
-                {session?.user?.email || session?.email || 'user@agritrade.com'}
+                {session?.user?.email || session?.email || 'user@rythusevak.com'}
               </p>
             </div>
 

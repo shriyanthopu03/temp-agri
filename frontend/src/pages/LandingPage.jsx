@@ -31,9 +31,9 @@ export function LandingPage({ onLogin, onRegister, onRoleRegister, session, onGo
         <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 md:px-8">
           <a href="#" className="flex items-center gap-2.5 text-xl font-bold tracking-tight text-foreground">
             <div className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground font-black text-sm tracking-tight shadow-sm select-none">
-              AT
+              RS
             </div>
-            <span className="font-extrabold tracking-tight">AgriTrade</span>
+            <span className="font-extrabold tracking-tight">Rythu Sevak</span>
           </a>
 
           {/* Desktop Nav Links */}
@@ -93,7 +93,7 @@ export function LandingPage({ onLogin, onRegister, onRoleRegister, session, onGo
             </h1>
 
             <p className="text-base leading-relaxed text-muted-foreground sm:text-lg">
-              AgriTrade simplifies land registration, polygon boundary mapping, quality inspection and grading,
+              Rythu Sevak simplifies land registration, polygon boundary mapping, quality inspection and grading,
               transparent crop procurement, and coordinated logistics delivery in one unified digital ecosystem.
             </p>
 
@@ -134,12 +134,12 @@ export function LandingPage({ onLogin, onRegister, onRoleRegister, session, onGo
         </div>
       </section>
 
-      {/* 3. About AgriTrade */}
+      {/* 3. About Rythu Sevak */}
       <section id="about" className="py-20 border-b border-border bg-background">
         <div className="mx-auto max-w-7xl px-5 md:px-8">
           <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
             <div className="space-y-5">
-              <span className="text-xs font-bold uppercase tracking-widest text-primary">About AgriTrade</span>
+              <span className="text-xs font-bold uppercase tracking-widest text-primary">About Rythu Sevak</span>
               <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
                 Unifying the Agricultural Supply Chain in One Connected Digital Platform.
               </h2>
@@ -148,7 +148,7 @@ export function LandingPage({ onLogin, onRegister, onRoleRegister, session, onGo
                 inconsistent quality standards, price manipulation by middlemen, and delayed logistics.
               </p>
               <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
-                AgriTrade bridges this gap by directly linking <strong>Farmers</strong>, certified <strong>Quality Inspectors</strong>, <strong>Bulk Buyers</strong>,
+                Rythu Sevak bridges this gap by directly linking <strong>Farmers</strong>, certified <strong>Quality Inspectors</strong>, <strong>Bulk Buyers</strong>,
                 and <strong>Logistics Coordinators</strong>. From the moment a farmer registers their land boundary with GPS polygons to the final delivery handoff,
                 every step is recorded, verified, and secured with MongoDB records.
               </p>
@@ -167,7 +167,7 @@ export function LandingPage({ onLogin, onRegister, onRoleRegister, session, onGo
             <div className="overflow-hidden rounded-2xl border border-border bg-card p-3 shadow-lg">
               <img
                 src="/backgroundimg.jpg"
-                alt="AgriTrade platform ecosystem"
+                alt="Rythu Sevak platform ecosystem"
                 className="h-80 w-full rounded-xl object-cover"
               />
               <div className="p-4">
@@ -184,7 +184,7 @@ export function LandingPage({ onLogin, onRegister, onRoleRegister, session, onGo
         <div className="mx-auto max-w-7xl px-5 md:px-8">
           <div className="text-center max-w-2xl mx-auto mb-14 space-y-3">
             <span className="text-xs font-bold uppercase tracking-widest text-primary">Step-by-Step Workflow</span>
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">How AgriTrade Works</h2>
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">How Rythu Sevak Works</h2>
             <p className="text-sm text-muted-foreground">
               A transparent, 6-step lifecycle connecting land registration to final verified delivery.
             </p>
@@ -421,9 +421,9 @@ export function LandingPage({ onLogin, onRegister, onRoleRegister, session, onGo
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-base font-bold text-foreground">
                 <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-black text-xs tracking-tight select-none">
-                  AT
+                  RS
                 </div>
-                <span className="font-extrabold tracking-tight">AgriTrade</span>
+                <span className="font-extrabold tracking-tight">Rythu Sevak</span>
               </div>
               <p className="text-xs leading-relaxed">
                 End-to-end agriculture procurement and supply chain management platform connecting farmers, inspectors, buyers, and logistics.
@@ -434,7 +434,7 @@ export function LandingPage({ onLogin, onRegister, onRoleRegister, session, onGo
               <p className="font-semibold text-foreground text-xs uppercase tracking-wider mb-3">Platform Navigation</p>
               <ul className="space-y-2 text-xs">
                 <li><a href="#home" onClick={(e) => { e.preventDefault(); scrollTo('home') }} className="hover:text-primary">Home</a></li>
-                <li><a href="#about" onClick={(e) => { e.preventDefault(); scrollTo('about') }} className="hover:text-primary">About AgriTrade</a></li>
+                <li><a href="#about" onClick={(e) => { e.preventDefault(); scrollTo('about') }} className="hover:text-primary">About Rythu Sevak</a></li>
                 <li><a href="#how-it-works" onClick={(e) => { e.preventDefault(); scrollTo('how-it-works') }} className="hover:text-primary">How It Works</a></li>
                 <li><a href="#features" onClick={(e) => { e.preventDefault(); scrollTo('features') }} className="hover:text-primary">Platform Features</a></li>
                 <li><a href="#roles" onClick={(e) => { e.preventDefault(); scrollTo('roles') }} className="hover:text-primary">User Workspaces</a></li>
@@ -453,12 +453,12 @@ export function LandingPage({ onLogin, onRegister, onRoleRegister, session, onGo
 
             <div>
               <p className="font-semibold text-foreground text-xs uppercase tracking-wider mb-3">Contact & Support</p>
-              <p className="text-xs">Support: support@agritrade.com</p>
+              <p className="text-xs">Support: support@rythusevak.com</p>
             </div>
           </div>
 
           <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
-            <p>&copy; {new Date().getFullYear()} AgriTrade Platform. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} Rythu Sevak Platform. All rights reserved.</p>
           </div>
         </div>
       </footer>

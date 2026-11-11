@@ -1,4 +1,4 @@
-# AgriTrade Platform
+# Rythu Sevak Platform
 
 Fullstack agricultural trade and supply chain management platform with role-based access control, farm GPS boundary mapping, quality inspection, buyer marketplace, logistics tracking, and enterprise operations.
 
@@ -88,7 +88,7 @@ The seed command creates these shared workspace accounts:
 
 | Workspace | Email | Password | Role |
 | --- | --- | --- | --- |
-| Farmer | `farmer@agritrade.com` | `Farmer123!` | `farmer` |
+| Farmer | `farmer@rythusevak.com` | `Farmer123!` | `farmer` |
 | Quality Inspection | `qi@gmail.com` | `12345678` | `quality_inspector` |
 | Buyer | `buyer@gmail.com` | `12345678` | `buyer` |
 | Logistics Coordinator | `l@gmail.com` | `12345678` | `logistics_coordinator` |

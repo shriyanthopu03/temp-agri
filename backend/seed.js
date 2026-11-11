@@ -24,7 +24,7 @@ async function seed() {
   const demoUsers = [
     {
       name: 'Demo Farmer',
-      email: 'farmer@agritrade.com',
+      email: 'farmer@rythusevak.com',
       password: 'Farmer123!',
       role: 'farmer',
     },
