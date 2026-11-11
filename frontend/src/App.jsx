@@ -24,15 +24,16 @@ import {
   Users,
   X,
 } from 'lucide-react'
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
 import { FarmMap } from './components/FarmMap'
-import { OverviewPage } from './components/OverviewPage'
-import { MyFarmsPage } from './components/MyFarmsPage'
-import { ProduceLotsPage } from './components/ProduceLotsPage'
-import { MarketPage } from './components/MarketPage'
-import { SettingsPage } from './components/SettingsPage'
-import { LogisticsDeliveriesPage } from './components/LogisticsDeliveriesPage'
-import { firebaseAuth } from './firebase'
+import { OverviewPage } from './pages/OverviewPage'
+import { MyFarmsPage } from './pages/MyFarmsPage'
+import { ProduceLotsPage } from './pages/ProduceLotsPage'
+import { MarketPage } from './pages/MarketPage'
+import { SettingsPage } from './pages/SettingsPage'
+import { LogisticsDeliveriesPage } from './pages/LogisticsDeliveriesPage'
+import { requestAuth, signInWithGoogle } from './services/authService'
+import { requestFarms, mapFarm } from './services/farmService'
+import { requestWorkflow } from './services/workflowService'
 
 const referenceImage = '/backgroundimg.jpg'
 const defaultOrganizationId = '507f1f77bcf86cd799439011'
@@ -47,59 +48,7 @@ const accountTypes = [
   { value: 'logistics_coordinator', label: 'Logistics Coordinator', workspace: 'Logistics workspace' },
 ]
 
-async function requestAuth(path, payload) {
-  const response = await fetch(`/api/auth/${path}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  })
-  const data = await response.json().catch(() => ({}))
-  if (!response.ok) throw new Error(data.message || 'Unable to complete authentication')
-  return data
-}
 
-async function signInWithGoogle() {
-  const result = await signInWithPopup(firebaseAuth, new GoogleAuthProvider())
-  const idToken = await result.user.getIdToken()
-  return requestAuth('firebase', { idToken })
-}
-
-function mapFarm(farm) {
-  const points = farm.boundary?.coordinates?.[0] || []
-  const closedPoints =
-    points.length > 1 && points[0][0] === points.at(-1)[0] && points[0][1] === points.at(-1)[1]
-      ? points.slice(0, -1)
-      : points
-  return {
-    id: farm._id || farm.id || String(Math.random()),
-    name: farm.farmName || farm.name,
-    location: farm.location?.address || farm.location,
-    crop: farm.crops?.[0] || farm.crop,
-    area: farm.areaAcres || farm.area,
-    status: 'Verified',
-    points: closedPoints,
-  }
-}
-
-async function requestFarms(path, options, token) {
-  const response = await fetch(`/api/farms${path}`, {
-    ...options,
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, ...(options?.headers || {}) },
-  })
-  const data = await response.json().catch(() => ({}))
-  if (!response.ok) throw new Error(data.message || 'Unable to load farms')
-  return data
-}
-
-async function requestWorkflow(path, options, token) {
-  const response = await fetch(`/api/workflow${path}`, {
-    ...options,
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, ...(options?.headers || {}) },
-  })
-  const data = await response.json().catch(() => ({}))
-  if (!response.ok) throw new Error(data.message || 'Unable to complete workflow request')
-  return data
-}
 
 function mapLot(lot) {
   return {

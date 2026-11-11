@@ -1,22 +1,22 @@
 import dotenv from 'dotenv'
-dotenv.config({ path: '.env.development.local' })
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+dotenv.config({ path: path.join(__dirname, '.env') })
+dotenv.config({ path: path.join(__dirname, '.env.development.local') })
 dotenv.config()
+
 import mongoose from 'mongoose'
 import bcrypt from 'bcryptjs'
 import User from './models/User.js'
-
-const mongoUrl = process.env.MONGODB_URL || process.env.MONGODB_URI
-
-if (!mongoUrl) {
-  console.error('Error: MONGODB_URL environment variable is required.')
-  process.exit(1)
-}
+import { connectDatabase } from './config/db.js'
 
 const defaultOrgId = new mongoose.Types.ObjectId('507f1f77bcf86cd799439011')
 const defaultRegId = new mongoose.Types.ObjectId('507f1f77bcf86cd799439012')
 
 async function seed() {
-  await mongoose.connect(mongoUrl)
+  await connectDatabase()
   console.log('Connected to MongoDB for seeding...')
 
   const demoUsers = [
@@ -67,7 +67,7 @@ async function seed() {
           active: true,
         },
       },
-      { new: true, upsert: true, setDefaultsOnInsert: true },
+      { returnDocument: 'after', upsert: true, setDefaultsOnInsert: true }
     )
     if (user.createdAt && user.createdAt.getTime() === user.updatedAt.getTime()) {
       console.log(`Created demo user: ${demo.email} / ${demo.password}`)
