@@ -10,7 +10,7 @@ const modules = [
 ]
 
 export function OperationsDashboard({ active }) {
-  const title = active === 'Overview' ? 'Operations overview' : active
+  const title = active === 'Home' || active === 'Overview' ? 'Operations overview' : active
   return <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
     <div className="flex flex-wrap items-start justify-between gap-4">
       <div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Operations control</p><h2 className="mt-2 text-xl font-semibold tracking-tight">{title}</h2><p className="mt-1 text-sm text-muted-foreground">Track every handoff from farm intake to settlement.</p></div>

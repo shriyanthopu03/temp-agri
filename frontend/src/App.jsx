@@ -7,6 +7,7 @@ import {
   CloudSun,
   Compass,
   FileText,
+  Home,
   LayoutDashboard,
   LogOut,
   MapPin,
@@ -426,7 +427,7 @@ export default function App() {
     return 'landing'
   })
   const [preselectedRole, setPreselectedRole] = useState('farmer')
-  const [active, setActive] = useState('Overview')
+  const [active, setActive] = useState('Home')
 
   // Farms state
   const [farms, setFarms] = useState([])
@@ -605,7 +606,7 @@ export default function App() {
               ? 'Deliveries'
               : isFarmer && active === 'Market'
                 ? 'My Farms'
-                : 'Overview',
+                : 'Home',
       )
     }
   }, [active, currentRoleValue])
@@ -697,13 +698,13 @@ export default function App() {
           ]
         : isFarmerWorkspace
           ? [
-              { label: 'Overview', icon: LayoutDashboard },
+              { label: 'Home', icon: Home },
               { label: 'My Farms', icon: MapPin },
               { label: 'Produce Lots', icon: Package },
               { label: 'Settings', icon: Settings },
             ]
     : [
-        { label: 'Overview', icon: LayoutDashboard },
+        { label: 'Home', icon: Home },
         ...(canAccessMyFarms ? [{ label: 'My Farms', icon: MapPin }] : []),
         { label: 'Produce Lots', icon: Package },
         { label: 'Market', icon: AreaChart },
@@ -894,7 +895,7 @@ export default function App() {
 
         {/* Dynamic Page Views */}
         <div className="mx-auto max-w-[1500px] p-5 md:p-8">
-          {active === 'Overview' && !isBuyerWorkspace && !isQualityInspectionWorkspace && !isLogisticsWorkspace && (
+          {(active === 'Home' || active === 'Overview') && !isBuyerWorkspace && !isQualityInspectionWorkspace && !isLogisticsWorkspace && (
             <OverviewPage
               role={currentRoleValue}
               userName={userName}
