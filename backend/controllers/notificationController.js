@@ -26,8 +26,21 @@ export async function markNotificationRead(req, res, next) {
   }
 }
 
+export async function markAllNotificationsRead(req, res, next) {
+  try {
+    await Notification.updateMany(
+      scopedFilter(req, { recipient: req.user.userId, readAt: null }),
+      { readAt: new Date() }
+    )
+    res.json({ message: 'All notifications marked as read' })
+  } catch (error) {
+    next(error)
+  }
+}
+
 export default {
   getNotifications,
   markNotificationRead,
+  markAllNotificationsRead,
 }
 

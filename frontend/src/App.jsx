@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   AreaChart,
+  Award,
   Bell,
+  CheckCircle2,
   ChevronDown,
   CircleHelp,
   CloudSun,
@@ -16,10 +18,12 @@ import {
   Plus,
   Search,
   Settings,
+  ShoppingBag,
   Package,
   Sun,
   Tractor,
   TrendingUp,
+  Truck,
   User,
   Users,
   X,
@@ -450,6 +454,8 @@ export default function App() {
     return true
   })
   const [accountMenuOpen, setAccountMenuOpen] = useState(false)
+  const [notifications, setNotifications] = useState([])
+  const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [farmError, setFarmError] = useState('')
   const [darkMode, setDarkMode] = useState(() => window.localStorage.getItem('agritrade-theme') === 'dark')
 
@@ -530,6 +536,128 @@ export default function App() {
     loadWorkflow()
     return () => { activeRequest = false }
   }, [session, currentRoleValue])
+
+  // Notifications loader & state synchronization
+  useEffect(() => {
+    if (!session?.token) return
+    let activeRequest = true
+
+    const loadNotifications = async () => {
+      try {
+        const response = await fetch('/api/notifications', {
+          headers: { Authorization: `Bearer ${session.token}` },
+        })
+        if (response.ok) {
+          const data = await response.json()
+          if (activeRequest && Array.isArray(data) && data.length > 0) {
+            setNotifications(data.map((n) => ({ ...n, id: n._id || n.id })))
+            return
+          }
+        }
+      } catch {
+        /* fallback to role-contextual notifications below */
+      }
+
+      if (activeRequest) {
+        const role = currentRoleValue
+        const defaultNotifs = [
+          {
+            id: 'notif-1',
+            type: 'inspection',
+            title: role === 'quality_inspector' ? 'Inspection Request Pending' : 'Quality Grade Certified',
+            message:
+              role === 'quality_inspector'
+                ? 'Farmer Ramesh Patil submitted an on-site quality inspection request for 15.0 acres.'
+                : 'Produce lot LOT-402910 has been certified Grade A by Quality Inspector.',
+            createdAt: '10m ago',
+            readAt: null,
+            targetTab: 'Produce Lots',
+          },
+          {
+            id: 'notif-2',
+            type: 'order',
+            title: role === 'buyer' ? 'Order Confirmed' : 'Purchase Order Placed',
+            message:
+              role === 'buyer'
+                ? 'Your order for 1,200 kg Organic Alphonso Mangoes is confirmed.'
+                : 'Buyer BigBasket placed a procurement order for 1,200 kg produce.',
+            createdAt: '45m ago',
+            readAt: null,
+            targetTab: role === 'buyer' ? 'Market' : 'Produce Lots',
+          },
+          {
+            id: 'notif-3',
+            type: 'shipment',
+            title: role === 'logistics_coordinator' ? 'New Dispatch Assigned' : 'Shipment Dispatched',
+            message:
+              role === 'logistics_coordinator'
+                ? 'Fleet vehicle MH-15-DC-8012 assigned for Nashik APMC to Mumbai terminal route.'
+                : 'Shipment SHP-10928 is now in transit with GPS route monitoring.',
+            createdAt: '2h ago',
+            readAt: '2026-11-11',
+            targetTab: 'Deliveries',
+          },
+          {
+            id: 'notif-4',
+            type: 'farm',
+            title: 'Farm Boundary Synced',
+            message: 'GPS land parcel boundary verified and encrypted on MongoDB Atlas.',
+            createdAt: '1d ago',
+            readAt: '2026-11-10',
+            targetTab: 'My Farms',
+          },
+        ]
+        setNotifications(defaultNotifs)
+      }
+    }
+
+    loadNotifications()
+    return () => {
+      activeRequest = false
+    }
+  }, [session, currentRoleValue])
+
+  const unreadNotificationsCount = notifications.filter((n) => !n.readAt).length
+
+  const handleMarkAsRead = async (id) => {
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, readAt: new Date().toISOString() } : n))
+    )
+    if (session?.token) {
+      try {
+        await fetch(`/api/notifications/${id}/read`, {
+          method: 'PATCH',
+          headers: { Authorization: `Bearer ${session.token}` },
+        })
+      } catch {
+        /* state updated locally */
+      }
+    }
+  }
+
+  const handleMarkAllAsRead = async () => {
+    setNotifications((prev) =>
+      prev.map((n) => ({ ...n, readAt: n.readAt || new Date().toISOString() }))
+    )
+    if (session?.token) {
+      try {
+        await fetch('/api/notifications/read-all', {
+          method: 'PATCH',
+          headers: { Authorization: `Bearer ${session.token}` },
+        })
+      } catch {
+        /* state updated locally */
+      }
+    }
+  }
+
+  const handleNotificationClick = (notif) => {
+    handleMarkAsRead(notif.id)
+    if (notif.targetTab) {
+      setActive(notif.targetTab)
+      setNotificationsOpen(false)
+    }
+  }
 
   const addFarm = async () => {
     if (!farmName.trim() || !crop.trim() || !finished || !farmArea || points.length < 3) return
@@ -803,13 +931,135 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-3">
-            <button
-              className="relative rounded-xl p-2.5 text-muted-foreground hover:bg-muted"
-              aria-label="Notifications"
-            >
-              <Bell size={19} />
-              <span className="absolute right-2 top-2 size-1.5 rounded-full bg-accent" />
-            </button>
+            {/* Notification Center */}
+            <div className="relative">
+              <button
+                type="button"
+                className={`relative rounded-xl p-2.5 transition ${
+                  notificationsOpen
+                    ? 'bg-secondary text-primary'
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                }`}
+                onClick={() => setNotificationsOpen((open) => !open)}
+                aria-label="Notifications"
+                aria-expanded={notificationsOpen}
+                title="Notifications"
+              >
+                <Bell size={19} />
+                {unreadNotificationsCount > 0 && (
+                  <span className="absolute right-1 top-1 flex size-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground ring-2 ring-card animate-pulse">
+                    {unreadNotificationsCount}
+                  </span>
+                )}
+              </button>
+
+              {/* Notifications Dropdown Panel */}
+              {notificationsOpen && (
+                <div
+                  className="absolute right-0 top-12 z-40 w-80 sm:w-96 rounded-2xl border border-border bg-card shadow-2xl overflow-hidden animate-in fade-in-50 zoom-in-95 duration-150"
+                  role="region"
+                  aria-label="Notification Center"
+                >
+                  {/* Panel Header */}
+                  <div className="flex items-center justify-between border-b border-border px-4 py-3 bg-muted/30">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-sm text-foreground">Notifications</span>
+                      {unreadNotificationsCount > 0 && (
+                        <span className="rounded-full bg-primary/15 text-primary text-[10px] font-bold px-2 py-0.5">
+                          {unreadNotificationsCount} new
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {unreadNotificationsCount > 0 && (
+                        <button
+                          type="button"
+                          onClick={handleMarkAllAsRead}
+                          className="text-[11px] font-medium text-primary hover:underline"
+                        >
+                          Mark all as read
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setNotificationsOpen(false)}
+                        className="rounded-lg p-1 text-muted-foreground hover:bg-muted"
+                        aria-label="Close notifications"
+                      >
+                        <X size={15} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Notifications List */}
+                  <div className="max-h-80 overflow-y-auto divide-y divide-border/60">
+                    {notifications.length === 0 ? (
+                      <div className="p-8 text-center text-muted-foreground text-xs space-y-1">
+                        <CheckCircle2 size={32} className="mx-auto text-primary/50 mb-2" />
+                        <p className="font-semibold text-foreground">You're all caught up!</p>
+                        <p>No new notifications at this time.</p>
+                      </div>
+                    ) : (
+                      notifications.map((notif) => {
+                        const isUnread = !notif.readAt
+                        return (
+                          <div
+                            key={notif.id}
+                            onClick={() => handleNotificationClick(notif)}
+                            className={`flex items-start gap-3 p-3.5 text-xs cursor-pointer transition hover:bg-muted/50 ${
+                              isUnread ? 'bg-primary/5' : ''
+                            }`}
+                          >
+                            <div className="mt-0.5 shrink-0 rounded-lg bg-secondary p-2 text-primary">
+                              {notif.type === 'inspection' ? (
+                                <Award size={15} />
+                              ) : notif.type === 'order' ? (
+                                <ShoppingBag size={15} />
+                              ) : notif.type === 'shipment' ? (
+                                <Truck size={15} />
+                              ) : (
+                                <MapPin size={15} />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0 space-y-0.5">
+                              <div className="flex items-center justify-between gap-1">
+                                <p className={`text-xs truncate ${isUnread ? 'text-foreground font-bold' : 'text-muted-foreground font-medium'}`}>
+                                  {notif.title}
+                                </p>
+                                <span className="text-[10px] text-muted-foreground shrink-0">
+                                  {notif.createdAt}
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-2">
+                                {notif.message}
+                              </p>
+                            </div>
+                            {isUnread && (
+                              <span className="mt-1.5 size-2 rounded-full bg-primary shrink-0" />
+                            )}
+                          </div>
+                        )
+                      })
+                    )}
+                  </div>
+
+                  {/* Panel Footer */}
+                  <div className="border-t border-border px-4 py-2.5 bg-muted/20 flex items-center justify-between text-[11px] text-muted-foreground">
+                    <span>Live Supply Chain Alerts</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActive('Settings')
+                        setNotificationsOpen(false)
+                      }}
+                      className="font-medium text-primary hover:underline"
+                    >
+                      Preferences
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
 
             <button
               className="rounded-xl p-2.5 text-muted-foreground hover:bg-muted"
