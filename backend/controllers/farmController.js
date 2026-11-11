@@ -1,4 +1,5 @@
 import Farm from '../models/Farm.js'
+import ProduceLot from '../models/ProduceLot.js'
 import { scopedFilter } from '../middleware/rbac.js'
 import { validateBoundary } from '../utils/geo.js'
 
@@ -25,11 +26,16 @@ export async function createFarm(req, res, next) {
       latitude: Number(req.body.location?.latitude || computedLat),
       longitude: Number(req.body.location?.longitude || computedLng),
     }
+
     const farm = await Farm.create({
       ...scopedFilter(req),
       farmer: farmerId,
       farmName: req.body.farmName,
       crops: req.body.crops || [],
+      cropHealth: req.body.cropHealth || 'Healthy',
+      expectedHarvestDate: req.body.expectedHarvestDate ? new Date(req.body.expectedHarvestDate) : undefined,
+      expectedQuantity: Number(req.body.expectedQuantity || 1000),
+      inspectionStatus: 'not_requested',
       location: locationObj,
       boundary: { type: 'Polygon', coordinates },
       areaSqMeters: sqm,
@@ -66,11 +72,15 @@ export async function updateFarm(req, res, next) {
       latitude: Number(req.body.location?.latitude || computedLat),
       longitude: Number(req.body.location?.longitude || computedLng),
     }
+
     const farm = await Farm.findOneAndUpdate(
       scopedFilter(req, { _id: req.params.id, ...ownership }),
       {
         farmName: req.body.farmName,
         crops: req.body.crops || [],
+        cropHealth: req.body.cropHealth || 'Healthy',
+        expectedHarvestDate: req.body.expectedHarvestDate ? new Date(req.body.expectedHarvestDate) : undefined,
+        expectedQuantity: Number(req.body.expectedQuantity || 1000),
         location: locationObj,
         boundary: { type: 'Polygon', coordinates },
         areaSqMeters: sqm,
@@ -97,10 +107,49 @@ export async function deleteFarm(req, res, next) {
   }
 }
 
+export async function requestQualityInspection(req, res, next) {
+  try {
+    const ownership = req.user.role === 'admin' ? {} : { farmer: req.user.userId }
+    const farm = await Farm.findOne(scopedFilter(req, { _id: req.params.id, ...ownership }))
+    if (!farm) return res.status(404).json({ message: 'Farm not found' })
+
+    const cropName = farm.crops?.[0] || req.body.crop || 'Produce Harvest'
+    const qty = Number(req.body.quantity || farm.expectedQuantity || 1000)
+
+    // Create a ProduceLot representing the inspection request
+    const lot = await ProduceLot.create({
+      ...scopedFilter(req),
+      farmer: farm.farmer,
+      farm: farm._id,
+      category: cropName,
+      cropHealth: farm.cropHealth || req.body.cropHealth || 'Healthy',
+      harvestDate: farm.expectedHarvestDate || req.body.harvestDate || new Date(),
+      quantity: qty,
+      availableQuantity: qty,
+      unit: req.body.unit || 'kg',
+      marketPrice: req.body.marketPrice || 55,
+      status: 'created', // Pending Inspection
+      statusHistory: [{ status: 'created', changedBy: req.user.userId, note: 'Farmer submitted Quality Inspection request' }],
+    })
+
+    farm.inspectionStatus = 'pending'
+    await farm.save()
+
+    const populatedLot = await ProduceLot.findById(lot._id)
+      .populate('farmer', 'name email')
+      .populate('farm', 'farmName location boundary areaAcres crops cropHealth expectedHarvestDate')
+
+    res.status(201).json({ farm, lot: populatedLot })
+  } catch (error) {
+    next(error)
+  }
+}
+
 export default {
   getMyFarms,
   createFarm,
   getFarmById,
   updateFarm,
   deleteFarm,
+  requestQualityInspection,
 }

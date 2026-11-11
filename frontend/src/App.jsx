@@ -8,7 +8,6 @@ import {
   Compass,
   FileText,
   LayoutDashboard,
-  Leaf,
   LogOut,
   MapPin,
   Menu,
@@ -16,7 +15,7 @@ import {
   Plus,
   Search,
   Settings,
-  Sprout,
+  Package,
   Sun,
   Tractor,
   TrendingUp,
@@ -31,6 +30,7 @@ import { ProduceLotsPage } from './pages/ProduceLotsPage'
 import { MarketPage } from './pages/MarketPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { LogisticsDeliveriesPage } from './pages/LogisticsDeliveriesPage'
+import { LandingPage } from './pages/LandingPage'
 import { requestAuth, signInWithGoogle } from './services/authService'
 import { requestFarms, mapFarm } from './services/farmService'
 import { requestWorkflow } from './services/workflowService'
@@ -62,7 +62,7 @@ function mapLot(lot) {
   }
 }
 
-function LoginScreen({ onLogin, onSignUp }) {
+function LoginScreen({ onLogin, onSignUp, onBackToHome }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -102,21 +102,33 @@ function LoginScreen({ onLogin, onSignUp }) {
       >
         <img src={referenceImage} alt="" className="absolute inset-0 h-full w-full object-fill" />
         <div className="absolute inset-0 z-[1] bg-[linear-gradient(90deg,rgba(52,55,35,0.08)_0%,transparent_70%,rgba(239,233,215,0.9)_100%),linear-gradient(180deg,rgba(239,233,215,0.16)_0%,transparent_14%,transparent_86%,rgba(239,233,215,0.16)_100%)]" />
-        <div className="login-brand-mark z-10">
-          <Leaf size={20} /> AgriTrade
+        <div className="login-brand-mark z-10 flex items-center gap-2 font-bold tracking-tight">
+          <span className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground text-xs font-black shadow-sm select-none">AT</span>
+          <span>AgriTrade</span>
         </div>
       </section>
       <section className="login-panel">
-        <div className="login-signup">
-          Don&apos;t have an account?{' '}
-          <button type="button" onClick={onSignUp}>
-            Sign up
-          </button>
+        <div className="login-signup flex items-center justify-between">
+          {onBackToHome && (
+            <button
+              type="button"
+              onClick={onBackToHome}
+              className="text-xs font-semibold text-muted-foreground hover:text-primary transition"
+            >
+              ← Back to Home
+            </button>
+          )}
+          <span>
+            Don&apos;t have an account?{' '}
+            <button type="button" onClick={onSignUp}>
+              Sign up
+            </button>
+          </span>
         </div>
         <div className="login-content">
           <div className="login-heading">
-            <div className="login-icon">
-              <Leaf size={18} />
+            <div className="login-icon font-black text-xs select-none">
+              AT
             </div>
             <h1>
               Sign in to <span>AgriTrade</span>
@@ -176,14 +188,18 @@ function LoginScreen({ onLogin, onSignUp }) {
   )
 }
 
-function SignUpScreen({ onLogin, onSignUp }) {
+function SignUpScreen({ onLogin, onSignUp, onBackToHome, initialRole = 'farmer' }) {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [role, setRole] = useState(initialRole || 'farmer')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const canSubmit = name.trim() && email.trim() && password.trim() && password === confirmPassword
+
+  useEffect(() => {
+    if (initialRole) setRole(initialRole)
+  }, [initialRole])
 
   const googleSignUp = async () => {
     setError('')
@@ -192,29 +208,60 @@ function SignUpScreen({ onLogin, onSignUp }) {
       onSignUp(await signInWithGoogle())
     } catch (authError) {
       setError(authError.message)
-    } className="login-page"
+    } finally {
+      setLoading(false)
+    }
   }
 
   const submit = async (event) => {
     event.preventDefault()
-    if (!canSubmit) return
     setError('')
+
+    if (!name.trim()) {
+      setError('Please enter your full name')
+      return
+    }
+    if (!email.trim()) {
+      setError('Please enter a valid email address')
+      return
+    }
+    if (!password) {
+      setError('Please create a password')
+      return
+    }
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters long')
+      return
+    }
+    if (password !== confirmPassword) {
+      setError('Passwords do not match. Please re-enter confirmation password.')
+      return
+    }
+
     setLoading(true)
     try {
       const data = await requestAuth('register', {
-        name,
-        email,
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
         password,
+        role,
         organizationId: defaultOrganizationId,
         regionId: defaultRegionId,
       })
       onSignUp(data)
     } catch (authError) {
-      setError(authError.message)
+      setError(authError.message || 'Registration failed. Please check your credentials.')
     } finally {
       setLoading(false)
     }
   }
+
+  const roleOptions = [
+    { value: 'farmer', label: 'Farmer', desc: 'Register land parcels & crops' },
+    { value: 'quality_inspector', label: 'Quality Inspector', desc: 'Inspect plots & grade harvest' },
+    { value: 'buyer', label: 'Buyer', desc: 'Procure certified Grade crops' },
+    { value: 'logistics_coordinator', label: 'Logistics', desc: 'Fleet dispatch & deliveries' },
+  ]
 
   return (
     <main className="login-page">
@@ -224,36 +271,46 @@ function SignUpScreen({ onLogin, onSignUp }) {
       >
         <img src={referenceImage} alt="" className="absolute inset-0 h-full w-full object-fill" />
         <div className="absolute inset-0 z-[1] bg-[linear-gradient(90deg,rgba(52,55,35,0.08)_0%,transparent_70%,rgba(239,233,215,0.9)_100%),linear-gradient(180deg,rgba(239,233,215,0.16)_0%,transparent_14%,transparent_86%,rgba(239,233,215,0.16)_100%)]" />
-        <div className="login-brand-mark z-10">
-          <Leaf size={20} /> AgriTrade
+        <div className="login-brand-mark z-10 flex items-center gap-2 font-bold tracking-tight">
+          <span className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground text-xs font-black shadow-sm select-none">AT</span>
+          <span>AgriTrade</span>
         </div>
       </section>
       <section className="login-panel">
-        <div className="login-signup">
-          Already have an account?{' '}
-          <button type="button" onClick={onLogin}>
-            Login
-          </button>
+        <div className="login-signup flex items-center justify-between">
+          {onBackToHome && (
+            <button
+              type="button"
+              onClick={onBackToHome}
+              className="text-xs font-semibold text-muted-foreground hover:text-primary transition"
+            >
+              ← Back to Home
+            </button>
+          )}
+          <span>
+            Already have an account?{' '}
+            <button type="button" onClick={onLogin}>
+              Login
+            </button>
+          </span>
         </div>
         <div className="login-content">
           <div className="login-heading">
-            <div className="login-icon">
-              <Leaf size={18} />
+            <div className="login-icon font-black text-xs select-none">
+              AT
             </div>
             <h1>
               Create your <span>AgriTrade</span> account
             </h1>
             <p>
-              Join your connected farm workspace
-              <br />
-              and manage every operation in one place.
+              Select your role and start managing your agricultural workspace.
             </p>
           </div>
           <button className="google-login" type="button" onClick={googleSignUp} disabled={loading}>
             <span className="google-g">G</span> {loading ? 'Connecting...' : 'Sign up with Google'}
           </button>
           <div className="login-divider">
-            <span>OR</span>
+            <span>OR REGISTER WITH EMAIL</span>
           </div>
           <form onSubmit={submit} className="login-form">
             <label>
@@ -262,7 +319,7 @@ function SignUpScreen({ onLogin, onSignUp }) {
                 type="text"
                 value={name}
                 onChange={(event) => setName(event.target.value)}
-                placeholder="Full name"
+                placeholder="e.g. Ramesh Patil"
                 required
               />
             </label>
@@ -272,17 +329,40 @@ function SignUpScreen({ onLogin, onSignUp }) {
                 type="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                placeholder="Email Address"
+                placeholder="name@company.com"
                 required
               />
             </label>
+
+            {/* Public Role Selector (Farmer, Quality Inspector, Buyer, Logistics Coordinator) */}
+            <div className="space-y-1.5">
+              <span className="text-[11px] font-medium text-muted-foreground block">Select Workspace Role</span>
+              <div className="grid grid-cols-2 gap-2">
+                {roleOptions.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setRole(opt.value)}
+                    className={`rounded-xl border p-2.5 text-left transition ${
+                      role === opt.value
+                        ? 'border-primary bg-primary/10 text-primary font-semibold'
+                        : 'border-border bg-card/60 text-muted-foreground hover:bg-muted'
+                    }`}
+                  >
+                    <p className="text-xs font-bold leading-tight">{opt.label}</p>
+                    <p className="text-[10px] opacity-80 mt-0.5 leading-snug">{opt.desc}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <label>
               Password
               <input
                 type="password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                placeholder="Create a password"
+                placeholder="Create password (min 8 characters)"
                 minLength="8"
                 required
               />
@@ -293,18 +373,20 @@ function SignUpScreen({ onLogin, onSignUp }) {
                 type="password"
                 value={confirmPassword}
                 onChange={(event) => setConfirmPassword(event.target.value)}
-                placeholder="Confirm password"
+                placeholder="Confirm your password"
                 minLength="8"
                 required
               />
             </label>
-            {confirmPassword && password !== confirmPassword && <p className="login-error">Passwords do not match.</p>}
+            {confirmPassword && password !== confirmPassword && (
+              <p className="login-error" role="alert">Passwords do not match.</p>
+            )}
             {error && (
               <p className="login-error" role="alert">
                 {error}
               </p>
             )}
-            <button className="login-submit" type="submit" disabled={!canSubmit || loading}>
+            <button className="login-submit" type="submit" disabled={loading}>
               {loading ? 'Creating account...' : 'Create account'}
             </button>
           </form>
@@ -330,7 +412,20 @@ export default function App() {
     }
   })
 
-  const [authMode, setAuthMode] = useState('login')
+  const [authMode, setAuthMode] = useState(() => {
+    try {
+      const hash = window.location.hash.toLowerCase()
+      if (hash.includes('signup') || hash.includes('register')) return 'signup'
+      if (hash.includes('login')) return 'login'
+      const search = new URLSearchParams(window.location.search)
+      if (search.get('mode') === 'signup' || search.get('mode') === 'register') return 'signup'
+      if (search.get('mode') === 'login') return 'login'
+    } catch {
+      // fallback
+    }
+    return 'landing'
+  })
+  const [preselectedRole, setPreselectedRole] = useState('farmer')
   const [active, setActive] = useState('Overview')
 
   // Farms state
@@ -343,6 +438,9 @@ export default function App() {
   const [farmArea, setFarmArea] = useState(null)
   const [farmName, setFarmName] = useState('')
   const [crop, setCrop] = useState('')
+  const [cropHealth, setCropHealth] = useState('Healthy')
+  const [expectedQuantity, setExpectedQuantity] = useState('1500')
+  const [expectedHarvestDate, setExpectedHarvestDate] = useState(() => new Date(Date.now() + 45 * 86400000).toISOString().split('T')[0])
   const [menuOpen, setMenuOpen] = useState(false)
   const [accountMenuOpen, setAccountMenuOpen] = useState(false)
   const [farmError, setFarmError] = useState('')
@@ -440,7 +538,10 @@ export default function App() {
               farmName: farmName.trim(),
               crops: [crop.trim()],
               coordinates: points,
-              location: { address: 'Nashik Belt, MH' },
+              location: { address: 'Nashik Belt, Maharashtra, India' },
+              cropHealth,
+              expectedQuantity: Number(expectedQuantity) || 1500,
+              expectedHarvestDate,
             }),
           },
           session.token
@@ -484,9 +585,9 @@ export default function App() {
     const canAccessFarms = !isBuyer && !isQualityInspector
 
     if (
-      (isBuyer && active !== 'Market') ||
-      (isQualityInspector && active !== 'Produce Lots') ||
-      (isLogisticsCoordinator && active !== 'Deliveries') ||
+      (isBuyer && active !== 'Market' && active !== 'Settings') ||
+      (isQualityInspector && active !== 'Produce Lots' && active !== 'Settings') ||
+      (isLogisticsCoordinator && active !== 'Deliveries' && active !== 'Settings') ||
       (isFarmer && active === 'Market') ||
       (!canAccessFarms && active === 'My Farms')
     ) {
@@ -504,9 +605,59 @@ export default function App() {
     }
   }, [active, currentRoleValue])
 
+  const handleUpdateUser = (updatedUser) => {
+    setSession((current) => {
+      if (!current) return current
+      const updated = {
+        ...current,
+        user: {
+          ...current.user,
+          ...updatedUser,
+        },
+      }
+      try {
+        window.localStorage.setItem('agritrade-session', JSON.stringify(updated))
+      } catch {
+        /* storage not available */
+      }
+      return updated
+    })
+  }
+
   if (!session) {
-    if (authMode === 'signup') return <SignUpScreen onLogin={() => setAuthMode('login')} onSignUp={saveSession} />
-    return <LoginScreen onLogin={saveSession} onSignUp={() => setAuthMode('signup')} />
+    if (authMode === 'landing') {
+      return (
+        <LandingPage
+          onLogin={() => setAuthMode('login')}
+          onRegister={() => {
+            setPreselectedRole('farmer')
+            setAuthMode('signup')
+          }}
+          onRoleRegister={(role) => {
+            setPreselectedRole(role)
+            setAuthMode('signup')
+          }}
+          onGoToDashboard={() => setAuthMode('login')}
+        />
+      )
+    }
+    if (authMode === 'signup') {
+      return (
+        <SignUpScreen
+          initialRole={preselectedRole}
+          onLogin={() => setAuthMode('login')}
+          onBackToHome={() => setAuthMode('landing')}
+          onSignUp={saveSession}
+        />
+      )
+    }
+    return (
+      <LoginScreen
+        onLogin={saveSession}
+        onBackToHome={() => setAuthMode('landing')}
+        onSignUp={() => setAuthMode('signup')}
+      />
+    )
   }
 
   const account = accountTypes.find((type) => type.value === currentRoleValue) || accountTypes[1]
@@ -525,22 +676,31 @@ export default function App() {
   const canAccessMyFarms = !isBuyerWorkspace && currentRoleValue !== 'quality_inspector'
 
   const navItems = isBuyerWorkspace
-    ? [{ label: 'Market', icon: AreaChart }]
+    ? [
+        { label: 'Market', icon: AreaChart },
+        { label: 'Settings', icon: Settings },
+      ]
     : isQualityInspectionWorkspace
-      ? [{ label: 'Produce Lots', icon: Sprout }]
+      ? [
+          { label: 'Produce Lots', icon: Package },
+          { label: 'Settings', icon: Settings },
+        ]
       : isLogisticsWorkspace
-        ? [{ label: 'Deliveries', icon: Tractor }]
+        ? [
+            { label: 'Deliveries', icon: Tractor },
+            { label: 'Settings', icon: Settings },
+          ]
         : isFarmerWorkspace
           ? [
               { label: 'Overview', icon: LayoutDashboard },
-              { label: 'My Farms', icon: Leaf },
-              { label: 'Produce Lots', icon: Sprout },
+              { label: 'My Farms', icon: MapPin },
+              { label: 'Produce Lots', icon: Package },
               { label: 'Settings', icon: Settings },
             ]
     : [
         { label: 'Overview', icon: LayoutDashboard },
-        ...(canAccessMyFarms ? [{ label: 'My Farms', icon: Leaf }] : []),
-        { label: 'Produce Lots', icon: Sprout },
+        ...(canAccessMyFarms ? [{ label: 'My Farms', icon: MapPin }] : []),
+        { label: 'Produce Lots', icon: Package },
         { label: 'Market', icon: AreaChart },
         { label: 'Settings', icon: Settings },
       ]
@@ -554,8 +714,8 @@ export default function App() {
         }`}
       >
         <div className="flex h-20 items-center gap-3 border-b border-border px-7">
-          <div className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-            <Leaf size={20} />
+          <div className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground font-black text-xs tracking-tight shadow-sm select-none">
+            AT
           </div>
           <div>
             <p className="font-semibold tracking-tight">AgriTrade</p>
@@ -610,8 +770,8 @@ export default function App() {
               <span className="font-medium text-foreground">{active}</span>
             </div>
             <div className="flex items-center gap-2 md:hidden">
-              <Leaf size={18} className="text-primary" />
-              <span className="font-semibold">AgriTrade</span>
+              <span className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground text-[10px] font-black select-none">AT</span>
+              <span className="font-bold">AgriTrade</span>
             </div>
           </div>
 
@@ -688,6 +848,7 @@ export default function App() {
             <OverviewPage
               role={currentRoleValue}
               userName={userName}
+              session={session}
               farms={farms}
               selectedFarm={selectedFarm}
               setSelectedFarm={setSelectedFarm}
@@ -716,6 +877,27 @@ export default function App() {
               setSelectedFarm={setSelectedFarm}
               setShowForm={setShowForm}
               onDeleteFarm={handleDeleteFarm}
+              onRequestInspection={async (farmId, inspectionData) => {
+                if (!session?.token) return
+                const res = await fetch(`/api/farms/${farmId}/request-inspection`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${session.token}`,
+                  },
+                  body: JSON.stringify(inspectionData),
+                })
+                const saved = await res.json()
+                if (!res.ok) throw new Error(saved.message || 'Failed to submit inspection request')
+                setFarms((current) =>
+                  current.map((f) => (f.id === farmId || f._id === farmId) ? { ...f, inspectionStatus: 'pending' } : f)
+                )
+                if (saved.lot) {
+                  const mapped = mapLot(saved.lot)
+                  setLots((current) => [mapped, ...current])
+                }
+                return saved
+              }}
               points={points}
               setPoints={setPoints}
               finished={finished}
@@ -763,10 +945,25 @@ export default function App() {
           {active === 'Deliveries' && isLogisticsWorkspace && (
             <LogisticsDeliveriesPage
               shipments={shipments}
+              onAcceptOrder={async (shipmentId, assignment) => {
+                const saved = await requestWorkflow(
+                  `/shipments/${shipmentId}/accept`,
+                  {
+                    method: 'PUT',
+                    body: JSON.stringify(assignment),
+                  },
+                  session.token
+                )
+                const mapped = { ...saved, id: saved._id, reference: saved.shipmentNumber }
+                setShipments((current) =>
+                  current.map((s) => (s.id === shipmentId || s._id === shipmentId) ? mapped : s)
+                )
+                return mapped
+              }}
               onMarkDelivered={async (shipmentId) => {
                 const saved = await requestWorkflow(`/shipments/${shipmentId}/status`, { method: 'PUT', body: JSON.stringify({ status: 'delivered' }) }, session.token)
-                setShipments((current) => current.map((shipment) => shipment.id === shipmentId ? { ...shipment, ...saved } : shipment))
-                setLots((current) => current.map((lot) => lot.id === saved.lot ? { ...lot, status: 'delivered' } : lot))
+                setShipments((current) => current.map((shipment) => (shipment.id === shipmentId || shipment._id === shipmentId) ? { ...shipment, ...saved } : shipment))
+                setLots((current) => current.map((lot) => (lot.id === saved.lot || lot._id === saved.lot) ? { ...lot, status: 'delivered' } : lot))
               }}
             />
           )}
@@ -798,12 +995,13 @@ export default function App() {
             />
           )}
 
-          {active === 'Settings' && !isBuyerWorkspace && !isQualityInspectionWorkspace && !isLogisticsWorkspace && (
+          {active === 'Settings' && (
             <SettingsPage
               session={session}
               role={currentRoleValue}
               darkMode={darkMode}
               setDarkMode={setDarkMode}
+              onUpdateUser={handleUpdateUser}
             />
           )}
         </div>
@@ -823,23 +1021,59 @@ export default function App() {
               </button>
             </div>
             <div className="grid md:grid-cols-[1fr_1.2fr]">
-              <div className="flex flex-col gap-4 p-5">
-                <label className="text-sm font-medium">
+              <div className="flex flex-col gap-3 p-5 overflow-y-auto max-h-[80vh]">
+                <label className="text-xs font-semibold text-foreground">
                   Farm Name
                   <input
                     value={farmName}
                     onChange={(event) => setFarmName(event.target.value)}
                     placeholder="e.g. Nashik Mango Grove"
-                    className="mt-2 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary"
+                    className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs outline-none focus:border-primary"
                   />
                 </label>
-                <label className="text-sm font-medium">
+                <label className="text-xs font-semibold text-foreground">
                   Primary Crop
                   <input
                     value={crop}
                     onChange={(event) => setCrop(event.target.value)}
-                    placeholder="e.g. Organic Grapes"
-                    className="mt-2 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary"
+                    placeholder="e.g. Organic Alphonso Mangoes"
+                    className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs outline-none focus:border-primary"
+                  />
+                </label>
+
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <label className="font-semibold text-foreground">
+                    Crop Health
+                    <select
+                      value={cropHealth}
+                      onChange={(e) => setCropHealth(e.target.value)}
+                      className="mt-1 w-full rounded-xl border border-border bg-background px-2.5 py-2 text-xs outline-none focus:border-primary"
+                    >
+                      <option value="Excellent">Excellent</option>
+                      <option value="Healthy">Healthy</option>
+                      <option value="Good">Good</option>
+                      <option value="Moderate">Moderate</option>
+                    </select>
+                  </label>
+                  <label className="font-semibold text-foreground">
+                    Expected Yield (kg)
+                    <input
+                      type="number"
+                      value={expectedQuantity}
+                      onChange={(e) => setExpectedQuantity(e.target.value)}
+                      placeholder="1500"
+                      className="mt-1 w-full rounded-xl border border-border bg-background px-2.5 py-2 text-xs outline-none focus:border-primary"
+                    />
+                  </label>
+                </div>
+
+                <label className="text-xs font-semibold text-foreground">
+                  Expected Harvesting Date
+                  <input
+                    type="date"
+                    value={expectedHarvestDate}
+                    onChange={(e) => setExpectedHarvestDate(e.target.value)}
+                    className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs outline-none focus:border-primary"
                   />
                 </label>
                 <div className="rounded-xl bg-secondary p-4 text-sm">

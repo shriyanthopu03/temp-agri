@@ -18,6 +18,8 @@ export function publicUser(user) {
     name: user.name,
     email: user.email,
     role: user.role,
+    phoneNumber: user.phoneNumber || '',
+    aadharNumber: user.aadharNumber || '',
     organizationId: user.organizationId,
     regionId: user.regionId,
   }
@@ -175,6 +177,33 @@ export async function login(request, response, next) {
   }
 }
 
+export async function updateProfile(request, response, next) {
+  try {
+    const { name, phoneNumber, aadharNumber } = request.body
+    const user = await User.findById(request.user.userId)
+    if (!user) return response.status(404).json({ message: 'User not found' })
+
+    if (name && typeof name === 'string' && name.trim()) user.name = name.trim()
+    if (phoneNumber !== undefined) user.phoneNumber = String(phoneNumber).trim()
+    if (aadharNumber !== undefined) user.aadharNumber = String(aadharNumber).trim()
+
+    await user.save()
+    return response.json({ message: 'Profile updated successfully', user: publicUser(user) })
+  } catch (error) {
+    next(error)
+  }
+}
+
+export async function getProfile(request, response, next) {
+  try {
+    const user = await User.findById(request.user.userId)
+    if (!user) return response.status(404).json({ message: 'User not found' })
+    return response.json({ user: publicUser(user) })
+  } catch (error) {
+    next(error)
+  }
+}
+
 export default {
   googleAuth,
   firebaseAuth,
@@ -182,4 +211,6 @@ export default {
   register,
   login,
   publicUser,
+  updateProfile,
+  getProfile,
 }

@@ -7,6 +7,8 @@ const userSchema = new mongoose.Schema({
   googleId: { type: String, unique: true, sparse: true, index: true },
   firebaseUid: { type: String, unique: true, sparse: true, index: true },
   role: { type: String, enum: ['admin', 'platform_admin', 'regional_manager', 'org_manager', 'operator', 'farmer', 'quality_inspector', 'buyer', 'logistics_coordinator', 'collection_center_manager'], default: 'farmer' },
+  phoneNumber: { type: String, trim: true, default: '' },
+  aadharNumber: { type: String, trim: true, default: '' },
   organizationId: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },
   regionId: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },
   active: { type: Boolean, default: true },

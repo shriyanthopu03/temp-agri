@@ -3,6 +3,7 @@ import {
   getAuditEvents,
   exportAuditEvents,
   getAuditReport,
+  getAdminStats,
 } from '../controllers/auditController.js'
 import { requireAuth } from '../middleware/auth.js'
 import { requireRole } from '../middleware/rbac.js'
@@ -15,5 +16,6 @@ const auditors = requireRole('admin', 'platform_admin', 'regional_manager', 'org
 router.get('/', auditors, getAuditEvents)
 router.get('/export', auditors, exportAuditEvents)
 router.get('/report', auditors, getAuditReport)
+router.get('/admin-stats', auditors, getAdminStats)
 
 export default router

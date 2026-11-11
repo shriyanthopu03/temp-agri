@@ -88,13 +88,13 @@ The seed command creates these shared workspace accounts:
 
 | Workspace | Email | Password | Role |
 | --- | --- | --- | --- |
+| Farmer | `farmer@agritrade.com` | `Farmer123!` | `farmer` |
 | Quality Inspection | `qi@gmail.com` | `12345678` | `quality_inspector` |
 | Buyer | `buyer@gmail.com` | `12345678` | `buyer` |
-| Platform Admin | `admin@gmail.com` | `12345678` | `platform_admin` |
 | Logistics Coordinator | `l@gmail.com` | `12345678` | `logistics_coordinator` |
-| Farmer | `farmer@agritrade.com` | `Farmer123!` | `farmer` |
+| Platform Admin | `admin@gmail.com` | `12345678` | `platform_admin` |
 
-Run `npm run seed` from the backend or root after configuring `MONGODB_URL` to create or update them. New users registered through the sign-up flow default to the `farmer` role.
+Run `npm run seed` from the backend or root after configuring `MONGODB_URL` to create or update them. New users registered through public sign-up can select their role (Farmer, Quality Inspector, Buyer, or Logistics Coordinator). Platform Admin is protected from public registration.
 
 ## Features
 

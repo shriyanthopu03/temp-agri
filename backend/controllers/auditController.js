@@ -1,6 +1,10 @@
 import AuditEvent from '../models/AuditEvent.js'
 import ProduceLot from '../models/ProduceLot.js'
 import OperationsRecord from '../models/OperationsRecord.js'
+import User from '../models/User.js'
+import Farm from '../models/Farm.js'
+import PurchaseOrder from '../models/PurchaseOrder.js'
+import Shipment from '../models/Shipment.js'
 import { scopedFilter } from '../middleware/rbac.js'
 
 export async function getAuditEvents(req, res, next) {
@@ -47,8 +51,60 @@ export async function getAuditReport(req, res, next) {
   }
 }
 
+export async function getAdminStats(req, res, next) {
+  try {
+    const [
+      totalFarmers,
+      totalBuyers,
+      totalInspectors,
+      totalLogistics,
+      totalFarms,
+      pendingInspections,
+      completedInspections,
+      totalOrders,
+      pendingLogistics,
+      acceptedOrders,
+      deliveredOrders,
+      recentUsers,
+    ] = await Promise.all([
+      User.countDocuments({ role: 'farmer' }),
+      User.countDocuments({ role: 'buyer' }),
+      User.countDocuments({ role: 'quality_inspector' }),
+      User.countDocuments({ role: 'logistics_coordinator' }),
+      Farm.countDocuments(),
+      ProduceLot.countDocuments({ status: { $in: ['created', 'received'] } }),
+      ProduceLot.countDocuments({
+        status: { $in: ['accepted', 'rejected', 'inspected', 'stored', 'allocated', 'dispatched', 'delivered'] },
+      }),
+      PurchaseOrder.countDocuments(),
+      Shipment.countDocuments({ status: { $in: ['ready_for_pickup', 'created'] } }),
+      Shipment.countDocuments({ status: { $in: ['assigned', 'dispatched', 'in_transit'] } }),
+      Shipment.countDocuments({ status: 'delivered' }),
+      User.find().select('name email role active createdAt').sort({ createdAt: -1 }).limit(10),
+    ])
+
+    res.json({
+      totalFarmers,
+      totalBuyers,
+      totalInspectors,
+      totalLogistics,
+      totalFarms,
+      pendingInspections,
+      completedInspections,
+      totalOrders,
+      pendingLogistics,
+      acceptedOrders,
+      deliveredOrders,
+      recentUsers,
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
 export default {
   getAuditEvents,
   exportAuditEvents,
   getAuditReport,
+  getAdminStats,
 }

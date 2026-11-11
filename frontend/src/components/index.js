@@ -1,5 +1,6 @@
 export * from './FarmMap.jsx'
 export * from './OperationsDashboard.jsx'
+export * from '../pages/LandingPage.jsx'
 export * from '../pages/OverviewPage.jsx'
 export * from '../pages/MyFarmsPage.jsx'
 export * from '../pages/ProduceLotsPage.jsx'

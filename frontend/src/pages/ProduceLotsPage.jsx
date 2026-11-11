@@ -9,7 +9,6 @@ import {
   FileText,
   Filter,
   Layers,
-  Leaf,
   MapPin,
   Package,
   Plus,
@@ -17,12 +16,32 @@ import {
   Search,
   ShieldCheck,
   Ship,
-  Sprout,
   Truck,
   User,
   Warehouse,
   X,
 } from 'lucide-react'
+import { FarmMap } from '../components/FarmMap'
+
+function getLotFarmPoints(lot, farms = []) {
+  if (!lot) return []
+  const farmObj = typeof lot.farm === 'object' && lot.farm !== null ? lot.farm : farms.find((f) => f.id === lot.farm || f._id === lot.farm || f.name === lot.farmName)
+  const coords = farmObj?.boundary?.coordinates?.[0] || farmObj?.points
+  if (Array.isArray(coords) && coords.length >= 3) {
+    return coords.length > 1 && coords[0][0] === coords.at(-1)[0] && coords[0][1] === coords.at(-1)[1] ? coords.slice(0, -1) : coords
+  }
+  const loc = farmObj?.location
+  if (Number.isFinite(Number(loc?.longitude)) && Number.isFinite(Number(loc?.latitude))) {
+    const lng = Number(loc.longitude)
+    const lat = Number(loc.latitude)
+    return [
+      [lng - 0.0015, lat - 0.0015],
+      [lng + 0.0015, lat - 0.0015],
+      [lng + 0.0015, lat + 0.0015],
+    ]
+  }
+  return []
+}
 
 export function ProduceLotsPage({
   role,
@@ -55,11 +74,14 @@ export function ProduceLotsPage({
   const [newFarm, setNewFarm] = useState(farms[0]?.name || '')
 
   // Quality Form
-  const [inspectGrade, setInspectGrade] = useState('Grade A (Export Quality)')
-  const [inspectMoisture, setInspectMoisture] = useState('')
-  const [inspectPurity, setInspectPurity] = useState('')
-  const [inspectNotes, setInspectNotes] = useState('')
+  const [inspectGrade, setInspectGrade] = useState('Grade A')
+  const [inspectCondition, setInspectCondition] = useState('Optimal foliage density, uniform size, export certified')
+  const [inspectMarketableQty, setInspectMarketableQty] = useState('')
+  const [inspectNotes, setInspectNotes] = useState('Inspected on-site. Moisture and purity levels optimal. Certified for procurement.')
+  const [inspectMoisture, setInspectMoisture] = useState('11.5%')
+  const [inspectPurity, setInspectPurity] = useState('99.2%')
   const [inspectAccepted, setInspectAccepted] = useState(true)
+  const [inspectDate, setInspectDate] = useState(() => new Date().toISOString().split('T')[0])
 
   // Warehouse Form
   const [warehouseLocation, setWarehouseLocation] = useState('')
@@ -125,15 +147,18 @@ export function ProduceLotsPage({
     e.preventDefault()
     if (!activeLot) return
     const finalGrade = inspectGrade || 'Grade A'
-    const updatedStatus = inspectAccepted ? 'accepted' : 'rejected'
+    const isAccepted = finalGrade !== 'Grade D' && inspectAccepted
+    const updatedStatus = isAccepted ? 'accepted' : 'rejected'
+    const measured = Number(inspectMarketableQty || activeLot.quantity || 1000)
+
     const updatedLots = localLots.map((l) =>
       (l.id === activeLot.id || l._id === activeLot.id)
         ? {
             ...l,
             status: updatedStatus,
             qualityGrade: finalGrade,
-            moisture: inspectMoisture,
-            purity: inspectPurity,
+            availableQuantity: isAccepted ? measured : 0,
+            cropCondition: inspectCondition,
             notes: inspectNotes,
           }
         : l
@@ -142,9 +167,26 @@ export function ProduceLotsPage({
     setShowInspectModal(false)
     if (onInspectLot) {
       try {
-        const saved = await onInspectLot(activeLot.id, { grade: finalGrade, accepted: inspectAccepted, notes: inspectNotes })
+        const saved = await onInspectLot(activeLot.id, {
+          grade: finalGrade,
+          cropCondition: inspectCondition,
+          measuredQuantity: measured,
+          accepted: isAccepted,
+          notes: inspectNotes,
+        })
         if (saved) {
-          setLocalLots((current) => current.map((l) => (l.id === activeLot.id || l._id === activeLot.id) ? { ...l, ...saved, status: saved.status || updatedStatus, qualityGrade: saved.qualityGrade || finalGrade } : l))
+          setLocalLots((current) =>
+            current.map((l) =>
+              (l.id === activeLot.id || l._id === activeLot.id)
+                ? {
+                    ...l,
+                    ...saved,
+                    status: saved.status || updatedStatus,
+                    qualityGrade: saved.qualityGrade || finalGrade,
+                  }
+                : l
+            )
+          )
         }
       } catch (err) {
         console.error(err)
@@ -325,7 +367,7 @@ export function ProduceLotsPage({
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {filteredLots.length === 0 ? (
           <div className="col-span-full rounded-2xl border border-dashed border-border bg-card p-12 text-center text-muted-foreground">
-            <Sprout size={36} className="mx-auto mb-2 opacity-50" />
+            <Package size={36} className="mx-auto mb-2 opacity-50" />
             <p className="text-base font-semibold text-foreground">No produce lots found</p>
             <p className="text-xs mt-1">Register a new harvest batch or change search filters.</p>
           </div>
@@ -386,7 +428,7 @@ export function ProduceLotsPage({
                       <User size={13} className="text-primary" /> Farmer: <span className="font-medium text-foreground">{lot.farmerName}</span>
                     </p>
                     <p className="flex items-center gap-1.5">
-                      <Leaf size={13} className="text-primary" /> Parcel: <span className="font-medium text-foreground">{lot.farmName}</span>
+                      <MapPin size={13} className="text-primary" /> Parcel: <span className="font-medium text-foreground">{lot.farmName}</span>
                     </p>
                   </div>
 
@@ -431,13 +473,18 @@ export function ProduceLotsPage({
                     <button
                       onClick={() => {
                         setActiveLot(lot)
-                        setInspectGrade('Grade A (Export Quality)')
+                        setInspectGrade(lot.qualityGrade?.startsWith('Grade') ? lot.qualityGrade : 'Grade A')
+                        setInspectMarketableQty(lot.availableQuantity || lot.quantity || '')
+                        setInspectCondition(lot.cropCondition || 'Optimal foliage density, pest-free, uniform maturity')
+                        setInspectNotes(lot.notes || 'Inspected on-site. Moisture and purity levels optimal. Certified for procurement.')
+                        setInspectMoisture(lot.moisture || '11.5%')
+                        setInspectPurity(lot.purity || '99.2%')
                         setInspectAccepted(true)
                         setShowInspectModal(true)
                       }}
                       className="rounded-xl bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90 transition"
                     >
-                      Grade Lot
+                      Inspect & Grade
                     </button>
                   )}
 
@@ -570,96 +617,232 @@ export function ProduceLotsPage({
         </div>
       )}
 
-      {/* Modal 2: Quality Inspection */}
-      {showInspectModal && activeLot && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/30 p-4" role="dialog">
-          <div className="w-full max-w-md rounded-2xl bg-card border border-border p-6 shadow-xl space-y-4">
-            <div className="flex items-center justify-between border-b border-border pb-3">
-              <div>
-                <h3 className="font-bold text-lg">Quality Inspection Workbench</h3>
-                <p className="text-xs text-muted-foreground">{activeLot.lotCode} • {activeLot.category}</p>
+      {/* Modal 2: Quality Inspection Workbench */}
+      {showInspectModal && activeLot && (() => {
+        const activeFarm = typeof activeLot.farm === 'object' && activeLot.farm !== null
+          ? activeLot.farm
+          : farms.find((f) => f.id === activeLot.farm || f._id === activeLot.farm || f.name === activeLot.farmName)
+        const boundaryPoints = getLotFarmPoints(activeLot, farms)
+        const farmerName = activeLot.farmerName || activeFarm?.farmerName || activeFarm?.farmer?.name || 'Local Producer'
+        const farmerContact = activeLot.farmerContact || activeFarm?.farmerContact || activeFarm?.farmer?.email || 'farmer@agritrade.com'
+        const farmName = activeFarm?.name || activeLot.farmName || 'Registered Farm Plot'
+        const farmArea = activeFarm?.area || activeLot.area || 15
+        const cropHealth = activeLot.cropHealth || activeFarm?.cropHealth || 'Good - Pest Free'
+        const expHarvest = activeLot.expectedHarvestDate || activeFarm?.expectedHarvestDate || 'Current Cycle'
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4 overflow-y-auto" role="dialog">
+            <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl bg-card border border-border p-6 shadow-2xl space-y-6">
+              <div className="flex items-center justify-between border-b border-border pb-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                      Quality Inspection Workbench
+                    </span>
+                    <span className="text-xs text-muted-foreground">• ID: {activeLot.lotCode || activeLot.id}</span>
+                  </div>
+                  <h3 className="font-bold text-xl mt-1">Field Land Inspection & Crop Grading</h3>
+                  <p className="text-xs text-muted-foreground">
+                    Verify farm boundary plotting, crop health, assign quality grade, and approve marketable stock.
+                  </p>
+                </div>
+                <button onClick={() => setShowInspectModal(false)} className="rounded-lg p-2 text-muted-foreground hover:bg-muted">
+                  <X size={20} />
+                </button>
               </div>
-              <button onClick={() => setShowInspectModal(false)} className="rounded-lg p-1 hover:bg-muted">
-                <X size={18} />
-              </button>
+
+              <form onSubmit={handleInspectSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Left Column: Farm Details & GPS Boundary */}
+                  <div className="space-y-4">
+                    <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-3">
+                      <h4 className="font-semibold text-sm flex items-center gap-2">
+                        <MapPin size={16} className="text-primary" /> Farm & Crop Profile
+                      </h4>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                          <span className="text-muted-foreground block">Farmer Name</span>
+                          <span className="font-medium text-foreground">{farmerName}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground block">Contact / Email</span>
+                          <span className="font-medium text-foreground">{farmerContact}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground block">Farm Name</span>
+                          <span className="font-medium text-foreground">{farmName}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground block">Land Area</span>
+                          <span className="font-semibold text-primary">{farmArea} Acres</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground block">Crop Variety</span>
+                          <span className="font-medium text-foreground">{activeLot.category}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground block">Crop Health</span>
+                          <span className="font-medium text-emerald-600 dark:text-emerald-400">{cropHealth}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground block">Expected Quantity</span>
+                          <span className="font-medium text-foreground">{activeLot.quantity} {activeLot.unit}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground block">Expected Harvest</span>
+                          <span className="font-medium text-foreground">{expHarvest}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Land Boundary Plotting Preview */}
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-medium text-foreground">GPS Land Boundary (Polygon Preview)</span>
+                        <span className="text-muted-foreground">{boundaryPoints.length} Coordinates</span>
+                      </div>
+                      <div className="h-56 rounded-xl overflow-hidden border border-border bg-muted/20">
+                        {boundaryPoints.length >= 3 ? (
+                          <FarmMap points={boundaryPoints} interactive={false} height="100%" />
+                        ) : (
+                          <div className="h-full flex items-center justify-center text-xs text-muted-foreground">
+                            Plot boundary points registered with GPS coordinates
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Column: Inspection Findings & Quality Grading */}
+                  <div className="space-y-4">
+                    <div className="rounded-xl border border-border bg-card p-4 space-y-4">
+                      <h4 className="font-semibold text-sm flex items-center gap-2">
+                        <Award size={16} className="text-amber-500" /> Evaluation & Grading Form
+                      </h4>
+
+                      <label className="block space-y-1 text-xs">
+                        <span className="font-semibold text-foreground">Assigned Quality Grade</span>
+                        <select
+                          value={inspectGrade}
+                          onChange={(e) => {
+                            const val = e.target.value
+                            setInspectGrade(val)
+                            if (val === 'Grade D') setInspectAccepted(false)
+                            else setInspectAccepted(true)
+                          }}
+                          className="w-full rounded-xl border border-border bg-background p-2.5 text-xs font-medium outline-none focus:border-primary"
+                        >
+                          <option value="Grade A">Grade A – Excellent Quality (Export / Premium)</option>
+                          <option value="Grade B">Grade B – Good Quality (Commercial / Retail)</option>
+                          <option value="Grade C">Grade C – Average Quality (Industrial / Processing)</option>
+                          <option value="Grade D">Grade D – Poor Quality (Defective / Rejected)</option>
+                        </select>
+                      </label>
+
+                      <div className="grid grid-cols-2 gap-3 text-xs">
+                        <label className="block space-y-1">
+                          <span className="font-medium text-foreground">Marketable Quantity ({activeLot.unit})</span>
+                          <input
+                            type="number"
+                            value={inspectMarketableQty}
+                            onChange={(e) => setInspectMarketableQty(e.target.value)}
+                            placeholder={String(activeLot.quantity)}
+                            className="w-full rounded-xl border border-border bg-background p-2.5 text-xs outline-none focus:border-primary"
+                          />
+                        </label>
+                        <label className="block space-y-1">
+                          <span className="font-medium text-foreground">Inspection Date</span>
+                          <input
+                            type="date"
+                            value={inspectDate}
+                            onChange={(e) => setInspectDate(e.target.value)}
+                            className="w-full rounded-xl border border-border bg-background p-2.5 text-xs outline-none focus:border-primary"
+                          />
+                        </label>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3 text-xs">
+                        <label className="block space-y-1">
+                          <span className="font-medium text-foreground">Moisture Content</span>
+                          <input
+                            type="text"
+                            value={inspectMoisture}
+                            onChange={(e) => setInspectMoisture(e.target.value)}
+                            className="w-full rounded-xl border border-border bg-background p-2.5 text-xs outline-none"
+                          />
+                        </label>
+                        <label className="block space-y-1">
+                          <span className="font-medium text-foreground">Purity Index</span>
+                          <input
+                            type="text"
+                            value={inspectPurity}
+                            onChange={(e) => setInspectPurity(e.target.value)}
+                            className="w-full rounded-xl border border-border bg-background p-2.5 text-xs outline-none"
+                          />
+                        </label>
+                      </div>
+
+                      <label className="block space-y-1 text-xs">
+                        <span className="font-medium text-foreground">Crop Physical Condition</span>
+                        <input
+                          type="text"
+                          value={inspectCondition}
+                          onChange={(e) => setInspectCondition(e.target.value)}
+                          placeholder="e.g. Uniform grain size, low moisture, optimal color"
+                          className="w-full rounded-xl border border-border bg-background p-2.5 text-xs outline-none focus:border-primary"
+                        />
+                      </label>
+
+                      <label className="block space-y-1 text-xs">
+                        <span className="font-medium text-foreground">Quality Observations & Remarks</span>
+                        <textarea
+                          value={inspectNotes}
+                          onChange={(e) => setInspectNotes(e.target.value)}
+                          rows={3}
+                          placeholder="Detailed notes on farm plot inspection, soil conditions, and grading rationale..."
+                          className="w-full rounded-xl border border-border bg-background p-2.5 text-xs outline-none focus:border-primary"
+                        />
+                      </label>
+
+                      <label className="flex items-center gap-2 cursor-pointer pt-1 text-xs font-medium">
+                        <input
+                          type="checkbox"
+                          checked={inspectAccepted}
+                          onChange={(e) => setInspectAccepted(e.target.checked)}
+                          className="size-4 accent-primary"
+                        />
+                        <span>Approve crop for Buyer Marketplace procurement</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Modal Footer Actions */}
+                <div className="flex items-center justify-between border-t border-border pt-4">
+                  <span className="text-xs text-muted-foreground">
+                    Submitting this report completes the inspection and unlocks procurement for Buyers.
+                  </span>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setShowInspectModal(false)}
+                      className="rounded-xl border border-border bg-background px-4 py-2.5 text-xs font-semibold hover:bg-muted"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="rounded-xl bg-primary px-6 py-2.5 text-xs font-semibold text-primary-foreground shadow hover:opacity-90 transition"
+                    >
+                      Submit Inspection Report
+                    </button>
+                  </div>
+                </div>
+              </form>
             </div>
-            <form onSubmit={handleInspectSubmit} className="space-y-3 text-xs">
-              <label className="block space-y-1">
-                <span className="font-medium text-foreground">Quality Grade Classification</span>
-                <select
-                  value={inspectGrade}
-                  onChange={(e) => setInspectGrade(e.target.value)}
-                  className="w-full rounded-xl border border-border bg-background p-2.5 text-xs outline-none focus:border-primary"
-                >
-                  <option value="Grade A (Export Quality)">Grade A (Export Quality)</option>
-                  <option value="Grade A">Grade A (Standard)</option>
-                  <option value="Grade B">Grade B (Commercial)</option>
-                  <option value="Grade C">Grade C (Processing)</option>
-                </select>
-              </label>
-
-              <div className="grid grid-cols-2 gap-2">
-                <label className="block space-y-1">
-                  <span className="font-medium text-foreground">Moisture Content</span>
-                  <input
-                    type="text"
-                    value={inspectMoisture}
-                    onChange={(e) => setInspectMoisture(e.target.value)}
-                    className="w-full rounded-xl border border-border bg-background p-2.5 text-xs outline-none"
-                  />
-                </label>
-                <label className="block space-y-1">
-                  <span className="font-medium text-foreground">Purity Index</span>
-                  <input
-                    type="text"
-                    value={inspectPurity}
-                    onChange={(e) => setInspectPurity(e.target.value)}
-                    className="w-full rounded-xl border border-border bg-background p-2.5 text-xs outline-none"
-                  />
-                </label>
-              </div>
-
-              <label className="block space-y-1">
-                <span className="font-medium text-foreground">Inspector Notes</span>
-                <textarea
-                  value={inspectNotes}
-                  onChange={(e) => setInspectNotes(e.target.value)}
-                  rows={3}
-                  className="w-full rounded-xl border border-border bg-background p-2.5 text-xs outline-none focus:border-primary"
-                />
-              </label>
-
-              <div className="flex items-center gap-3 pt-2">
-                <label className="flex items-center gap-2 cursor-pointer font-medium">
-                  <input
-                    type="checkbox"
-                    checked={inspectAccepted}
-                    onChange={(e) => setInspectAccepted(e.target.checked)}
-                    className="size-4 accent-primary"
-                  />
-                  <span>Approve & Accept Lot</span>
-                </label>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-3">
-                <button
-                  type="button"
-                  onClick={() => setShowInspectModal(false)}
-                  className="rounded-xl border border-border bg-background px-4 py-2 text-xs font-semibold hover:bg-muted"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="rounded-xl bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90"
-                >
-                  Save Inspection Certificate
-                </button>
-              </div>
-            </form>
           </div>
-        </div>
-      )}
+        )
+      })()}
 
       {/* Modal 3: Warehouse Bin Placement */}
       {showWarehouseModal && activeLot && (
@@ -833,7 +1016,7 @@ export function ProduceLotsPage({
               <div className="space-y-2 text-xs">
                 <div className="flex items-center justify-between p-2.5 rounded-xl bg-muted/40">
                   <span className="flex items-center gap-2 font-medium">
-                    <Sprout size={14} className="text-primary" /> Batch Created
+                    <Package size={14} className="text-primary" /> Batch Created
                   </span>
                   <span className="text-muted-foreground">{activeLot.createdAt || '2026-09-20'}</span>
                 </div>

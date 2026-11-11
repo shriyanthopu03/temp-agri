@@ -9,6 +9,21 @@ export async function requestAuth(path, payload) {
   })
 }
 
+export async function updateUserProfile(payload, token) {
+  return apiRequest(
+    '/api/auth/profile',
+    {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    },
+    token,
+  )
+}
+
+export async function getUserProfile(token) {
+  return apiRequest('/api/auth/profile', { method: 'GET' }, token)
+}
+
 export async function signInWithGoogle() {
   const result = await signInWithPopup(firebaseAuth, new GoogleAuthProvider())
   const idToken = await result.user.getIdToken()
@@ -17,5 +32,8 @@ export async function signInWithGoogle() {
 
 export default {
   requestAuth,
+  updateUserProfile,
+  getUserProfile,
   signInWithGoogle,
 }
+

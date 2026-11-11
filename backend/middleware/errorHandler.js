@@ -5,3 +5,4 @@ export function errorHandler(error, req, res, _next) {
 }
 
 export default errorHandler
+

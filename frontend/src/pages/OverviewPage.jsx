@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   AreaChart,
   ArrowUpRight,
@@ -11,14 +11,12 @@ import {
   Filter,
   Globe,
   HardDrive,
-  Leaf,
   MapPin,
   Package,
   Plus,
   ShieldCheck,
   Ship,
   ShoppingBag,
-  Sprout,
   Tractor,
   TrendingUp,
   Truck,
@@ -43,8 +41,33 @@ export function OverviewPage({
   qualityReports,
   onAssignShipment,
   onDispatchShipment,
+  session,
 }) {
   const [selectedLot, setSelectedLot] = useState(null)
+  const [adminStats, setAdminStats] = useState(null)
+  const [adminLoading, setAdminLoading] = useState(false)
+
+  const isAdmin = role === 'platform_admin' || role === 'admin'
+
+  useEffect(() => {
+    if (!isAdmin || !session?.token) return
+    let isSubscribed = true
+    setAdminLoading(true)
+    fetch('/api/audit/admin-stats', {
+      headers: { Authorization: `Bearer ${session.token}` },
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (isSubscribed && data) setAdminStats(data)
+      })
+      .catch((err) => console.error('Failed to load admin stats', err))
+      .finally(() => {
+        if (isSubscribed) setAdminLoading(false)
+      })
+    return () => {
+      isSubscribed = false
+    }
+  }, [isAdmin, session])
 
   // Role metadata mapping
   const roleConfig = {
@@ -55,8 +78,8 @@ export function OverviewPage({
       onAction: () => setShowForm(true),
       metrics: [
         { label: 'Total farm area', value: `${farms.reduce((acc, f) => acc + (f.area || 0), 0).toFixed(1)} ac`, suffix: 'acres', icon: Tractor, tone: 'bg-[#e7efe5] text-primary' },
-        { label: 'Active farms', value: String(farms.length), suffix: 'registered', icon: Leaf, tone: 'bg-[#f7ecd8] text-[#a56a17]' },
-        { label: 'Harvested lots', value: String(lots.length), suffix: 'active', icon: Sprout, tone: 'bg-[#e4eef1] text-[#2e7080]' },
+        { label: 'Active farms', value: String(farms.length), suffix: 'registered', icon: MapPin, tone: 'bg-[#f7ecd8] text-[#a56a17]' },
+        { label: 'Harvested lots', value: String(lots.length), suffix: 'active', icon: Package, tone: 'bg-[#e4eef1] text-[#2e7080]' },
       ],
     },
     logistics_coordinator: {
@@ -147,31 +170,155 @@ export function OverviewPage({
         </button>
       </div>
 
-      {/* Metrics Row */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {currentRole.metrics.map((card, idx) => {
-          const Icon = card.icon
-          return (
-            <div key={idx} className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">{card.label}</p>
-                  <p className="mt-2 text-3xl font-semibold tracking-tight">
-                    {card.value}
-                    <span className="ml-1 text-base font-normal text-muted-foreground">{card.suffix}</span>
-                  </p>
-                </div>
-                <div className={`rounded-xl p-3 ${card.tone}`}>
-                  <Icon size={20} />
-                </div>
+      {/* Metrics Row: 11 System Statistics for Platform Admin or 4 Persona Cards for Other Roles */}
+      {isAdmin ? (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-bold tracking-tight text-foreground flex items-center gap-2">
+              <Globe size={16} className="text-primary" /> Platform Administration & System-Wide KPIs (Real MongoDB Data)
+            </h2>
+            <span className="rounded-md bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
+              11 Core Operations Metrics
+            </span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
+            {/* 1. Total Registered Farmers */}
+            <div className="rounded-2xl border border-border bg-card p-4 shadow-sm hover:border-primary/50 transition">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">Farmers</span>
+                <div className="p-2 rounded-lg bg-[#e7efe5] text-primary"><Tractor size={15} /></div>
               </div>
-              <div className="mt-4 flex items-center gap-1 text-xs font-medium text-primary">
-                <TrendingUp size={13} /> 8.4% <span className="font-normal text-muted-foreground">vs last cycle</span>
-              </div>
+              <p className="text-2xl font-bold mt-2 text-foreground">{adminStats?.totalFarmers ?? '—'}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Registered Farmers</p>
             </div>
-          )
-        })}
-      </div>
+
+            {/* 2. Total Registered Buyers */}
+            <div className="rounded-2xl border border-border bg-card p-4 shadow-sm hover:border-primary/50 transition">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">Buyers</span>
+                <div className="p-2 rounded-lg bg-[#eee8f4] text-[#76518e]"><ShoppingBag size={15} /></div>
+              </div>
+              <p className="text-2xl font-bold mt-2 text-foreground">{adminStats?.totalBuyers ?? '—'}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Wholesale Buyers</p>
+            </div>
+
+            {/* 3. Total Registered Quality Inspectors */}
+            <div className="rounded-2xl border border-border bg-card p-4 shadow-sm hover:border-primary/50 transition">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">Inspectors</span>
+                <div className="p-2 rounded-lg bg-[#f7ecd8] text-[#a56a17]"><Award size={15} /></div>
+              </div>
+              <p className="text-2xl font-bold mt-2 text-foreground">{adminStats?.totalInspectors ?? '—'}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Quality Inspectors</p>
+            </div>
+
+            {/* 4. Total Registered Logistics Coordinators */}
+            <div className="rounded-2xl border border-border bg-card p-4 shadow-sm hover:border-primary/50 transition">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">Logistics</span>
+                <div className="p-2 rounded-lg bg-[#e4eef1] text-[#2e7080]"><Truck size={15} /></div>
+              </div>
+              <p className="text-2xl font-bold mt-2 text-foreground">{adminStats?.totalLogistics ?? '—'}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Logistics Coordinators</p>
+            </div>
+
+            {/* 5. Total Registered Farms */}
+            <div className="rounded-2xl border border-border bg-card p-4 shadow-sm hover:border-primary/50 transition">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">Farms</span>
+                <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-600"><MapPin size={15} /></div>
+              </div>
+              <p className="text-2xl font-bold mt-2 text-foreground">{adminStats?.totalFarms ?? farms.length}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Registered Farms</p>
+            </div>
+
+            {/* 6. Pending Quality Inspection Requests */}
+            <div className="rounded-2xl border border-border bg-card p-4 shadow-sm hover:border-primary/50 transition">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">Pending QI</span>
+                <div className="p-2 rounded-lg bg-amber-500/10 text-amber-600"><Clock size={15} /></div>
+              </div>
+              <p className="text-2xl font-bold mt-2 text-amber-600 dark:text-amber-400">{adminStats?.pendingInspections ?? '—'}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Pending Inspections</p>
+            </div>
+
+            {/* 7. Completed Quality Inspections */}
+            <div className="rounded-2xl border border-border bg-card p-4 shadow-sm hover:border-primary/50 transition">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">Completed QI</span>
+                <div className="p-2 rounded-lg bg-green-500/10 text-green-600"><CheckCircle2 size={15} /></div>
+              </div>
+              <p className="text-2xl font-bold mt-2 text-emerald-600 dark:text-emerald-400">{adminStats?.completedInspections ?? '—'}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Completed Inspections</p>
+            </div>
+
+            {/* 8. Total Purchase Orders */}
+            <div className="rounded-2xl border border-border bg-card p-4 shadow-sm hover:border-primary/50 transition">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">Orders</span>
+                <div className="p-2 rounded-lg bg-blue-500/10 text-blue-600"><FileCheck size={15} /></div>
+              </div>
+              <p className="text-2xl font-bold mt-2 text-foreground">{adminStats?.totalOrders ?? purchaseOrders.length}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Total Purchase Orders</p>
+            </div>
+
+            {/* 9. Orders Pending Logistics */}
+            <div className="rounded-2xl border border-border bg-card p-4 shadow-sm hover:border-primary/50 transition">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">Pending Fleet</span>
+                <div className="p-2 rounded-lg bg-orange-500/10 text-orange-600"><Package size={15} /></div>
+              </div>
+              <p className="text-2xl font-bold mt-2 text-orange-600 dark:text-orange-400">{adminStats?.pendingLogistics ?? '—'}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Pending Logistics</p>
+            </div>
+
+            {/* 10. Orders Accepted by Logistics */}
+            <div className="rounded-2xl border border-border bg-card p-4 shadow-sm hover:border-primary/50 transition">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">Accepted Fleet</span>
+                <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-600"><Ship size={15} /></div>
+              </div>
+              <p className="text-2xl font-bold mt-2 text-indigo-600 dark:text-indigo-400">{adminStats?.acceptedOrders ?? '—'}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Accepted Logistics</p>
+            </div>
+
+            {/* 11. Delivered Orders */}
+            <div className="rounded-2xl border border-border bg-card p-4 shadow-sm hover:border-primary/50 transition col-span-2 sm:col-span-1">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">Delivered</span>
+                <div className="p-2 rounded-lg bg-teal-500/10 text-teal-600"><ShieldCheck size={15} /></div>
+              </div>
+              <p className="text-2xl font-bold mt-2 text-teal-600 dark:text-teal-400">{adminStats?.deliveredOrders ?? '—'}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Delivered Orders</p>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {currentRole.metrics.map((card, idx) => {
+            const Icon = card.icon
+            return (
+              <div key={idx} className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">{card.label}</p>
+                    <p className="mt-2 text-3xl font-semibold tracking-tight">
+                      {card.value}
+                      <span className="ml-1 text-base font-normal text-muted-foreground">{card.suffix}</span>
+                    </p>
+                  </div>
+                  <div className={`rounded-xl p-3 ${card.tone}`}>
+                    <Icon size={20} />
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center gap-1 text-xs font-medium text-primary">
+                  <TrendingUp size={13} /> 8.4% <span className="font-normal text-muted-foreground">vs last cycle</span>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
 
       {/* Map & Role Features Grid */}
       <div className="grid gap-6 xl:grid-cols-[1.5fr_1fr]">
@@ -244,7 +391,7 @@ export function OverviewPage({
                     }`}
                   >
                     <div className="flex size-10 items-center justify-center rounded-xl bg-secondary text-primary">
-                      <Leaf size={18} />
+                      <MapPin size={18} />
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold">{farm.name}</p>
@@ -285,9 +432,35 @@ export function OverviewPage({
               </div>
             )}
 
-            {role === 'platform_admin' && (
+            {(role === 'platform_admin' || role === 'admin') && (
               <div className="divide-y divide-border">
-                <div className="p-8 text-center text-sm text-muted-foreground">No audit activity available.</div>
+                {adminStats?.recentUsers && adminStats.recentUsers.length > 0 ? (
+                  adminStats.recentUsers.map((user, idx) => (
+                    <div key={idx} className="p-4 flex items-center justify-between hover:bg-muted/50 transition">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
+                          <Users size={17} />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold truncate">{user.name}</p>
+                          <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                        </div>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-semibold text-primary capitalize">
+                          {user.role?.replace('_', ' ')}
+                        </span>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">
+                          {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'Active'}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-8 text-center text-sm text-muted-foreground">
+                    {adminLoading ? 'Loading system audit logs...' : 'No registered users found.'}
+                  </div>
+                )}
               </div>
             )}
 
