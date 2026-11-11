@@ -53,6 +53,8 @@ export async function createLot(req, res, next) {
       quantity,
       availableQuantity: quantity,
       unit: unit || 'kg',
+      cropHealth: req.body.cropHealth || 'Healthy',
+      harvestDate: req.body.harvestDate || req.body.expectedHarvestDate || new Date(),
       marketPrice: req.body.marketPrice || 50,
       farmer: ownerId,
       farm: targetFarm._id,

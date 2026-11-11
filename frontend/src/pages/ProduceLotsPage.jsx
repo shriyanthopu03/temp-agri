@@ -68,8 +68,10 @@ export function ProduceLotsPage({
 
   // New Lot Form
   const [newCategory, setNewCategory] = useState('')
-  const [newQuantity, setNewQuantity] = useState('')
+  const [newQuantity, setNewQuantity] = useState('1500')
   const [newUnit, setNewUnit] = useState('kg')
+  const [newCropHealth, setNewCropHealth] = useState('Moderate')
+  const [newExpectedHarvestDate, setNewExpectedHarvestDate] = useState(() => new Date(Date.now() + 45 * 86400000).toISOString().split('T')[0])
   const [newFarmer, setNewFarmer] = useState(session?.user?.name || '')
   const [newFarm, setNewFarm] = useState(farms[0]?.name || '')
 
@@ -124,8 +126,10 @@ export function ProduceLotsPage({
     e.preventDefault()
     const newLot = {
       category: newCategory,
-      quantity: Number(newQuantity),
+      quantity: Number(newQuantity) || 1500,
       unit: newUnit,
+      cropHealth: newCropHealth,
+      expectedHarvestDate: newExpectedHarvestDate,
       farmerName: newFarmer,
       farmName: newFarm,
       status: 'created',
@@ -552,12 +556,13 @@ export function ProduceLotsPage({
 
               <div className="grid grid-cols-2 gap-2">
                 <label className="block space-y-1">
-                  <span className="font-medium text-foreground">Quantity</span>
+                  <span className="font-medium text-foreground">Expected Yield (kg)</span>
                   <input
                     type="number"
                     value={newQuantity}
                     onChange={(e) => setNewQuantity(e.target.value)}
                     required
+                    placeholder="1500"
                     className="w-full rounded-xl border border-border bg-background p-2.5 text-xs outline-none focus:border-primary"
                   />
                 </label>
@@ -575,23 +580,66 @@ export function ProduceLotsPage({
                 </label>
               </div>
 
+              <div className="grid grid-cols-2 gap-2">
+                <label className="block space-y-1">
+                  <span className="font-medium text-foreground">Crop Health</span>
+                  <select
+                    value={newCropHealth}
+                    onChange={(e) => setNewCropHealth(e.target.value)}
+                    className="w-full rounded-xl border border-border bg-background p-2.5 text-xs outline-none focus:border-primary"
+                  >
+                    <option value="Excellent">Excellent</option>
+                    <option value="Healthy">Healthy</option>
+                    <option value="Good">Good</option>
+                    <option value="Moderate">Moderate</option>
+                    <option value="Poor">Poor</option>
+                  </select>
+                </label>
+                <label className="block space-y-1">
+                  <span className="font-medium text-foreground">Expected Harvesting Date</span>
+                  <input
+                    type="date"
+                    value={newExpectedHarvestDate}
+                    onChange={(e) => setNewExpectedHarvestDate(e.target.value)}
+                    required
+                    className="w-full rounded-xl border border-border bg-background p-2.5 text-xs outline-none focus:border-primary"
+                  />
+                </label>
+              </div>
+
+              <label className="block space-y-1">
+                <span className="font-medium text-foreground">Farm Land Parcel</span>
+                {farms && farms.length > 0 ? (
+                  <select
+                    value={newFarm}
+                    onChange={(e) => setNewFarm(e.target.value)}
+                    required
+                    className="w-full rounded-xl border border-border bg-background p-2.5 text-xs outline-none focus:border-primary"
+                  >
+                    {farms.map((f) => (
+                      <option key={f.id || f._id} value={f.name || f.farmName}>
+                        {f.name || f.farmName} ({f.crop || f.crops?.[0] || 'Crop'})
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    value={newFarm}
+                    onChange={(e) => setNewFarm(e.target.value)}
+                    required
+                    placeholder="e.g. Nashik Mango Grove"
+                    className="w-full rounded-xl border border-border bg-background p-2.5 text-xs outline-none focus:border-primary"
+                  />
+                )}
+              </label>
+
               <label className="block space-y-1">
                 <span className="font-medium text-foreground">Farmer Name</span>
                 <input
                   type="text"
                   value={newFarmer}
                   onChange={(e) => setNewFarmer(e.target.value)}
-                  required
-                  className="w-full rounded-xl border border-border bg-background p-2.5 text-xs outline-none focus:border-primary"
-                />
-              </label>
-
-              <label className="block space-y-1">
-                <span className="font-medium text-foreground">Farm Land Parcel</span>
-                <input
-                  type="text"
-                  value={newFarm}
-                  onChange={(e) => setNewFarm(e.target.value)}
                   required
                   className="w-full rounded-xl border border-border bg-background p-2.5 text-xs outline-none focus:border-primary"
                 />

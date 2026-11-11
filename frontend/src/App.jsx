@@ -60,6 +60,10 @@ function mapLot(lot) {
     farmerName: lot.farmer?.name || lot.farmerName || 'Farmer name unavailable',
     farmName: lot.farm?.farmName || lot.farmName || 'Farm name unavailable',
     qualityGrade: lot.qualityGrade || 'Pending Inspection',
+    cropHealth: lot.cropHealth || 'Healthy',
+    expectedHarvestDate: lot.harvestDate
+      ? new Date(lot.harvestDate).toISOString().split('T')[0]
+      : lot.expectedHarvestDate || 'Current Cycle',
   }
 }
 
@@ -439,9 +443,6 @@ export default function App() {
   const [farmArea, setFarmArea] = useState(null)
   const [farmName, setFarmName] = useState('')
   const [crop, setCrop] = useState('')
-  const [cropHealth, setCropHealth] = useState('Healthy')
-  const [expectedQuantity, setExpectedQuantity] = useState('1500')
-  const [expectedHarvestDate, setExpectedHarvestDate] = useState(() => new Date(Date.now() + 45 * 86400000).toISOString().split('T')[0])
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     if (typeof window !== 'undefined') {
       return window.innerWidth >= 1024
@@ -545,9 +546,6 @@ export default function App() {
               crops: [crop.trim()],
               coordinates: points,
               location: { address: 'Nashik Belt, Maharashtra, India' },
-              cropHealth,
-              expectedQuantity: Number(expectedQuantity) || 1500,
-              expectedHarvestDate,
             }),
           },
           session.token
@@ -972,7 +970,21 @@ export default function App() {
               session={session}
               onCreateLot={async (newLot) => {
                 if (!session?.token) return setLots([newLot, ...lots])
-                const response = await fetch('/api/lots', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.token}` }, body: JSON.stringify({ category: newLot.category, quantity: newLot.quantity, unit: newLot.unit, farmer: session.user.id, farm: farms[0]?.id }) })
+                const targetFarmObj = farms.find((f) => f.name === newLot.farmName || f.id === newLot.farmId || f._id === newLot.farmId) || farms[0]
+                const response = await fetch('/api/lots', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.token}` },
+                  body: JSON.stringify({
+                    category: newLot.category,
+                    quantity: newLot.quantity,
+                    unit: newLot.unit,
+                    farmer: session.user.id,
+                    farm: targetFarmObj?.id || targetFarmObj?._id,
+                    cropHealth: newLot.cropHealth,
+                    expectedHarvestDate: newLot.expectedHarvestDate,
+                    harvestDate: newLot.expectedHarvestDate,
+                  }),
+                })
                 const saved = await response.json()
                 if (!response.ok) throw new Error(saved.message || 'Unable to create harvest batch')
                 const mappedLot = mapLot(saved)
@@ -1092,41 +1104,6 @@ export default function App() {
                   />
                 </label>
 
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <label className="font-semibold text-foreground">
-                    Crop Health
-                    <select
-                      value={cropHealth}
-                      onChange={(e) => setCropHealth(e.target.value)}
-                      className="mt-1 w-full rounded-xl border border-border bg-background px-2.5 py-2 text-xs outline-none focus:border-primary"
-                    >
-                      <option value="Excellent">Excellent</option>
-                      <option value="Healthy">Healthy</option>
-                      <option value="Good">Good</option>
-                      <option value="Moderate">Moderate</option>
-                    </select>
-                  </label>
-                  <label className="font-semibold text-foreground">
-                    Expected Yield (kg)
-                    <input
-                      type="number"
-                      value={expectedQuantity}
-                      onChange={(e) => setExpectedQuantity(e.target.value)}
-                      placeholder="1500"
-                      className="mt-1 w-full rounded-xl border border-border bg-background px-2.5 py-2 text-xs outline-none focus:border-primary"
-                    />
-                  </label>
-                </div>
-
-                <label className="text-xs font-semibold text-foreground">
-                  Expected Harvesting Date
-                  <input
-                    type="date"
-                    value={expectedHarvestDate}
-                    onChange={(e) => setExpectedHarvestDate(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs outline-none focus:border-primary"
-                  />
-                </label>
                 <div className="rounded-xl bg-secondary p-4 text-sm">
                   <div className="flex items-center gap-2 font-medium text-primary">
                     <Compass size={16} /> Boundary points
