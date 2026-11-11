@@ -794,9 +794,10 @@ export default function App() {
 
             <div className="hidden h-7 w-px bg-border sm:block" />
 
-            {/* Profile Menu */}
-            <div className="relative">
+            {/* Profile Menu & Logout */}
+            <div className="relative flex items-center gap-1.5">
               <button
+                type="button"
                 className="flex items-center gap-2 rounded-xl p-1.5 hover:bg-muted transition"
                 onClick={() => setAccountMenuOpen((open) => !open)}
                 aria-expanded={accountMenuOpen}
@@ -817,6 +818,18 @@ export default function App() {
                 />
               </button>
 
+              {/* Logout button beside username after down toggle */}
+              <button
+                type="button"
+                onClick={logout}
+                title="Log out"
+                className="flex items-center gap-1.5 rounded-xl border border-destructive/20 bg-destructive/10 px-3 py-1.5 text-xs font-semibold text-destructive hover:bg-destructive hover:text-destructive-foreground transition shadow-xs"
+              >
+                <LogOut size={14} />
+                <span className="hidden sm:inline">Log out</span>
+              </button>
+
+              {/* Dropdown Menu below username when toggle is clicked */}
               {accountMenuOpen && (
                 <div
                   className="absolute right-0 top-12 z-30 w-64 rounded-2xl border border-border bg-card p-2 shadow-xl space-y-1"
@@ -825,15 +838,24 @@ export default function App() {
                   <div className="px-3 py-2 border-b border-border">
                     <p className="text-xs font-bold text-foreground">{userName}</p>
                     <p className="text-[11px] text-muted-foreground">{session?.user?.email || 'user@agritrade.com'}</p>
+                    <span className="mt-1 inline-block rounded-md bg-secondary px-2 py-0.5 text-[10px] font-semibold text-primary capitalize">
+                      {account.label}
+                    </span>
                   </div>
 
-                  <div className="border-t border-border pt-1">
+                  {/* Settings Button below user name in dropdown */}
+                  <div className="pt-1">
                     <button
-                      className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-xs text-destructive hover:bg-destructive/10 transition"
-                      onClick={logout}
+                      type="button"
+                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-semibold text-foreground hover:bg-muted transition"
+                      onClick={() => {
+                        setActive('Settings')
+                        setAccountMenuOpen(false)
+                      }}
                       role="menuitem"
                     >
-                      <LogOut size={16} /> Log out
+                      <Settings size={15} className="text-primary" />
+                      <span>Settings</span>
                     </button>
                   </div>
                 </div>
