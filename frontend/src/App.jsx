@@ -919,10 +919,8 @@ export default function App() {
             >
               <Menu size={20} />
             </button>
-            <div className="hidden items-center gap-2 text-sm text-muted-foreground md:flex">
-              <span>Workspace</span>
-              <span>/</span>
-              <span className="font-medium text-foreground">{active}</span>
+            <div className="hidden items-center text-sm md:flex">
+              <span className="font-semibold text-foreground text-base tracking-tight">{active}</span>
             </div>
             <div className="flex items-center gap-2 md:hidden">
               <span className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground text-[10px] font-black select-none">AT</span>
