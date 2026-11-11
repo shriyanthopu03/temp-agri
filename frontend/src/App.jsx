@@ -441,7 +441,12 @@ export default function App() {
   const [cropHealth, setCropHealth] = useState('Healthy')
   const [expectedQuantity, setExpectedQuantity] = useState('1500')
   const [expectedHarvestDate, setExpectedHarvestDate] = useState(() => new Date(Date.now() + 45 * 86400000).toISOString().split('T')[0])
-  const [menuOpen, setMenuOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth >= 1024
+    }
+    return true
+  })
   const [accountMenuOpen, setAccountMenuOpen] = useState(false)
   const [farmError, setFarmError] = useState('')
   const [darkMode, setDarkMode] = useState(() => window.localStorage.getItem('agritrade-theme') === 'dark')
@@ -709,20 +714,26 @@ export default function App() {
     <div className="min-h-screen bg-background text-foreground">
       {/* Sidebar Navigation */}
       <aside
-        className={`fixed inset-y-0 left-0 z-20 flex w-64 flex-col border-r border-border bg-card transition-transform lg:translate-x-0 ${
-          menuOpen ? 'translate-x-0' : '-translate-x-full'
+        className={`fixed inset-y-0 left-0 z-30 flex w-64 flex-col border-r border-border bg-card transition-all duration-300 ease-in-out ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="flex h-20 items-center gap-3 border-b border-border px-7">
+        <div className="flex h-20 items-center gap-3 border-b border-border px-6">
           <div className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground font-black text-xs tracking-tight shadow-sm select-none">
             AT
           </div>
-          <div>
-            <p className="font-semibold tracking-tight">AgriTrade</p>
-            <p className="text-xs text-muted-foreground">{account.workspace}</p>
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold tracking-tight truncate">AgriTrade</p>
+            <p className="text-xs text-muted-foreground truncate">{account.workspace}</p>
           </div>
-          <button className="ml-auto lg:hidden" onClick={() => setMenuOpen(false)} aria-label="Close menu">
-            <X size={20} />
+          <button
+            type="button"
+            className="flex items-center justify-center rounded-xl p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition"
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Collapse sidebar"
+            title="Collapse sidebar"
+          >
+            <X size={18} />
           </button>
         </div>
 
@@ -732,7 +743,9 @@ export default function App() {
               key={label}
               onClick={() => {
                 setActive(label)
-                setMenuOpen(false)
+                if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+                  setSidebarOpen(false)
+                }
               }}
               className={`flex items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium transition ${
                 active === label
@@ -756,13 +769,28 @@ export default function App() {
         </div>
       </aside>
 
+      {/* Mobile Backdrop Overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-20 bg-foreground/20 backdrop-blur-xs lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
       {/* Main Content Area */}
-      <main className="lg:pl-64">
+      <main className={`transition-[padding] duration-300 ease-in-out ${sidebarOpen ? 'lg:pl-64' : 'pl-0'}`}>
         {/* Top Header */}
         <header className="flex h-20 items-center justify-between border-b border-border bg-card/80 px-5 backdrop-blur md:px-8">
           <div className="flex items-center gap-3">
-            <button className="lg:hidden" onClick={() => setMenuOpen(true)} aria-label="Open menu">
-              <Menu size={22} />
+            <button
+              type="button"
+              className="flex items-center justify-center rounded-xl p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition"
+              onClick={() => setSidebarOpen((open) => !open)}
+              aria-label={sidebarOpen ? 'Collapse left navigation' : 'Expand left navigation'}
+              title={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+            >
+              <Menu size={20} />
             </button>
             <div className="hidden items-center gap-2 text-sm text-muted-foreground md:flex">
               <span>Workspace</span>
