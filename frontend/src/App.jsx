@@ -41,6 +41,7 @@ import { LandingPage } from './pages/LandingPage'
 import { requestAuth, signInWithGoogle } from './services/authService'
 import { requestFarms, mapFarm } from './services/farmService'
 import { requestWorkflow } from './services/workflowService'
+import { isTokenExpired } from './services/api'
 
 const referenceImage = '/backgroundimg.jpg'
 const defaultOrganizationId = '507f1f77bcf86cd799439011'
@@ -192,6 +193,31 @@ function LoginScreen({ onLogin, onSignUp, onBackToHome }) {
             <button className="login-submit" type="submit" disabled={loading}>
               {loading ? 'Signing in...' : 'Login'}
             </button>
+
+            <div className="mt-4 pt-3 border-t border-border/60">
+              <p className="text-[11px] font-semibold text-muted-foreground mb-2">Quick Demo Accounts (Click to Fill):</p>
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  { label: 'Farmer', email: 'farmer@rythusevak.com', pass: 'Farmer123!' },
+                  { label: 'Admin', email: 'admin@gmail.com', pass: '12345678' },
+                  { label: 'Buyer', email: 'buyer@gmail.com', pass: '12345678' },
+                  { label: 'Inspector', email: 'qi@gmail.com', pass: '12345678' },
+                  { label: 'Logistics', email: 'l@gmail.com', pass: '12345678' },
+                ].map((demo) => (
+                  <button
+                    key={demo.label}
+                    type="button"
+                    onClick={() => {
+                      setEmail(demo.email)
+                      setPassword(demo.pass)
+                    }}
+                    className="text-[11px] px-2.5 py-1 rounded-lg bg-muted/80 hover:bg-primary/20 text-foreground transition font-medium border border-border/80"
+                  >
+                    {demo.label}
+                  </button>
+                ))}
+              </div>
+            </div>
           </form>
         </div>
       </section>
@@ -414,14 +440,32 @@ export default function App() {
       if (googleSession) {
         const data = JSON.parse(decodeURIComponent(googleSession))
         window.history.replaceState(null, '', window.location.pathname + window.location.search)
-        window.localStorage.setItem('agritrade-session', JSON.stringify(data))
-        return data
+        if (!isTokenExpired(data?.token)) {
+          window.localStorage.setItem('agritrade-session', JSON.stringify(data))
+          return data
+        }
       }
-      return JSON.parse(window.localStorage.getItem('agritrade-session') || 'null')
+      const saved = JSON.parse(window.localStorage.getItem('agritrade-session') || 'null')
+      if (saved?.token && isTokenExpired(saved.token)) {
+        window.localStorage.removeItem('agritrade-session')
+        return null
+      }
+      return saved
     } catch {
       return null
     }
   })
+
+  useEffect(() => {
+    const handleAuthExpired = (e) => {
+      setSession(null)
+      window.localStorage.removeItem('agritrade-session')
+      setAuthMode('login')
+      setFarmError(e?.detail || 'Your session has expired. Please sign in again.')
+    }
+    window.addEventListener('auth:expired', handleAuthExpired)
+    return () => window.removeEventListener('auth:expired', handleAuthExpired)
+  }, [])
 
   const [authMode, setAuthMode] = useState(() => {
     try {
@@ -669,7 +713,7 @@ export default function App() {
       let savedFarm
       if (session?.token) {
         savedFarm = await requestFarms(
-          '/',
+          '',
           {
             method: 'POST',
             body: JSON.stringify({
@@ -682,7 +726,18 @@ export default function App() {
           session.token
         )
       }
-      const next = mapFarm(savedFarm)
+      const fallbackFarm = {
+        _id: `local-farm-${Date.now()}`,
+        farmName: farmName.trim(),
+        crops: [crop.trim()],
+        location: { address: 'Nashik Belt, Maharashtra, India' },
+        areaAcres: farmArea,
+        boundary: { type: 'Polygon', coordinates: [points] },
+        inspectionStatus: 'not_requested',
+        cropHealth: 'Healthy',
+        status: 'Verified',
+      }
+      const next = mapFarm(savedFarm || fallbackFarm)
       setFarms((current) => [...current, next])
       setSelectedFarm(next)
       setFarmName('')

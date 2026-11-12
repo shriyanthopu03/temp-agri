@@ -10,7 +10,7 @@ export function issueToken(user) {
       regionId: user.regionId ? user.regionId.toString() : undefined,
     },
     secret,
-    { expiresIn: '8h' }
+    { expiresIn: '30d' }
   )
 }
 

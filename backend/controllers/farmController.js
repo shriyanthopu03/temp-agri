@@ -5,7 +5,8 @@ import { validateBoundary } from '../utils/geo.js'
 
 export async function getMyFarms(req, res, next) {
   try {
-    const ownership = req.user.role === 'admin' ? {} : { farmer: req.user.userId }
+    const isAdmin = ['admin', 'platform_admin'].includes(req.user.role)
+    const ownership = isAdmin ? {} : { farmer: req.user.userId }
     const farms = await Farm.find(scopedFilter(req, ownership)).sort({ createdAt: -1 })
     res.json(farms)
   } catch (error) {
@@ -16,7 +17,8 @@ export async function getMyFarms(req, res, next) {
 export async function createFarm(req, res, next) {
   try {
     const { coordinates, sqm } = validateBoundary(req.body.coordinates)
-    const farmerId = req.user.role === 'admin' ? (req.body.farmerId || req.user.userId) : req.user.userId
+    const isAdmin = ['admin', 'platform_admin'].includes(req.user.role)
+    const farmerId = isAdmin ? (req.body.farmerId || req.user.userId) : req.user.userId
     const pts = coordinates[0] || []
     const sum = pts.reduce((acc, p) => [acc[0] + p[0], acc[1] + p[1]], [0, 0])
     const computedLng = pts.length ? sum[0] / pts.length : 78.9629
@@ -28,6 +30,8 @@ export async function createFarm(req, res, next) {
     }
 
     const farm = await Farm.create({
+      organizationId: req.user.organizationId || '507f1f77bcf86cd799439011',
+      regionId: req.user.regionId || '507f1f77bcf86cd799439012',
       ...scopedFilter(req),
       farmer: farmerId,
       farmName: req.body.farmName,
@@ -50,7 +54,8 @@ export async function createFarm(req, res, next) {
 
 export async function getFarmById(req, res, next) {
   try {
-    const ownership = req.user.role === 'admin' ? {} : { farmer: req.user.userId }
+    const isAdmin = ['admin', 'platform_admin'].includes(req.user.role)
+    const ownership = isAdmin ? {} : { farmer: req.user.userId }
     const farm = await Farm.findOne(scopedFilter(req, { _id: req.params.id, ...ownership }))
     if (!farm) return res.status(404).json({ message: 'Farm not found' })
     res.json(farm)
@@ -62,7 +67,8 @@ export async function getFarmById(req, res, next) {
 export async function updateFarm(req, res, next) {
   try {
     const { coordinates, sqm } = validateBoundary(req.body.coordinates)
-    const ownership = req.user.role === 'admin' ? {} : { farmer: req.user.userId }
+    const isAdmin = ['admin', 'platform_admin'].includes(req.user.role)
+    const ownership = isAdmin ? {} : { farmer: req.user.userId }
     const pts = coordinates[0] || []
     const sum = pts.reduce((acc, p) => [acc[0] + p[0], acc[1] + p[1]], [0, 0])
     const computedLng = pts.length ? sum[0] / pts.length : 78.9629
@@ -98,7 +104,8 @@ export async function updateFarm(req, res, next) {
 
 export async function deleteFarm(req, res, next) {
   try {
-    const ownership = req.user.role === 'admin' ? {} : { farmer: req.user.userId }
+    const isAdmin = ['admin', 'platform_admin'].includes(req.user.role)
+    const ownership = isAdmin ? {} : { farmer: req.user.userId }
     const farm = await Farm.findOneAndDelete(scopedFilter(req, { _id: req.params.id, ...ownership }))
     if (!farm) return res.status(404).json({ message: 'Farm not found' })
     res.json({ message: 'Farm deleted successfully' })
@@ -109,7 +116,8 @@ export async function deleteFarm(req, res, next) {
 
 export async function requestQualityInspection(req, res, next) {
   try {
-    const ownership = req.user.role === 'admin' ? {} : { farmer: req.user.userId }
+    const isAdmin = ['admin', 'platform_admin'].includes(req.user.role)
+    const ownership = isAdmin ? {} : { farmer: req.user.userId }
     const farm = await Farm.findOne(scopedFilter(req, { _id: req.params.id, ...ownership }))
     if (!farm) return res.status(404).json({ message: 'Farm not found' })
 
