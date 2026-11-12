@@ -36,14 +36,32 @@ function farmPoints(shipment) {
   return []
 }
 
-function formatLocation(location) {
-  if (!location) return 'Location pending'
-  if (typeof location === 'string') return location
-  if (location.address) return location.address
-  if (Number.isFinite(Number(location.latitude)) && Number.isFinite(Number(location.longitude))) {
-    return `${Number(location.latitude).toFixed(4)}, ${Number(location.longitude).toFixed(4)}`
+function formatLocation(location, fallbackPoints = []) {
+  if (!location && (!fallbackPoints || fallbackPoints.length === 0)) return 'Location pending'
+
+  let lat = Number(location?.latitude)
+  let lng = Number(location?.longitude)
+
+  if ((!Number.isFinite(lat) || !Number.isFinite(lng)) && Array.isArray(fallbackPoints) && fallbackPoints.length > 0) {
+    const sum = fallbackPoints.reduce((acc, p) => [acc[0] + p[0], acc[1] + p[1]], [0, 0])
+    lng = sum[0] / fallbackPoints.length
+    lat = sum[1] / fallbackPoints.length
   }
-  return 'Location pending'
+
+  const hasCoords = Number.isFinite(lat) && Number.isFinite(lng)
+  const coordsFormatted = hasCoords ? `GPS: ${lat.toFixed(4)}, ${lng.toFixed(4)}` : null
+
+  const rawAddress = typeof location === 'string' ? location : location?.address
+
+  if (rawAddress && rawAddress.toLowerCase().includes('nashik')) {
+    return coordsFormatted || 'GPS Coordinates Registered'
+  }
+
+  if (rawAddress && rawAddress !== 'Location pending' && rawAddress !== 'Registered Farm Land') {
+    return rawAddress
+  }
+
+  return coordsFormatted || 'Location pending'
 }
 
 export function LogisticsDeliveriesPage({ shipments = [], onAcceptOrder, onMarkDelivered }) {
@@ -172,7 +190,7 @@ export function LogisticsDeliveriesPage({ shipments = [], onAcceptOrder, onMarkD
                 </span>
                 <h2 className="text-lg font-bold text-foreground mt-0.5">{farm?.farmName || 'Registered Farm'}</h2>
                 <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-                  <MapPin size={13} /> Pickup: {formatLocation(selectedShipment.pickupLocation || farm?.location)}
+                  <MapPin size={13} /> Pickup: {formatLocation(selectedShipment.pickupLocation || farm?.location, farmPoints(selectedShipment))}
                 </p>
               </div>
 
@@ -260,7 +278,7 @@ export function LogisticsDeliveriesPage({ shipments = [], onAcceptOrder, onMarkD
                 <p className="font-semibold text-muted-foreground flex items-center gap-1">
                   <Navigation size={13} className="text-primary" /> Pickup Origin (Farm)
                 </p>
-                <p className="font-medium text-foreground mt-1">{formatLocation(selectedShipment.pickupLocation || farm?.location)}</p>
+                <p className="font-medium text-foreground mt-1">{formatLocation(selectedShipment.pickupLocation || farm?.location, farmPoints(selectedShipment))}</p>
               </div>
               <div className="rounded-xl bg-muted/40 p-3 border border-border/60">
                 <p className="font-semibold text-muted-foreground flex items-center gap-1">

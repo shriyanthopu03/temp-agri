@@ -125,7 +125,10 @@ export async function createOrder(req, res, next) {
         pickupLng = 78.9629
       }
     }
-    const pickupAddress = lot.farm?.location?.address || lot.farm?.farmName || 'Farm Location'
+    const rawAddress = lot.farm?.location?.address
+    const pickupAddress = (rawAddress && !rawAddress.toLowerCase().includes('nashik') && rawAddress !== 'Farm Location')
+      ? rawAddress
+      : `GPS: ${Number(pickupLat).toFixed(4)}, ${Number(pickupLng).toFixed(4)}`
     const pickupLocationObj = { address: pickupAddress, latitude: Number(pickupLat), longitude: Number(pickupLng) }
 
     const order = await PurchaseOrder.create({
@@ -197,7 +200,21 @@ export async function getOrders(req, res, next) {
       .populate('batch', 'category variety qualityGrade qualityRating')
       .populate('shipment')
       .sort({ createdAt: -1 })
-    res.json(orders)
+
+    const sanitized = orders.map((ord) => {
+      const obj = ord.toObject ? ord.toObject() : ord
+      const rawPickup = obj.pickupLocation?.address || ''
+      if (rawPickup.toLowerCase().includes('nashik') || !rawPickup) {
+        const lat = obj.pickupLocation?.latitude ?? obj.farm?.location?.latitude
+        const lng = obj.pickupLocation?.longitude ?? obj.farm?.location?.longitude
+        if (Number.isFinite(Number(lat)) && Number.isFinite(Number(lng))) {
+          obj.pickupLocation = { ...obj.pickupLocation, address: `GPS: ${Number(lat).toFixed(4)}, ${Number(lng).toFixed(4)}` }
+        }
+      }
+      return obj
+    })
+
+    res.json(sanitized)
   } catch (error) {
     next(error)
   }
@@ -218,7 +235,21 @@ export async function getShipments(req, res, next) {
         ],
       })
       .sort({ createdAt: -1 })
-    res.json(shipments)
+
+    const sanitized = shipments.map((shp) => {
+      const obj = shp.toObject ? shp.toObject() : shp
+      const rawPickup = obj.pickupLocation?.address || ''
+      if (rawPickup.toLowerCase().includes('nashik') || !rawPickup) {
+        const lat = obj.pickupLocation?.latitude ?? obj.order?.farm?.location?.latitude
+        const lng = obj.pickupLocation?.longitude ?? obj.order?.farm?.location?.longitude
+        if (Number.isFinite(Number(lat)) && Number.isFinite(Number(lng))) {
+          obj.pickupLocation = { ...obj.pickupLocation, address: `GPS: ${Number(lat).toFixed(4)}, ${Number(lng).toFixed(4)}` }
+        }
+      }
+      return obj
+    })
+
+    res.json(sanitized)
   } catch (error) {
     next(error)
   }

@@ -9,9 +9,28 @@ export async function getLots(req, res, next) {
     const filter = isFarmer ? { farmer: userId } : {}
     const lots = await ProduceLot.find(filter)
       .populate('farmer', 'name email')
-      .populate('farm', 'farmName location areaAcres areaHectares crops')
+      .populate('farm', 'farmName location areaAcres areaHectares crops boundary')
       .sort({ createdAt: -1 })
-    res.json(lots)
+
+    const sanitized = lots.map((l) => {
+      const obj = l.toObject ? l.toObject() : l
+      if (obj.farm?.location?.address && obj.farm.location.address.toLowerCase().includes('nashik')) {
+        const pts = obj.farm.boundary?.coordinates?.[0] || []
+        let lat = obj.farm.location.latitude
+        let lng = obj.farm.location.longitude
+        if ((!lat || !lng) && pts.length > 0) {
+          const sum = pts.reduce((acc, p) => [acc[0] + p[0], acc[1] + p[1]], [0, 0])
+          lng = sum[0] / pts.length
+          lat = sum[1] / pts.length
+        }
+        obj.farm.location.address = Number.isFinite(Number(lat)) && Number.isFinite(Number(lng))
+          ? `GPS: ${Number(lat).toFixed(4)}, ${Number(lng).toFixed(4)}`
+          : 'GPS Coordinates Registered'
+      }
+      return obj
+    })
+
+    res.json(sanitized)
   } catch (error) {
     next(error)
   }

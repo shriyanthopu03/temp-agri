@@ -3,13 +3,34 @@ import ProduceLot from '../models/ProduceLot.js'
 import { scopedFilter } from '../middleware/rbac.js'
 import { validateBoundary } from '../utils/geo.js'
 
+function sanitizeFarmLocation(farm) {
+  if (!farm) return farm
+  const obj = farm.toObject ? farm.toObject() : farm
+  const rawAddr = obj.location?.address || ''
+  if (rawAddr.toLowerCase().includes('nashik') || !rawAddr || rawAddr === 'Location pending') {
+    const pts = obj.boundary?.coordinates?.[0] || []
+    let lat = obj.location?.latitude
+    let lng = obj.location?.longitude
+    if ((!Number.isFinite(Number(lat)) || !Number.isFinite(Number(lng))) && pts.length > 0) {
+      const sum = pts.reduce((acc, p) => [acc[0] + p[0], acc[1] + p[1]], [0, 0])
+      lng = sum[0] / pts.length
+      lat = sum[1] / pts.length
+    }
+    const coordsStr = Number.isFinite(Number(lat)) && Number.isFinite(Number(lng))
+      ? `GPS: ${Number(lat).toFixed(4)}, ${Number(lng).toFixed(4)}`
+      : 'GPS Coordinates Registered'
+    obj.location = { ...obj.location, address: coordsStr, latitude: lat, longitude: lng }
+  }
+  return obj
+}
+
 export async function getMyFarms(req, res, next) {
   try {
     const isAdmin = ['admin', 'platform_admin'].includes(req.user.role)
     const userId = req.user.userId || req.user.id
     const filter = isAdmin ? {} : { farmer: userId }
     const farms = await Farm.find(filter).sort({ createdAt: -1 })
-    res.json(farms)
+    res.json(farms.map(sanitizeFarmLocation))
   } catch (error) {
     next(error)
   }
@@ -66,7 +87,7 @@ export async function getFarmById(req, res, next) {
     const ownership = isAdmin ? {} : { farmer: userId }
     const farm = await Farm.findOne({ _id: req.params.id, ...ownership })
     if (!farm) return res.status(404).json({ message: 'Farm not found' })
-    res.json(farm)
+    res.json(sanitizeFarmLocation(farm))
   } catch (error) {
     next(error)
   }
@@ -101,7 +122,7 @@ export async function updateFarm(req, res, next) {
       { new: true, runValidators: true }
     )
     if (!farm) return res.status(404).json({ message: 'Farm not found' })
-    res.json(farm)
+    res.json(sanitizeFarmLocation(farm))
   } catch (error) {
     res.status(400).json({ message: error.message })
   }

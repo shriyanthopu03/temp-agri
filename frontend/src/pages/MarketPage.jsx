@@ -101,7 +101,19 @@ export function MarketPage({
         const farm = typeof batch.farm === 'object' && batch.farm !== null ? batch.farm : null
         const farmerName = batch.farmer?.name || batch.farmerName || 'Registered Farmer'
         const farmName = farm?.farmName || farm?.name || batch.farmName || 'Farm'
-        const farmLocation = farm?.location?.address || (farm?.location?.latitude ? `${Number(farm.location.latitude).toFixed(4)}, ${Number(farm.location.longitude).toFixed(4)}` : 'Location pending')
+        const farmPoints = getFarmPoints(batch)
+        let coordStr = ''
+        if (farmPoints.length > 0) {
+          const sum = farmPoints.reduce((acc, p) => [acc[0] + p[0], acc[1] + p[1]], [0, 0])
+          coordStr = `GPS: ${(sum[1] / farmPoints.length).toFixed(4)}, ${(sum[0] / farmPoints.length).toFixed(4)}`
+        } else if (farm?.location?.latitude && farm?.location?.longitude) {
+          coordStr = `GPS: ${Number(farm.location.latitude).toFixed(4)}, ${Number(farm.location.longitude).toFixed(4)}`
+        }
+
+        const rawAddr = farm?.location?.address || ''
+        const farmLocation = (rawAddr && !rawAddr.toLowerCase().includes('nashik') && rawAddr !== 'Location pending')
+          ? rawAddr
+          : (coordStr || 'GPS Coordinates Registered')
         const farmArea = Number(farm?.areaAcres || farm?.area || 0)
         const latestInspection = batch.inspectionHistory?.[batch.inspectionHistory.length - 1]
 
