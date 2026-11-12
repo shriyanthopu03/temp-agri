@@ -841,72 +841,129 @@ export default function App() {
     <div className="min-h-screen bg-background text-foreground">
       {/* Sidebar Navigation */}
       <aside
-        className={`fixed inset-y-0 left-0 z-30 flex w-64 flex-col border-r border-border bg-card transition-all duration-300 ease-in-out ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        className={`fixed inset-y-0 left-0 z-30 flex flex-col border-r border-border bg-card transition-all duration-300 ease-in-out ${
+          sidebarOpen
+            ? 'w-64 translate-x-0'
+            : 'w-16 md:w-20 translate-x-0'
         }`}
       >
-        <div className="flex h-20 items-center gap-3 border-b border-border px-6">
-          <div className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground font-black text-xs tracking-tight shadow-sm select-none">
-            RS
+        <div
+          className={`flex h-20 items-center border-b border-border transition-all duration-300 ${
+            sidebarOpen ? 'justify-between px-5' : 'justify-center px-2'
+          }`}
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <div
+              className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground font-black text-xs tracking-tight shadow-sm select-none cursor-pointer"
+              onClick={() => setSidebarOpen((open) => !open)}
+              title={sidebarOpen ? 'Collapse sidebar to icons' : 'Expand sidebar'}
+            >
+              RS
+            </div>
+            {sidebarOpen && (
+              <div className="min-w-0 flex-1 overflow-hidden">
+                <p className="font-semibold tracking-tight truncate text-sm">Rythu Sevak</p>
+                <p className="text-xs text-muted-foreground truncate">{account.workspace}</p>
+              </div>
+            )}
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-semibold tracking-tight truncate">Rythu Sevak</p>
-            <p className="text-xs text-muted-foreground truncate">{account.workspace}</p>
-          </div>
-          <button
-            type="button"
-            className="flex items-center justify-center rounded-xl p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition"
-            onClick={() => setSidebarOpen(false)}
-            aria-label="Collapse sidebar"
-            title="Collapse sidebar"
-          >
-            <X size={18} />
-          </button>
+          {sidebarOpen && (
+            <button
+              type="button"
+              className="flex items-center justify-center rounded-xl p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition shrink-0"
+              onClick={() => setSidebarOpen(false)}
+              aria-label="Collapse sidebar"
+              title="Collapse sidebar"
+            >
+              <X size={18} />
+            </button>
+          )}
         </div>
 
-        <nav className="flex flex-1 flex-col gap-1 p-4">
+        <nav
+          className={`flex flex-1 flex-col gap-2 transition-all duration-300 ${
+            sidebarOpen ? 'p-4' : 'items-center py-4 px-1.5'
+          }`}
+        >
           {navItems.map(({ label, icon: Icon }) => (
             <button
               key={label}
               onClick={() => {
                 setActive(label)
-                if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+                if (typeof window !== 'undefined' && window.innerWidth < 768) {
                   setSidebarOpen(false)
                 }
               }}
-              className={`flex items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium transition ${
+              title={label}
+              className={`group relative flex items-center rounded-xl transition ${
+                sidebarOpen
+                  ? 'w-full gap-3 px-4 py-3 text-left text-sm font-medium'
+                  : 'size-11 justify-center p-0'
+              } ${
                 active === label
                   ? 'bg-secondary text-primary font-bold shadow-xs'
                   : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               }`}
             >
-              <Icon size={18} />
-              {label}
-              {label === 'My Farms' && (
-                <span className="ml-auto rounded-full bg-muted px-2 py-0.5 text-xs font-semibold">{farms.length}</span>
+              <Icon size={sidebarOpen ? 18 : 20} className="shrink-0" />
+              {sidebarOpen && (
+                <>
+                  <span className="truncate">{label}</span>
+                  {label === 'My Farms' && farms.length > 0 && (
+                    <span className="ml-auto rounded-full bg-muted px-2 py-0.5 text-xs font-semibold">
+                      {farms.length}
+                    </span>
+                  )}
+                </>
+              )}
+              {!sidebarOpen && label === 'My Farms' && farms.length > 0 && (
+                <span className="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground shadow-xs">
+                  {farms.length}
+                </span>
               )}
             </button>
           ))}
         </nav>
 
         {/* Authenticated role badge */}
-        <div className="m-4 rounded-2xl bg-secondary p-4 text-xs space-y-2">
-          <p className="font-semibold text-primary">Role: {account.label}</p>
-          <p className="text-muted-foreground text-[11px]">Managed by your authenticated account.</p>
+        <div
+          className={`transition-all duration-300 ${
+            sidebarOpen
+              ? 'm-4 rounded-2xl bg-secondary p-4 text-xs space-y-1'
+              : 'mb-4 flex justify-center'
+          }`}
+        >
+          {sidebarOpen ? (
+            <>
+              <p className="font-semibold text-primary">Role: {account.label}</p>
+              <p className="text-muted-foreground text-[11px]">Managed by your authenticated account.</p>
+            </>
+          ) : (
+            <div
+              className="flex size-9 items-center justify-center rounded-xl bg-secondary text-primary font-bold text-xs uppercase shadow-xs select-none"
+              title={`Role: ${account.label}`}
+            >
+              {account.label?.[0] || 'R'}
+            </div>
+          )}
         </div>
       </aside>
 
-      {/* Mobile Backdrop Overlay */}
+      {/* Mobile Backdrop Overlay when expanded on small screens */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-20 bg-foreground/20 backdrop-blur-xs lg:hidden"
+          className="fixed inset-0 z-20 bg-foreground/20 backdrop-blur-xs md:hidden"
           onClick={() => setSidebarOpen(false)}
           aria-hidden="true"
         />
       )}
 
       {/* Main Content Area */}
-      <main className={`transition-[padding] duration-300 ease-in-out ${sidebarOpen ? 'lg:pl-64' : 'pl-0'}`}>
+      <main
+        className={`transition-[padding] duration-300 ease-in-out ${
+          sidebarOpen ? 'md:pl-64 pl-16' : 'md:pl-20 pl-16'
+        }`}
+      >
         {/* Top Header */}
         <header className="flex h-20 items-center justify-between border-b border-border bg-card/80 px-5 backdrop-blur md:px-8">
           <div className="flex items-center gap-3">
@@ -914,8 +971,8 @@ export default function App() {
               type="button"
               className="flex items-center justify-center rounded-xl p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition"
               onClick={() => setSidebarOpen((open) => !open)}
-              aria-label={sidebarOpen ? 'Collapse left navigation' : 'Expand left navigation'}
-              title={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+              aria-label={sidebarOpen ? 'Collapse sidebar to icons' : 'Expand sidebar'}
+              title={sidebarOpen ? 'Collapse sidebar to icons' : 'Expand sidebar'}
             >
               <Menu size={20} />
             </button>
