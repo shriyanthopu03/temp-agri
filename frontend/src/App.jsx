@@ -21,6 +21,7 @@ import {
   Search,
   Settings,
   ShoppingBag,
+  Sparkles,
   Package,
   Sun,
   Tractor,
@@ -36,6 +37,7 @@ import { MyFarmsPage } from './pages/MyFarmsPage'
 import { ProduceLotsPage } from './pages/ProduceLotsPage'
 import { MarketPage } from './pages/MarketPage'
 import { SettingsPage } from './pages/SettingsPage'
+import { SevakAIPage } from './pages/SevakAIPage'
 import { LogisticsDeliveriesPage } from './pages/LogisticsDeliveriesPage'
 import { LandingPage } from './pages/LandingPage'
 import { requestAuth, signInWithGoogle } from './services/authService'
@@ -775,9 +777,9 @@ export default function App() {
     const canAccessFarms = !isBuyer && !isQualityInspector
 
     if (
-      (isBuyer && active !== 'Market' && active !== 'Settings') ||
-      (isQualityInspector && active !== 'Produce Lots' && active !== 'Settings') ||
-      (isLogisticsCoordinator && active !== 'Deliveries' && active !== 'Settings') ||
+      (isBuyer && active !== 'Market' && active !== 'Settings' && active !== 'Sevak AI') ||
+      (isQualityInspector && active !== 'Produce Lots' && active !== 'Settings' && active !== 'Sevak AI') ||
+      (isLogisticsCoordinator && active !== 'Deliveries' && active !== 'Settings' && active !== 'Sevak AI') ||
       (isFarmer && active === 'Market') ||
       (!canAccessFarms && active === 'My Farms')
     ) {
@@ -868,26 +870,31 @@ export default function App() {
   const navItems = isBuyerWorkspace
     ? [
         { label: 'Market', icon: AreaChart },
+        { label: 'Sevak AI', icon: Sparkles },
       ]
     : isQualityInspectionWorkspace
       ? [
           { label: 'Produce Lots', icon: Package },
+          { label: 'Sevak AI', icon: Sparkles },
         ]
       : isLogisticsWorkspace
         ? [
             { label: 'Deliveries', icon: Tractor },
+            { label: 'Sevak AI', icon: Sparkles },
           ]
         : isFarmerWorkspace
           ? [
               { label: 'Home', icon: Home },
               { label: 'My Farms', icon: MapPin },
               { label: 'Produce Lots', icon: Package },
+              { label: 'Sevak AI', icon: Sparkles },
             ]
     : [
         { label: 'Home', icon: Home },
         ...(canAccessMyFarms ? [{ label: 'My Farms', icon: MapPin }] : []),
         { label: 'Produce Lots', icon: Package },
         { label: 'Market', icon: AreaChart },
+        { label: 'Sevak AI', icon: Sparkles },
       ]
 
   return (
@@ -962,6 +969,11 @@ export default function App() {
               {sidebarOpen && (
                 <>
                   <span className="truncate">{label}</span>
+                  {label === 'Sevak AI' && (
+                    <span className="ml-auto rounded-full bg-primary/15 text-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+                      Copilot
+                    </span>
+                  )}
                   {label === 'My Farms' && farms.length > 0 && (
                     <span className="ml-auto rounded-full bg-muted px-2 py-0.5 text-xs font-semibold">
                       {farms.length}
@@ -1428,6 +1440,10 @@ export default function App() {
                 setAvailableBatches((current) => current.map((b) => b.id === batchId ? { ...b, availableQuantity: Math.max(0, (b.availableQuantity || b.quantity) - order.quantity) } : b).filter((b) => (b.availableQuantity ?? 1) > 0))
               }}
             />
+          )}
+
+          {active === 'Sevak AI' && (
+            <SevakAIPage role={currentRoleValue} userName={userName} />
           )}
 
           {active === 'Settings' && (

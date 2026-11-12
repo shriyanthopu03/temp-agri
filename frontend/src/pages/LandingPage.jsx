@@ -1,18 +1,22 @@
 import {
   AreaChart,
   Award,
+  Bot,
   CheckCircle,
   ChevronRight,
   Compass,
   FileCheck,
   FileText,
   Globe,
+  Leaf,
   LogOut,
   MapPin,
   Package,
   ShieldCheck,
   ShoppingBag,
+  Sparkles,
   Tractor,
+  TrendingUp,
   Truck,
   UserCheck,
   Users,
@@ -42,6 +46,9 @@ export function LandingPage({ onLogin, onRegister, onRoleRegister, session, onGo
             <a href="#about" onClick={(e) => { e.preventDefault(); scrollTo('about') }} className="hover:text-primary transition">About Us</a>
             <a href="#how-it-works" onClick={(e) => { e.preventDefault(); scrollTo('how-it-works') }} className="hover:text-primary transition">How It Works</a>
             <a href="#features" onClick={(e) => { e.preventDefault(); scrollTo('features') }} className="hover:text-primary transition">Features</a>
+            <a href="#sevak-ai" onClick={(e) => { e.preventDefault(); scrollTo('sevak-ai') }} className="hover:text-primary transition flex items-center gap-1.5 font-bold text-primary">
+              <Sparkles size={14} /> Sevak AI
+            </a>
             <a href="#roles" onClick={(e) => { e.preventDefault(); scrollTo('roles') }} className="hover:text-primary transition">Roles</a>
             <a href="#contact" onClick={(e) => { e.preventDefault(); scrollTo('contact') }} className="hover:text-primary transition">Contact</a>
           </nav>
@@ -316,6 +323,132 @@ export function LandingPage({ onLogin, onRegister, onRoleRegister, session, onGo
         </div>
       </section>
 
+      {/* Sevak AI Showcase Section */}
+      <section id="sevak-ai" className="relative overflow-hidden py-24 border-b border-border bg-gradient-to-b from-card via-card/95 to-background">
+        <div className="mx-auto max-w-7xl px-5 md:px-8">
+          <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
+            <div className="space-y-6">
+              <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3.5 py-1 text-xs font-bold text-primary">
+                <Sparkles size={14} />
+                <span>Next-Gen Agricultural Intelligence</span>
+              </div>
+              <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl">
+                Meet <span className="text-primary">Sevak AI</span>: Your Intelligent Farming Copilot
+              </h2>
+              <p className="text-base leading-relaxed text-muted-foreground">
+                Trained on regional agronomical knowledge, APMC market data, and weather telemetry, Sevak AI assists farmers, inspectors, buyers, and logistics coordinators with hyper-localized decisions.
+              </p>
+
+              <div className="space-y-4 pt-2">
+                {[
+                  {
+                    title: 'Precision Crop Disease Diagnosis',
+                    desc: 'Instant remediation protocol and recommended chemical/organic dosages for fungal, bacterial, and pest attacks.',
+                    icon: Leaf,
+                  },
+                  {
+                    title: 'APMC Mandi Rate Intelligence',
+                    desc: 'Real-time spot prices, price outlooks, and multi-market arbitrage recommendations for optimal harvest timing.',
+                    icon: TrendingUp,
+                  },
+                  {
+                    title: 'Soil Nutrition & NPK Calculator',
+                    desc: 'Tailored basal and top-dressing fertilization schedules based on your crop stage and soil conditions.',
+                    icon: ShieldCheck,
+                  },
+                ].map((item, idx) => {
+                  const ItemIcon = item.icon
+                  return (
+                    <div key={idx} className="flex gap-4 items-start p-3.5 rounded-2xl border border-border/60 bg-background/60 shadow-xs">
+                      <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                        <ItemIcon size={18} />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-bold text-foreground">{item.title}</h4>
+                        <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{item.desc}</p>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              <div className="pt-2 flex flex-wrap items-center gap-4">
+                <button
+                  onClick={session ? onGoToDashboard : onRegister}
+                  className="flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:opacity-90 transition"
+                >
+                  <Sparkles size={16} /> Try Sevak AI Copilot <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
+
+            {/* AI Mock Chat Preview Card */}
+            <div className="relative rounded-3xl border border-border bg-card p-6 shadow-xl">
+              <div className="flex items-center justify-between border-b border-border pb-4 mb-5">
+                <div className="flex items-center gap-3">
+                  <div className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+                    <Bot size={20} />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm text-foreground flex items-center gap-2">
+                      Sevak AI Copilot
+                      <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
+                    </h3>
+                    <p className="text-[11px] text-muted-foreground">Active Knowledge Model • 24/7 Agro Advisory</p>
+                  </div>
+                </div>
+                <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-bold text-primary uppercase tracking-wide">
+                  Live
+                </span>
+              </div>
+
+              <div className="space-y-4 text-xs">
+                {/* Farmer Query */}
+                <div className="flex gap-2.5 justify-end">
+                  <div className="max-w-[85%] rounded-2xl rounded-tr-xs bg-primary px-4 py-3 text-primary-foreground">
+                    <p className="font-medium leading-relaxed">
+                      White powdery patches on my Alphonso mango blossoms. How should I treat it before it spreads?
+                    </p>
+                  </div>
+                </div>
+
+                {/* AI Response */}
+                <div className="flex gap-2.5 items-start">
+                  <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-secondary text-primary mt-0.5">
+                    <Sparkles size={14} />
+                  </div>
+                  <div className="max-w-[90%] rounded-2xl rounded-tl-xs border border-border bg-background p-4 shadow-xs space-y-2.5 text-muted-foreground">
+                    <p className="font-semibold text-foreground text-xs flex items-center gap-1.5">
+                      <span className="size-1.5 rounded-full bg-amber-500" />
+                      Diagnosis: Powdery Mildew (Oidium mangiferae)
+                    </p>
+                    <p className="leading-relaxed text-[11px]">
+                      1. Spray <strong>Wettable Sulphur 80% WP</strong> @ 2.5 g/L or <strong>Hexaconazole 5% EC</strong> @ 1 ml/L early in morning before 9 AM.<br/>
+                      2. Prune dense interior canopy for sunlight & airflow.<br/>
+                      3. Repeat after 12 days if humidity stays above 75%.
+                    </p>
+                    <div className="pt-1 border-t border-border/60 flex items-center justify-between text-[10px]">
+                      <span className="text-primary font-medium">Confidence: 98% Verified</span>
+                      <span className="text-muted-foreground">Safe for Grade-A export</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Query chip samples */}
+                <div className="flex gap-2 pt-2 overflow-x-auto">
+                  <span className="shrink-0 rounded-full border border-border bg-muted/40 px-3 py-1 text-[11px] text-muted-foreground">
+                    🌾 Today's APMC Mandi Rates
+                  </span>
+                  <span className="shrink-0 rounded-full border border-border bg-muted/40 px-3 py-1 text-[11px] text-muted-foreground">
+                    🧪 Urea vs DAP Soil Dosage
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* 6. User Roles Section */}
       <section id="roles" className="py-20 border-b border-border bg-card">
         <div className="mx-auto max-w-7xl px-5 md:px-8">
@@ -437,6 +570,7 @@ export function LandingPage({ onLogin, onRegister, onRoleRegister, session, onGo
                 <li><a href="#about" onClick={(e) => { e.preventDefault(); scrollTo('about') }} className="hover:text-primary">About Rythu Sevak</a></li>
                 <li><a href="#how-it-works" onClick={(e) => { e.preventDefault(); scrollTo('how-it-works') }} className="hover:text-primary">How It Works</a></li>
                 <li><a href="#features" onClick={(e) => { e.preventDefault(); scrollTo('features') }} className="hover:text-primary">Platform Features</a></li>
+                <li><a href="#sevak-ai" onClick={(e) => { e.preventDefault(); scrollTo('sevak-ai') }} className="hover:text-primary flex items-center gap-1 font-semibold text-primary"><Sparkles size={11} /> Sevak AI Copilot</a></li>
                 <li><a href="#roles" onClick={(e) => { e.preventDefault(); scrollTo('roles') }} className="hover:text-primary">User Workspaces</a></li>
               </ul>
             </div>
