@@ -70,10 +70,10 @@ export function MarketPage({
   const [activeListing, setActiveListing] = useState(null)
 
   // Purchase Form
-  const [purchaseQuantity, setPurchaseQuantity] = useState('100')
-  const [deliveryAddress, setDeliveryAddress] = useState('Central Wholesale Terminal, APMC Hub, Mumbai')
-  const [deliveryLatitude, setDeliveryLatitude] = useState('19.0760')
-  const [deliveryLongitude, setDeliveryLongitude] = useState('72.8777')
+  const [purchaseQuantity, setPurchaseQuantity] = useState('')
+  const [deliveryAddress, setDeliveryAddress] = useState('')
+  const [deliveryLatitude, setDeliveryLatitude] = useState('')
+  const [deliveryLongitude, setDeliveryLongitude] = useState('')
   const [purchasing, setPurchasing] = useState(false)
   const [purchaseError, setPurchaseError] = useState('')
 
@@ -100,9 +100,9 @@ export function MarketPage({
       .map((batch) => {
         const farm = typeof batch.farm === 'object' && batch.farm !== null ? batch.farm : null
         const farmerName = batch.farmer?.name || batch.farmerName || 'Registered Farmer'
-        const farmName = farm?.farmName || batch.farmName || 'Verified Farm'
-        const farmLocation = farm?.location?.address || 'Nashik Belt, Maharashtra'
-        const farmArea = farm?.areaAcres || 10
+        const farmName = farm?.farmName || farm?.name || batch.farmName || 'Farm'
+        const farmLocation = farm?.location?.address || (farm?.location?.latitude ? `${Number(farm.location.latitude).toFixed(4)}, ${Number(farm.location.longitude).toFixed(4)}` : 'Location pending')
+        const farmArea = Number(farm?.areaAcres || farm?.area || 0)
         const latestInspection = batch.inspectionHistory?.[batch.inspectionHistory.length - 1]
 
         return {
@@ -110,7 +110,7 @@ export function MarketPage({
           id: batch.id || batch._id,
           crop: batch.category || 'Agricultural Produce',
           farmerName,
-          farmerEmail: batch.farmer?.email || 'farmer@rythusevak.com',
+          farmerEmail: batch.farmer?.email || 'N/A',
           farmName,
           farmLocation,
           farmArea,
@@ -141,8 +141,8 @@ export function MarketPage({
 
   const handleOpenPurchase = (item) => {
     setActiveListing(item)
-    const initialQty = Math.min(100, item.availableQuantity || 100)
-    setPurchaseQuantity(String(initialQty))
+    const initialQty = item.availableQuantity ? String(item.availableQuantity) : ''
+    setPurchaseQuantity(initialQty)
     setPurchaseError('')
     setShowPurchaseModal(true)
   }
@@ -478,6 +478,7 @@ export function MarketPage({
                   type="text"
                   value={deliveryAddress}
                   onChange={(e) => setDeliveryAddress(e.target.value)}
+                  placeholder="e.g. Buyer Regional Delivery Hub"
                   required
                   className="w-full rounded-xl border border-border bg-background p-2.5 outline-none focus:border-primary"
                 />

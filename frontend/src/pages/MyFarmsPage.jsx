@@ -48,7 +48,7 @@ export function MyFarmsPage({
   const [inspectModalFarm, setInspectModalFarm] = useState(null)
   const [requestInspectionFarm, setRequestInspectionFarm] = useState(null)
   const [reqCrop, setReqCrop] = useState('')
-  const [reqQty, setReqQty] = useState('1000')
+  const [reqQty, setReqQty] = useState('')
   const [reqHealth, setReqHealth] = useState('Healthy')
   const [reqLoading, setReqLoading] = useState(false)
   const [reqSuccess, setReqSuccess] = useState('')
@@ -82,7 +82,7 @@ export function MyFarmsPage({
   const handleOpenRequestModal = (farm) => {
     setRequestInspectionFarm(farm)
     setReqCrop(farm.crop || '')
-    setReqQty(String(farm.expectedQuantity || 1000))
+    setReqQty(farm.expectedQuantity ? String(farm.expectedQuantity) : '')
     setReqHealth(farm.cropHealth || 'Healthy')
     setReqSuccess('')
   }
@@ -460,7 +460,7 @@ export function MyFarmsPage({
 
             <div className="rounded-xl border border-dashed border-border p-4 text-xs leading-relaxed text-muted-foreground">
               <p className="font-medium text-foreground mb-1">Agronomy & Land Record</p>
-              Expected yield: ~{inspectModalFarm.expectedQuantity || 1000} kg. Soil classification: Black Cotton / Alluvial Loam.
+              Expected yield: ~{inspectModalFarm.expectedQuantity || 0} kg.
               GPS boundary vertices verified via map plotting API.
             </div>
 

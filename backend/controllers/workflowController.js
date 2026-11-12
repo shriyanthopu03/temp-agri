@@ -37,33 +37,7 @@ export async function submitInspection(req, res, next) {
       lot = await ProduceLot.findOne(scopedFilter(req, { status: { $in: ['created', 'received'] } })).sort({ createdAt: -1 })
     }
     if (!lot) {
-      let farmerUser = (await User.findOne(scopedFilter(req, { role: 'farmer' }))) || req.user
-      let farm = await Farm.findOne(scopedFilter(req))
-      if (!farm) {
-        farm = await Farm.create({
-          ...scopedFilter(req),
-          farmer: farmerUser._id || req.user.userId,
-          farmName: 'Nashik Valley Vineyard',
-          crops: [category || 'Grapes'],
-          location: { address: 'Nashik Belt, MH', latitude: 19.9975, longitude: 73.7898 },
-          boundary: { type: 'Polygon', coordinates: [[[73.785, 19.995], [73.795, 19.995], [73.795, 20.005], [73.785, 19.995]]] },
-          areaSqMeters: 40468,
-          areaAcres: 10,
-          areaHectares: 4.0468,
-        })
-      }
-      lot = await ProduceLot.create({
-        ...scopedFilter(req),
-        farmer: farmerUser._id || req.user.userId,
-        farm: farm._id,
-        category: category || 'Alphonso Mangoes',
-        quantity: 1000,
-        availableQuantity: 1000,
-        unit: 'kg',
-        marketPrice: 65,
-        status: 'created',
-        statusHistory: [{ status: 'created', changedBy: req.user.userId }],
-      })
+      return res.status(404).json({ message: 'Produce lot not found for inspection' })
     }
 
     const measured = Number(measuredQuantity ?? lot.quantity)

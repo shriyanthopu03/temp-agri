@@ -34,21 +34,7 @@ export async function createLot(req, res, next) {
       targetFarm = await Farm.findOne({ farmer: ownerId })
     }
     if (!targetFarm) {
-      targetFarm = await Farm.create({
-        organizationId: req.user.organizationId || '507f1f77bcf86cd799439011',
-        regionId: req.user.regionId || '507f1f77bcf86cd799439012',
-        farmer: ownerId,
-        farmName: `${category} Farm`,
-        crops: [category],
-        location: { address: 'Nashik Agriculture Belt, Maharashtra', latitude: 19.9975, longitude: 73.7898 },
-        boundary: {
-          type: 'Polygon',
-          coordinates: [[[73.785, 19.995], [73.795, 19.995], [73.795, 20.005], [73.785, 19.995]]],
-        },
-        areaSqMeters: 40468,
-        areaAcres: 10,
-        areaHectares: 4.0468,
-      })
+      return res.status(400).json({ message: 'A registered farm is required to create a produce lot. Please register a farm first.' })
     }
 
     const numQty = Number(quantity)

@@ -146,7 +146,7 @@ How can I help your agricultural operations today?`,
       } else {
         replyText = `**Agronomic Guidance for:** "${query}"
 
-1. **Immediate Assessment:** Based on your registered region (*Nashik Agricultural Belt*), current soil moisture and relative humidity levels are optimal for steady crop development.
+1. **Immediate Assessment:** Based on your registered farm location, current soil moisture and relative humidity levels are optimal for steady crop development.
 2. **Preventative Measures:** Ensure proper drainage around field boundaries to prevent root-rot during heavy dew periods.
 3. **Quality Certification:** Make sure crops are inspected on the Rythu Sevak platform prior to batch harvesting to lock in verified Grade A pricing on the buyer marketplace.
 

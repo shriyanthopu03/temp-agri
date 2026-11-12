@@ -65,15 +65,15 @@ function mapLot(lot) {
   return {
     ...lot,
     id: lot._id || lot.id,
-    lotCode: lot.lotCode || `LOT-${String(lot._id || lot.id).slice(-6)}`,
+    lotCode: lot.lotCode || (lot._id || lot.id ? `LOT-${String(lot._id || lot.id).slice(-6)}` : 'LOT-PENDING'),
     category: lot.category,
     farmerName: lot.farmer?.name || lot.farmerName || 'Farmer name unavailable',
-    farmName: lot.farm?.farmName || lot.farmName || 'Farm name unavailable',
+    farmName: lot.farm?.farmName || lot.farm?.name || lot.farmName || 'Farm unassigned',
     qualityGrade: lot.qualityGrade || 'Pending Inspection',
     cropHealth: lot.cropHealth || 'Healthy',
     expectedHarvestDate: lot.harvestDate
       ? new Date(lot.harvestDate).toISOString().split('T')[0]
-      : lot.expectedHarvestDate || 'Current Cycle',
+      : lot.expectedHarvestDate || '',
   }
 }
 
@@ -538,12 +538,14 @@ export default function App() {
         const lotData = await (lotPath === '/lots'
           ? apiRequest('/api/lots', {}, session.token)
           : requestWorkflow(lotPath, {}, session.token))
-        if (activeRequest && Array.isArray(lotData) && lotData.length > 0) {
+        if (activeRequest && Array.isArray(lotData)) {
           const mappedLots = lotData.map(mapLot)
           setLots(mappedLots)
           const acceptedOnly = mappedLots.filter((lot) => lot.status === 'accepted')
           if (acceptedOnly.length > 0 || currentRoleValue === 'buyer') {
             setAvailableBatches(acceptedOnly.length > 0 ? acceptedOnly : mappedLots)
+          } else {
+            setAvailableBatches([])
           }
         }
       } catch { /* dashboards retain their existing empty/demo state when the API is unavailable */ }
@@ -613,8 +615,8 @@ export default function App() {
             title: role === 'logistics_coordinator' ? 'New Dispatch Assigned' : 'Shipment Dispatched',
             message:
               role === 'logistics_coordinator'
-                ? 'Fleet vehicle MH-15-DC-8012 assigned for Nashik APMC to Mumbai terminal route.'
-                : 'Shipment SHP-10928 is now in transit with GPS route monitoring.',
+                ? 'Fleet vehicle assigned for regional hub to terminal distribution route.'
+                : 'Shipment is now in transit with GPS route monitoring.',
             createdAt: '2h ago',
             readAt: '2026-11-11',
             targetTab: 'Deliveries',
@@ -679,6 +681,13 @@ export default function App() {
     if (!farmName.trim() || !crop.trim() || !finished || !farmArea || points.length < 3) return
     try {
       setFarmError('')
+      const pts = points || []
+      const sum = pts.reduce((acc, p) => [acc[0] + p[0], acc[1] + p[1]], [0, 0])
+      const centerLng = pts.length ? Number((sum[0] / pts.length).toFixed(4)) : null
+      const centerLat = pts.length ? Number((sum[1] / pts.length).toFixed(4)) : null
+      const locationAddress = centerLat && centerLng ? `Plot GPS: ${centerLat}, ${centerLng}` : 'Registered Farm Land'
+      const locObj = { address: locationAddress, latitude: centerLat, longitude: centerLng }
+
       let savedFarm
       if (session?.token) {
         savedFarm = await requestFarms(
@@ -689,7 +698,7 @@ export default function App() {
               farmName: farmName.trim(),
               crops: [crop.trim()],
               coordinates: points,
-              location: { address: 'Nashik Belt, Maharashtra, India' },
+              location: locObj,
             }),
           },
           session.token
@@ -699,12 +708,12 @@ export default function App() {
         _id: `local-farm-${Date.now()}`,
         farmName: farmName.trim(),
         crops: [crop.trim()],
-        location: { address: 'Nashik Belt, Maharashtra, India' },
+        location: locObj,
         areaAcres: farmArea,
         boundary: { type: 'Polygon', coordinates: [points] },
         inspectionStatus: 'not_requested',
         cropHealth: 'Healthy',
-        status: 'Verified',
+        status: 'Active',
       }
       const next = mapFarm(savedFarm || fallbackFarm)
       setFarms((current) => [...current, next])
@@ -1483,7 +1492,7 @@ export default function App() {
                   <input
                     value={farmName}
                     onChange={(event) => setFarmName(event.target.value)}
-                    placeholder="e.g. Nashik Mango Grove"
+                    placeholder="e.g. Green Valley Farm"
                     className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs font-medium outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                   />
                 </div>

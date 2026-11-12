@@ -11,14 +11,14 @@ export function mapFarm(farm) {
     ...farm,
     id: farm._id || farm.id || String(Math.random()),
     name: farm.farmName || farm.name || 'Unnamed Farm',
-    location: farm.location?.address || farm.location || 'Nashik Belt, Maharashtra, India',
+    location: farm.location?.address || (typeof farm.location === 'string' ? farm.location : null) || (farm.location?.latitude ? `${farm.location.latitude}, ${farm.location.longitude}` : 'Location pending'),
     crop: farm.crops?.[0] || farm.crop || 'Produce',
     area: farm.areaAcres || farm.area || 0,
     inspectionStatus: farm.inspectionStatus || 'not_requested',
     cropHealth: farm.cropHealth || 'Healthy',
-    expectedQuantity: farm.expectedQuantity || 1000,
+    expectedQuantity: farm.expectedQuantity || 0,
     expectedHarvestDate: farm.expectedHarvestDate,
-    status: farm.status || 'Verified',
+    status: farm.status || 'Active',
     points: closedPoints,
   }
 }

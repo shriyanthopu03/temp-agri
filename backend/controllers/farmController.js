@@ -26,7 +26,7 @@ export async function createFarm(req, res, next) {
     const computedLng = pts.length ? sum[0] / pts.length : 78.9629
     const computedLat = pts.length ? sum[1] / pts.length : 20.5937
     const locationObj = {
-      address: req.body.location?.address || 'Nashik Belt, Maharashtra, India',
+      address: req.body.location?.address || (pts.length ? `GPS: ${computedLat.toFixed(4)}, ${computedLng.toFixed(4)}` : 'Registered Farm Land'),
       latitude: Number(req.body.location?.latitude || computedLat),
       longitude: Number(req.body.location?.longitude || computedLng),
     }
@@ -45,7 +45,7 @@ export async function createFarm(req, res, next) {
       crops: cropsArray,
       cropHealth: req.body.cropHealth || 'Healthy',
       expectedHarvestDate: req.body.expectedHarvestDate ? new Date(req.body.expectedHarvestDate) : undefined,
-      expectedQuantity: Number(req.body.expectedQuantity || 1000),
+      expectedQuantity: Number(req.body.expectedQuantity || 0),
       inspectionStatus: 'not_requested',
       location: locationObj,
       boundary: { type: 'Polygon', coordinates },

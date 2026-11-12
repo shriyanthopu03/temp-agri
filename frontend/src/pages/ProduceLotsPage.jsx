@@ -68,20 +68,20 @@ export function ProduceLotsPage({
 
   // New Lot Form
   const [newCategory, setNewCategory] = useState('')
-  const [newQuantity, setNewQuantity] = useState('1500')
+  const [newQuantity, setNewQuantity] = useState('')
   const [newUnit, setNewUnit] = useState('kg')
-  const [newCropHealth, setNewCropHealth] = useState('Moderate')
-  const [newExpectedHarvestDate, setNewExpectedHarvestDate] = useState(() => new Date(Date.now() + 45 * 86400000).toISOString().split('T')[0])
+  const [newCropHealth, setNewCropHealth] = useState('Healthy')
+  const [newExpectedHarvestDate, setNewExpectedHarvestDate] = useState('')
   const [newFarmer, setNewFarmer] = useState(session?.user?.name || '')
-  const [newFarm, setNewFarm] = useState(farms[0]?.name || '')
+  const [newFarm, setNewFarm] = useState(farms[0]?.name || farms[0]?.farmName || '')
 
   // Quality Form
   const [inspectGrade, setInspectGrade] = useState('Grade A')
-  const [inspectCondition, setInspectCondition] = useState('Optimal foliage density, uniform size, export certified')
+  const [inspectCondition, setInspectCondition] = useState('')
   const [inspectMarketableQty, setInspectMarketableQty] = useState('')
-  const [inspectNotes, setInspectNotes] = useState('Inspected on-site. Moisture and purity levels optimal. Certified for procurement.')
-  const [inspectMoisture, setInspectMoisture] = useState('11.5%')
-  const [inspectPurity, setInspectPurity] = useState('99.2%')
+  const [inspectNotes, setInspectNotes] = useState('')
+  const [inspectMoisture, setInspectMoisture] = useState('')
+  const [inspectPurity, setInspectPurity] = useState('')
   const [inspectAccepted, setInspectAccepted] = useState(true)
   const [inspectDate, setInspectDate] = useState(() => new Date().toISOString().split('T')[0])
 
@@ -99,6 +99,12 @@ export function ProduceLotsPage({
   useEffect(() => {
     setLocalLots(lots)
   }, [lots])
+
+  useEffect(() => {
+    if (farms.length > 0 && !newFarm) {
+      setNewFarm(farms[0]?.name || farms[0]?.farmName || '')
+    }
+  }, [farms, newFarm])
 
   // Filter lots
   const filteredLots = useMemo(() => {
@@ -124,9 +130,11 @@ export function ProduceLotsPage({
   // Handlers
   const handleCreateSubmit = async (e) => {
     e.preventDefault()
+    const qty = Number(newQuantity)
+    if (!qty || qty <= 0) return
     const newLot = {
-      category: newCategory,
-      quantity: Number(newQuantity) || 1500,
+      category: newCategory.trim(),
+      quantity: qty,
       unit: newUnit,
       cropHealth: newCropHealth,
       expectedHarvestDate: newExpectedHarvestDate,
@@ -153,7 +161,7 @@ export function ProduceLotsPage({
     const finalGrade = inspectGrade || 'Grade A'
     const isAccepted = finalGrade !== 'Grade D' && inspectAccepted
     const updatedStatus = isAccepted ? 'accepted' : 'rejected'
-    const measured = Number(inspectMarketableQty || activeLot.quantity || 1000)
+    const measured = Number(inspectMarketableQty) > 0 ? Number(inspectMarketableQty) : (Number(activeLot.quantity) || 0)
 
     const updatedLots = localLots.map((l) =>
       (l.id === activeLot.id || l._id === activeLot.id)
@@ -164,6 +172,8 @@ export function ProduceLotsPage({
             availableQuantity: isAccepted ? measured : 0,
             cropCondition: inspectCondition,
             notes: inspectNotes,
+            moisture: inspectMoisture,
+            purity: inspectPurity,
           }
         : l
     )
@@ -478,11 +488,11 @@ export function ProduceLotsPage({
                       onClick={() => {
                         setActiveLot(lot)
                         setInspectGrade(lot.qualityGrade?.startsWith('Grade') ? lot.qualityGrade : 'Grade A')
-                        setInspectMarketableQty(lot.availableQuantity || lot.quantity || '')
-                        setInspectCondition(lot.cropCondition || 'Optimal foliage density, pest-free, uniform maturity')
-                        setInspectNotes(lot.notes || 'Inspected on-site. Moisture and purity levels optimal. Certified for procurement.')
-                        setInspectMoisture(lot.moisture || '11.5%')
-                        setInspectPurity(lot.purity || '99.2%')
+                        setInspectMarketableQty(lot.availableQuantity ? String(lot.availableQuantity) : lot.quantity ? String(lot.quantity) : '')
+                        setInspectCondition(lot.cropCondition || '')
+                        setInspectNotes(lot.notes || '')
+                        setInspectMoisture(lot.moisture || '')
+                        setInspectPurity(lot.purity || '')
                         setInspectAccepted(true)
                         setShowInspectModal(true)
                       }}
@@ -562,7 +572,7 @@ export function ProduceLotsPage({
                     value={newQuantity}
                     onChange={(e) => setNewQuantity(e.target.value)}
                     required
-                    placeholder="1500"
+                    placeholder="e.g. 500"
                     className="w-full rounded-xl border border-border bg-background p-2.5 text-xs outline-none focus:border-primary"
                   />
                 </label>
@@ -623,14 +633,10 @@ export function ProduceLotsPage({
                     ))}
                   </select>
                 ) : (
-                  <input
-                    type="text"
-                    value={newFarm}
-                    onChange={(e) => setNewFarm(e.target.value)}
-                    required
-                    placeholder="e.g. Nashik Mango Grove"
-                    className="w-full rounded-xl border border-border bg-background p-2.5 text-xs outline-none focus:border-primary"
-                  />
+                  <div className="rounded-xl border border-dashed border-amber-500/40 bg-amber-500/10 p-3 text-xs text-amber-700 dark:text-amber-300">
+                    <p className="font-semibold">No farm registered in your account</p>
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">Please register a farm first under My Farms before creating a harvest batch.</p>
+                  </div>
                 )}
               </label>
 
@@ -655,7 +661,8 @@ export function ProduceLotsPage({
                 </button>
                 <button
                   type="submit"
-                  className="rounded-xl bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90"
+                  disabled={!farms || farms.length === 0}
+                  className="rounded-xl bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Create Batch Lot
                 </button>
@@ -671,12 +678,12 @@ export function ProduceLotsPage({
           ? activeLot.farm
           : farms.find((f) => f.id === activeLot.farm || f._id === activeLot.farm || f.name === activeLot.farmName)
         const boundaryPoints = getLotFarmPoints(activeLot, farms)
-        const farmerName = activeLot.farmerName || activeFarm?.farmerName || activeFarm?.farmer?.name || 'Local Producer'
-        const farmerContact = activeLot.farmerContact || activeFarm?.farmerContact || activeFarm?.farmer?.email || 'farmer@rythusevak.com'
-        const farmName = activeFarm?.name || activeLot.farmName || 'Registered Farm Plot'
-        const farmArea = activeFarm?.area || activeLot.area || 15
-        const cropHealth = activeLot.cropHealth || activeFarm?.cropHealth || 'Good - Pest Free'
-        const expHarvest = activeLot.expectedHarvestDate || activeFarm?.expectedHarvestDate || 'Current Cycle'
+        const farmerName = activeLot.farmerName || activeFarm?.farmerName || activeFarm?.farmer?.name || 'Unassigned'
+        const farmerContact = activeLot.farmerContact || activeFarm?.farmerContact || activeFarm?.farmer?.email || 'N/A'
+        const farmName = activeFarm?.name || activeFarm?.farmName || activeLot.farmName || 'Unassigned Farm'
+        const farmArea = Number.isFinite(Number(activeFarm?.area || activeLot.area)) ? Number(activeFarm?.area || activeLot.area) : 0
+        const cropHealth = activeLot.cropHealth || activeFarm?.cropHealth || 'Not specified'
+        const expHarvest = activeLot.expectedHarvestDate || activeFarm?.expectedHarvestDate || 'Not specified'
 
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4 overflow-y-auto" role="dialog">
@@ -1066,7 +1073,7 @@ export function ProduceLotsPage({
                   <span className="flex items-center gap-2 font-medium">
                     <Package size={14} className="text-primary" /> Batch Created
                   </span>
-                  <span className="text-muted-foreground">{activeLot.createdAt || '2026-09-20'}</span>
+                  <span className="text-muted-foreground">{activeLot.createdAt || 'N/A'}</span>
                 </div>
                 {activeLot.qualityGrade && (
                   <div className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300">
@@ -1080,7 +1087,7 @@ export function ProduceLotsPage({
                     <span className="flex items-center gap-2 font-medium">
                       <Warehouse size={14} /> Warehouse Storage: {activeLot.warehouseBin}
                     </span>
-                    <span className="text-xs">{activeLot.warehouseLocation || 'Central Hub'}</span>
+                    <span className="text-xs">{activeLot.warehouseLocation || 'Assigned Storage'}</span>
                   </div>
                 )}
                 {activeLot.vehicle && (

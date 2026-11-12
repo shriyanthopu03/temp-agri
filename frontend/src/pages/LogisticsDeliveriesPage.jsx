@@ -38,14 +38,19 @@ function farmPoints(shipment) {
 
 function formatLocation(location) {
   if (!location) return 'Location pending'
-  return location.address || `${location.latitude ?? '—'}, ${location.longitude ?? '—'}`
+  if (typeof location === 'string') return location
+  if (location.address) return location.address
+  if (Number.isFinite(Number(location.latitude)) && Number.isFinite(Number(location.longitude))) {
+    return `${Number(location.latitude).toFixed(4)}, ${Number(location.longitude).toFixed(4)}`
+  }
+  return 'Location pending'
 }
 
 export function LogisticsDeliveriesPage({ shipments = [], onAcceptOrder, onMarkDelivered }) {
   const [selectedId, setSelectedId] = useState(shipments[0]?.id)
   const [showAcceptModal, setShowAcceptModal] = useState(false)
-  const [vehicleNumber, setVehicleNumber] = useState('MH-15-AG-4921')
-  const [driverName, setDriverName] = useState('Rajesh Shinde')
+  const [vehicleNumber, setVehicleNumber] = useState('')
+  const [driverName, setDriverName] = useState('')
   const [accepting, setAccepting] = useState(false)
 
   const selectedShipment = useMemo(
@@ -212,13 +217,13 @@ export function LogisticsDeliveriesPage({ shipments = [], onAcceptOrder, onMarkD
             <div className="rounded-xl bg-card border border-border p-3">
               <p className="text-[10px] text-muted-foreground uppercase font-bold">Farmer Information</p>
               <p className="font-semibold text-foreground mt-1 flex items-center gap-1"><User size={13} /> {farmer}</p>
-              <p className="text-[11px] text-muted-foreground mt-0.5">{selectedShipment.farmer?.email || 'farmer@rythusevak.com'}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">{selectedShipment.farmer?.email || 'N/A'}</p>
             </div>
 
             <div className="rounded-xl bg-card border border-border p-3">
               <p className="text-[10px] text-muted-foreground uppercase font-bold">Buyer Information</p>
               <p className="font-semibold text-foreground mt-1 flex items-center gap-1"><User size={13} /> {buyer}</p>
-              <p className="text-[11px] text-muted-foreground mt-0.5">{selectedShipment.buyer?.email || 'buyer@rythusevak.com'}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">{selectedShipment.buyer?.email || 'N/A'}</p>
             </div>
 
             <div className="rounded-xl bg-card border border-border p-3">
@@ -234,7 +239,7 @@ export function LogisticsDeliveriesPage({ shipments = [], onAcceptOrder, onMarkD
             <div className="rounded-xl bg-card border border-border p-3">
               <p className="text-[10px] text-muted-foreground uppercase font-bold">Quality Certification</p>
               <p className="font-semibold text-emerald-600 dark:text-emerald-400 mt-1 flex items-center gap-1">
-                <ShieldCheck size={13} /> {selectedShipment.qualityGrade || batch?.qualityGrade || 'Grade A'}
+                <ShieldCheck size={13} /> {selectedShipment.qualityGrade || batch?.qualityGrade || 'Pending Inspection'}
               </p>
               <p className="text-[11px] text-muted-foreground mt-0.5">Inspected & Approved</p>
             </div>
