@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import {
   AreaChart,
   ArrowLeft,
@@ -411,7 +411,7 @@ function SignUpScreen({ onLogin, onSignUp, onBackToHome, initialRole = 'farmer' 
   )
 }
 
-export default function App() {
+function App() {
   const [session, setSession] = useState(() => {
     try {
       const googleSession = new URLSearchParams(window.location.hash.slice(1)).get('google-session')
@@ -1639,3 +1639,7 @@ export default function App() {
     </div>
   )
 }
+
+export { App }
+export default App
+

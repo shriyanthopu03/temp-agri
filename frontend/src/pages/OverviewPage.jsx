@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   AreaChart,
   ArrowUpRight,
@@ -27,7 +27,7 @@ import {
 import { FarmMap } from '../components/FarmMap'
 import { apiRequest } from '../services/api'
 
-export function OverviewPage({
+function OverviewPage({
   role,
   userName,
   farms,
@@ -566,3 +566,7 @@ export function OverviewPage({
     </div>
   )
 }
+
+export { OverviewPage }
+export default OverviewPage
+

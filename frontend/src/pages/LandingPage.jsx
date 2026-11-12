@@ -1,3 +1,4 @@
+import React from 'react'
 import {
   AreaChart,
   Award,
@@ -22,7 +23,7 @@ import {
   Users,
 } from 'lucide-react'
 
-export function LandingPage({ onLogin, onRegister, onRoleRegister, session, onGoToDashboard }) {
+function LandingPage({ onLogin, onRegister, onRoleRegister, session, onGoToDashboard }) {
   const scrollTo = (id) => {
     const el = document.getElementById(id)
     if (el) el.scrollIntoView({ behavior: 'smooth' })
@@ -603,5 +604,6 @@ export function LandingPage({ onLogin, onRegister, onRoleRegister, session, onGo
   )
 }
 
+export { LandingPage }
 export default LandingPage
 

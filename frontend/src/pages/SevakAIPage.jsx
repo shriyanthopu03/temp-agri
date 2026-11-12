@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import {
   Sparkles,
   Send,
@@ -92,7 +92,7 @@ const QUICK_PROMPTS = [
   'What is the best cold-chain temperature for transporting fresh fruit?',
 ]
 
-export function SevakAIPage({ role = 'farmer', userName = 'Farmer' }) {
+function SevakAIPage({ role = 'farmer', userName = 'Farmer' }) {
   const [messages, setMessages] = useState(() => [
     {
       id: 'welcome',
@@ -425,4 +425,8 @@ How can I help your agricultural operations today?`,
     </div>
   )
 }
+
+export { SevakAIPage }
+export default SevakAIPage
+
 

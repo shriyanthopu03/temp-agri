@@ -1,8 +1,8 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useContext, useEffect, useState } from 'react'
 
 const AuthContext = createContext(null)
 
-export function AuthProvider({ children }) {
+function AuthProvider({ children }) {
   const [session, setSession] = useState(() => {
     try {
       const stored = localStorage.getItem('agritrade_session')
@@ -35,9 +35,11 @@ export function AuthProvider({ children }) {
   )
 }
 
-export function useAuthContext() {
+function useAuthContext() {
   return useContext(AuthContext)
 }
 
+export { AuthProvider, useAuthContext }
 export default AuthContext
+
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   AlertCircle,
   CheckCircle,
@@ -10,7 +10,7 @@ import {
 } from 'lucide-react'
 import { updateUserProfile } from '../services/authService'
 
-export function SettingsPage({
+function SettingsPage({
   session,
   role,
   darkMode,
@@ -368,3 +368,7 @@ export function SettingsPage({
     </div>
   )
 }
+
+export { SettingsPage }
+export default SettingsPage
+

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import {
   Calendar,
   CheckCircle,
@@ -21,7 +21,7 @@ import {
 } from 'lucide-react'
 import { FarmMap } from '../components/FarmMap'
 
-export function MyFarmsPage({
+function MyFarmsPage({
   role,
   farms,
   selectedFarm,
@@ -490,3 +490,7 @@ export function MyFarmsPage({
     </div>
   )
 }
+
+export { MyFarmsPage }
+export default MyFarmsPage
+

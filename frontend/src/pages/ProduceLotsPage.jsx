@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import {
   Award,
   Box,
@@ -45,7 +45,7 @@ function getLotFarmPoints(lot, farms = []) {
   return []
 }
 
-export function ProduceLotsPage({
+function ProduceLotsPage({
   role,
   lots = [],
   farms = [],
@@ -1134,3 +1134,7 @@ export function ProduceLotsPage({
     </div>
   )
 }
+
+export { ProduceLotsPage }
+export default ProduceLotsPage
+

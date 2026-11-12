@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import {
   Calendar,
   CheckCircle,
@@ -65,7 +65,7 @@ function formatLocation(location, fallbackPoints = [], fallbackLabel = 'Location
   return coordsFormatted || fallbackLabel
 }
 
-export function LogisticsDeliveriesPage({ shipments = [], onAcceptOrder, onMarkDelivered }) {
+function LogisticsDeliveriesPage({ shipments = [], onAcceptOrder, onMarkDelivered }) {
   const [selectedId, setSelectedId] = useState(shipments[0]?.id)
   const [showAcceptModal, setShowAcceptModal] = useState(false)
   const [vehicleNumber, setVehicleNumber] = useState('')
@@ -411,4 +411,6 @@ export function LogisticsDeliveriesPage({ shipments = [], onAcceptOrder, onMarkD
   )
 }
 
+export { LogisticsDeliveriesPage }
 export default LogisticsDeliveriesPage
+

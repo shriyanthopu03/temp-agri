@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react'
+import React, { useEffect, useRef, useState, useCallback } from 'react'
 import * as maptilersdk from '@maptiler/sdk'
 import * as turf from '@turf/turf'
 import '@maptiler/sdk/dist/maptiler-sdk.css'
@@ -54,7 +54,7 @@ const getInitialApiKey = () => {
   return envKey.trim() || 'fqDiQwYmuIvVrorFowV3'
 }
 
-export function FarmMap({
+function FarmMap({
   points = [],
   farmName = '',
   editable = false,
@@ -552,4 +552,6 @@ export function FarmMap({
   )
 }
 
+export { FarmMap }
 export default FarmMap
+

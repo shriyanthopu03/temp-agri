@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import {
   AreaChart,
   ArrowUpRight,
@@ -49,7 +49,7 @@ function getFarmPoints(listing) {
   return []
 }
 
-export function MarketPage({
+function MarketPage({
   role,
   purchaseOrders = [],
   lots = [],
@@ -1140,4 +1140,6 @@ export function MarketPage({
   )
 }
 
+export { MarketPage }
 export default MarketPage
+
