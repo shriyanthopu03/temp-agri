@@ -50,9 +50,13 @@ body { margin: 0; min-width: 320px; }
 .login-stat span { font-size: 12px; line-height: 1.55; }
 .login-stat-orange { top: 11%; right: 10%; background: #ed593d; }
 .login-stat-green { right: 14%; bottom: 15%; background: #25b878; }
-.login-panel { display: flex; flex-direction: column; min-height: 100vh; padding: 28px 12px 28px 24px; background: var(--color-background); }
-.login-signup { align-self: flex-end; color: var(--color-muted-foreground); font-size: 11px; }
-.login-signup button { margin-left: 7px; border: 0; border-radius: 5px; background: var(--color-secondary); padding: 5px 8px; color: var(--color-foreground); font-size: 10px; font-weight: 700; cursor: pointer; }
+.login-panel { display: flex; flex-direction: column; min-height: 100vh; padding: 24px 28px; background: var(--color-background); }
+.login-top-bar { display: flex; width: 100%; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.login-back-button { display: inline-flex; align-items: center; gap: 6px; border: 0; background: transparent; padding: 6px 10px; border-radius: 8px; color: var(--color-muted-foreground); font-size: 12px; font-weight: 600; cursor: pointer; transition: color .15s, background-color .15s; }
+.login-back-button:hover { color: var(--color-foreground); background: var(--color-muted); }
+.login-signup { display: flex; align-items: center; gap: 8px; color: var(--color-muted-foreground); font-size: 12px; }
+.login-signup button { border: 0; border-radius: 8px; background: var(--color-secondary); padding: 6px 14px; color: var(--color-foreground); font-size: 11px; font-weight: 700; cursor: pointer; transition: opacity .15s; }
+.login-signup button:hover { opacity: .9; }
 .login-content { width: min(100%, 500px); margin: auto 0; }
 .login-heading { text-align: center; }
 .login-icon { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; margin-bottom: 12px; border-radius: 12px; background: var(--color-secondary); color: var(--color-primary); }

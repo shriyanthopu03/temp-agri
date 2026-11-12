@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   AreaChart,
+  ArrowLeft,
   Award,
   Bell,
   CheckCircle2,
@@ -122,22 +123,22 @@ function LoginScreen({ onLogin, onSignUp, onBackToHome }) {
         </div>
       </section>
       <section className="login-panel">
-        <div className="login-signup flex items-center justify-between">
-          {onBackToHome && (
+        <div className="login-top-bar">
+          {onBackToHome ? (
             <button
               type="button"
               onClick={onBackToHome}
-              className="text-xs font-semibold text-muted-foreground hover:text-primary transition"
+              className="login-back-button"
             >
-              ← Back to Home
+              <ArrowLeft size={14} /> Back to Home
             </button>
-          )}
-          <span>
-            Don&apos;t have an account?{' '}
+          ) : <div />}
+          <div className="login-signup">
+            <span>Don&apos;t have an account?</span>
             <button type="button" onClick={onSignUp}>
               Sign up
             </button>
-          </span>
+          </div>
         </div>
         <div className="login-content">
           <div className="login-heading">
@@ -291,22 +292,22 @@ function SignUpScreen({ onLogin, onSignUp, onBackToHome, initialRole = 'farmer' 
         </div>
       </section>
       <section className="login-panel">
-        <div className="login-signup flex items-center justify-between">
-          {onBackToHome && (
+        <div className="login-top-bar">
+          {onBackToHome ? (
             <button
               type="button"
               onClick={onBackToHome}
-              className="text-xs font-semibold text-muted-foreground hover:text-primary transition"
+              className="login-back-button"
             >
-              ← Back to Home
+              <ArrowLeft size={14} /> Back to Home
             </button>
-          )}
-          <span>
-            Already have an account?{' '}
+          ) : <div />}
+          <div className="login-signup">
+            <span>Already have an account?</span>
             <button type="button" onClick={onLogin}>
               Login
             </button>
-          </span>
+          </div>
         </div>
         <div className="login-content">
           <div className="login-heading">
