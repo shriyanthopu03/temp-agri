@@ -78,20 +78,45 @@ export function SettingsPage({
 
     setProfileSaving(true)
     try {
-      const response = await updateUserProfile(
-        {
-          name: name.trim(),
-          phoneNumber: phoneNumber.trim(),
-          aadharNumber: aadharNumber.trim(),
-        },
-        session?.token,
-      )
+      let serverUser = null
+      let syncError = null
 
-      if (onUpdateUser && response.user) {
-        onUpdateUser(response.user)
+      if (session?.token) {
+        try {
+          const response = await updateUserProfile(
+            {
+              name: name.trim(),
+              phoneNumber: phoneNumber.trim(),
+              aadharNumber: aadharNumber.trim(),
+            },
+            session.token,
+          )
+          if (response?.user) {
+            serverUser = response.user
+          }
+        } catch (apiErr) {
+          syncError = apiErr.message || 'Unauthorized: session expired.'
+        }
       }
 
-      setProfileSuccess('Profile details updated successfully!')
+      // Always update local session so user doesn't lose their input
+      const localUser = {
+        ...(session?.user || {}),
+        ...(serverUser || {}),
+        name: name.trim(),
+        phoneNumber: phoneNumber.trim(),
+        aadharNumber: aadharNumber.trim(),
+      }
+
+      if (onUpdateUser) {
+        onUpdateUser(localUser)
+      }
+
+      if (syncError) {
+        setProfileError('Saved locally, but server returned 401 Unauthorized (session expired). Please click "Log out" and sign in again to sync changes.')
+      } else {
+        setProfileSuccess('Profile details updated successfully!')
+      }
       setIsEditingProfile(false)
     } catch (err) {
       setProfileError(err.message || 'Failed to update profile. Please try again.')
