@@ -25,6 +25,7 @@ import {
   Warehouse,
 } from 'lucide-react'
 import { FarmMap } from '../components/FarmMap'
+import { apiRequest } from '../services/api'
 
 export function OverviewPage({
   role,
@@ -53,10 +54,7 @@ export function OverviewPage({
     if (!isAdmin || !session?.token) return
     let isSubscribed = true
     setAdminLoading(true)
-    fetch('/api/audit/admin-stats', {
-      headers: { Authorization: `Bearer ${session.token}` },
-    })
-      .then((res) => (res.ok ? res.json() : null))
+    apiRequest('/api/audit/admin-stats', {}, session.token)
       .then((data) => {
         if (isSubscribed && data) setAdminStats(data)
       })

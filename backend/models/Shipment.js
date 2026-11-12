@@ -14,7 +14,6 @@ const shipmentSchema = new mongoose.Schema({
   pickupLocation: { address: String, latitude: Number, longitude: Number },
   destination: { address: String, latitude: Number, longitude: Number },
   qualityGrade: String,
-  destination: String,
   deliveredAt: Date,
   history: [{ status: String, actor: mongoose.Schema.Types.ObjectId, note: String, changedAt: { type: Date, default: Date.now } }]
 }, { timestamps: true })

@@ -14,22 +14,31 @@ export function isTokenExpired(token) {
 }
 
 export async function apiRequest(endpoint, options = {}, token = null) {
-  const url = `${API_BASE_URL}${endpoint}`
+  const url = endpoint.startsWith('http://') || endpoint.startsWith('https://')
+    ? endpoint
+    : `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`
+
   const headers = {
     'Content-Type': 'application/json',
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(options.headers || {}),
   }
 
+  let body = options.body
+  if (body && typeof body === 'object' && !(body instanceof FormData) && !(body instanceof URLSearchParams)) {
+    body = JSON.stringify(body)
+  }
+
   const response = await fetch(url, {
     ...options,
     headers,
+    body,
   })
 
   const data = await response.json().catch(() => ({}))
   if (!response.ok) {
     if (response.status === 401) {
-      if (typeof window !== 'undefined') {
+      if (token && typeof window !== 'undefined') {
         window.localStorage.removeItem('agritrade-session')
         window.dispatchEvent(
           new CustomEvent('auth:expired', {
@@ -37,7 +46,7 @@ export async function apiRequest(endpoint, options = {}, token = null) {
           })
         )
       }
-      throw new Error(data.message || 'Your session has expired. Please sign in again.')
+      throw new Error(data.message || 'Authentication required or session expired.')
     }
     throw new Error(data.message || `Request failed with status ${response.status}`)
   }

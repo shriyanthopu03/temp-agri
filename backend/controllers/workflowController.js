@@ -9,7 +9,7 @@ import { isValidCoordinate } from '../utils/geo.js'
 
 export async function getPendingInspections(req, res, next) {
   try {
-    const lots = await ProduceLot.find(scopedFilter(req, { status: { $in: ['created', 'received'] } }))
+    const lots = await ProduceLot.find({ status: { $in: ['created', 'received'] } })
       .populate('farmer', 'name email')
       .populate('farm', 'farmName location areaAcres boundary crops cropHealth expectedHarvestDate expectedQuantity')
       .sort({ createdAt: 1 })
@@ -106,7 +106,7 @@ export async function submitInspection(req, res, next) {
 
 export async function getAvailableBatches(req, res, next) {
   try {
-    const lots = await ProduceLot.find(scopedFilter(req, { status: 'accepted', availableQuantity: { $gt: 0 } }))
+    const lots = await ProduceLot.find({ status: 'accepted', availableQuantity: { $gt: 0 } })
       .populate('farmer', 'name email')
       .populate('farm', 'farmName location boundary areaAcres crops')
       .sort({ createdAt: -1 })
@@ -214,8 +214,9 @@ export async function createOrder(req, res, next) {
 
 export async function getOrders(req, res, next) {
   try {
-    const filter = req.user.role === 'buyer' ? { buyer: req.user.userId } : req.user.role === 'farmer' ? { supplier: req.user.userId } : {}
-    const orders = await PurchaseOrder.find(scopedFilter(req, filter))
+    const userId = req.user.userId || req.user.id
+    const filter = req.user.role === 'buyer' ? { buyer: userId } : req.user.role === 'farmer' ? { supplier: userId } : {}
+    const orders = await PurchaseOrder.find(filter)
       .populate('supplier', 'name email')
       .populate('buyer', 'name email')
       .populate('farm', 'farmName location boundary areaAcres')
@@ -230,7 +231,7 @@ export async function getOrders(req, res, next) {
 
 export async function getShipments(req, res, next) {
   try {
-    const shipments = await Shipment.find(scopedFilter(req))
+    const shipments = await Shipment.find({})
       .populate('buyer', 'name email')
       .populate('farmer', 'name email')
       .populate({

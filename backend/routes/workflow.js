@@ -26,7 +26,7 @@ const orderViewers = requireRole('admin', 'platform_admin', 'buyer', 'farmer', '
 router.get('/inspections/pending', inspectors, getPendingInspections)
 router.get('/pending-inspections', inspectors, getPendingInspections)
 router.post('/inspections', inspectors, submitInspection)
-router.get('/available-batches', buyers, getAvailableBatches)
+router.get('/available-batches', getAvailableBatches)
 router.post('/orders', buyers, createOrder)
 router.get('/orders', orderViewers, getOrders)
 router.get('/shipments', logistics, getShipments)

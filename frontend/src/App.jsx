@@ -43,7 +43,7 @@ import { LandingPage } from './pages/LandingPage'
 import { requestAuth, signInWithGoogle } from './services/authService'
 import { requestFarms, mapFarm } from './services/farmService'
 import { requestWorkflow } from './services/workflowService'
-import { isTokenExpired } from './services/api'
+import { apiRequest, isTokenExpired } from './services/api'
 
 const referenceImage = '/backgroundimg.jpg'
 const defaultOrganizationId = '507f1f77bcf86cd799439011'
@@ -559,7 +559,9 @@ export default function App() {
     const loadWorkflow = async () => {
       try {
         const lotPath = currentRoleValue === 'buyer' ? '/available-batches' : '/lots'
-        const lotData = await (lotPath === '/lots' ? fetch(`/api/lots`, { headers: { Authorization: `Bearer ${session.token}` } }).then((response) => response.json()) : requestWorkflow(lotPath, {}, session.token))
+        const lotData = await (lotPath === '/lots'
+          ? apiRequest('/api/lots', {}, session.token)
+          : requestWorkflow(lotPath, {}, session.token))
         if (activeRequest && Array.isArray(lotData) && lotData.length > 0) {
           const mappedLots = lotData.map(mapLot)
           setLots(mappedLots)
@@ -572,7 +574,7 @@ export default function App() {
       if (['admin', 'platform_admin', 'buyer', 'farmer', 'logistics_coordinator'].includes(currentRoleValue)) {
         try {
           const orders = await requestWorkflow('/orders', {}, session.token)
-        if (activeRequest) setPurchaseOrders(Array.isArray(orders) ? orders.map((order) => ({ ...order, id: order._id, reference: order.number, buyerName: order.buyer?.name, crop: order.crop, totalBudget: order.totalAmount })) : [])
+          if (activeRequest) setPurchaseOrders(Array.isArray(orders) ? orders.map((order) => ({ ...order, id: order._id, reference: order.number, buyerName: order.buyer?.name, crop: order.crop, totalBudget: order.totalAmount })) : [])
         } catch { /* role-specific order access is enforced by the API */ }
       }
       if (currentRoleValue === 'logistics_coordinator' || currentRoleValue === 'admin' || currentRoleValue === 'platform_admin') {
@@ -593,15 +595,10 @@ export default function App() {
 
     const loadNotifications = async () => {
       try {
-        const response = await fetch('/api/notifications', {
-          headers: { Authorization: `Bearer ${session.token}` },
-        })
-        if (response.ok) {
-          const data = await response.json()
-          if (activeRequest && Array.isArray(data) && data.length > 0) {
-            setNotifications(data.map((n) => ({ ...n, id: n._id || n.id })))
-            return
-          }
+        const data = await apiRequest('/api/notifications', {}, session.token)
+        if (activeRequest && Array.isArray(data) && data.length > 0) {
+          setNotifications(data.map((n) => ({ ...n, id: n._id || n.id })))
+          return
         }
       } catch {
         /* fallback to role-contextual notifications below */
@@ -674,10 +671,7 @@ export default function App() {
     )
     if (session?.token) {
       try {
-        await fetch(`/api/notifications/${id}/read`, {
-          method: 'PATCH',
-          headers: { Authorization: `Bearer ${session.token}` },
-        })
+        await apiRequest(`/api/notifications/${id}/read`, { method: 'PATCH' }, session.token)
       } catch {
         /* state updated locally */
       }
@@ -690,10 +684,7 @@ export default function App() {
     )
     if (session?.token) {
       try {
-        await fetch('/api/notifications/read-all', {
-          method: 'PATCH',
-          headers: { Authorization: `Bearer ${session.token}` },
-        })
+        await apiRequest('/api/notifications/read-all', { method: 'PATCH' }, session.token)
       } catch {
         /* state updated locally */
       }
@@ -1312,16 +1303,10 @@ export default function App() {
               onDeleteFarm={handleDeleteFarm}
               onRequestInspection={async (farmId, inspectionData) => {
                 if (!session?.token) return
-                const res = await fetch(`/api/farms/${farmId}/request-inspection`, {
+                const saved = await apiRequest(`/api/farms/${farmId}/request-inspection`, {
                   method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${session.token}`,
-                  },
                   body: JSON.stringify(inspectionData),
-                })
-                const saved = await res.json()
-                if (!res.ok) throw new Error(saved.message || 'Failed to submit inspection request')
+                }, session.token)
                 setFarms((current) =>
                   current.map((f) => (f.id === farmId || f._id === farmId) ? { ...f, inspectionStatus: 'pending' } : f)
                 )
@@ -1355,22 +1340,19 @@ export default function App() {
               onCreateLot={async (newLot) => {
                 if (!session?.token) return setLots([newLot, ...lots])
                 const targetFarmObj = farms.find((f) => f.name === newLot.farmName || f.id === newLot.farmId || f._id === newLot.farmId) || farms[0]
-                const response = await fetch('/api/lots', {
+                const saved = await apiRequest('/api/lots', {
                   method: 'POST',
-                  headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.token}` },
                   body: JSON.stringify({
                     category: newLot.category,
                     quantity: newLot.quantity,
                     unit: newLot.unit,
-                    farmer: session.user.id,
+                    farmer: session.user.id || session.user._id,
                     farm: targetFarmObj?.id || targetFarmObj?._id,
                     cropHealth: newLot.cropHealth,
                     expectedHarvestDate: newLot.expectedHarvestDate,
                     harvestDate: newLot.expectedHarvestDate,
                   }),
-                })
-                const saved = await response.json()
-                if (!response.ok) throw new Error(saved.message || 'Unable to create harvest batch')
+                }, session.token)
                 const mappedLot = mapLot(saved)
                 setLots((current) => [mappedLot, ...current])
                 return mappedLot

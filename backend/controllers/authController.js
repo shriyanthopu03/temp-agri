@@ -180,7 +180,9 @@ export async function login(request, response, next) {
 export async function updateProfile(request, response, next) {
   try {
     const { name, phoneNumber, aadharNumber } = request.body
-    const user = await User.findById(request.user.userId)
+    const userId = request.user?.userId || request.user?.id || request.user?._id
+    if (!userId) return response.status(401).json({ message: 'Authentication required' })
+    const user = await User.findById(userId)
     if (!user) return response.status(404).json({ message: 'User not found' })
 
     if (name && typeof name === 'string' && name.trim()) user.name = name.trim()
@@ -196,7 +198,9 @@ export async function updateProfile(request, response, next) {
 
 export async function getProfile(request, response, next) {
   try {
-    const user = await User.findById(request.user.userId)
+    const userId = request.user?.userId || request.user?.id || request.user?._id
+    if (!userId) return response.status(401).json({ message: 'Authentication required' })
+    const user = await User.findById(userId)
     if (!user) return response.status(404).json({ message: 'User not found' })
     return response.json({ user: publicUser(user) })
   } catch (error) {

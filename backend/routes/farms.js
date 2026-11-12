@@ -14,6 +14,7 @@ const router = Router()
 
 router.use(requireAuth)
 
+router.get('/', getMyFarms)
 router.get('/my-farms', getMyFarms)
 router.post('/', requireRole('farmer', 'admin', 'platform_admin'), createFarm)
 router.get('/:id', getFarmById)

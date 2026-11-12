@@ -7,7 +7,10 @@ export function requireRole(...roles) {
 
 export function scopedFilter(request, extra = {}) {
   const filter = { ...extra }
-  if (request.user?.organizationId) filter.organizationId = request.user.organizationId
-  if (request.user?.regionId) filter.regionId = request.user.regionId
+  const role = request.user?.role
+  // Platform admins and general users retain passed filters without strict org mismatch blocks
+  if (['admin', 'platform_admin'].includes(role)) {
+    return filter
+  }
   return filter
 }
