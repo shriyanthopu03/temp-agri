@@ -10,6 +10,8 @@ import {
   Filter,
   Layers,
   MapPin,
+  Maximize2,
+  Minimize2,
   Package,
   Plus,
   QrCode,
@@ -60,6 +62,7 @@ export function ProduceLotsPage({
   // Modals state
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showInspectModal, setShowInspectModal] = useState(false)
+  const [inspectMapExpanded, setInspectMapExpanded] = useState(false)
   const [showWarehouseModal, setShowWarehouseModal] = useState(false)
   const [showDispatchModal, setShowDispatchModal] = useState(false)
   const [showDetailModal, setShowDetailModal] = useState(false)
@@ -669,7 +672,7 @@ export function ProduceLotsPage({
 
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4 overflow-y-auto" role="dialog">
-            <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl bg-card border border-border p-6 shadow-2xl space-y-6">
+            <div className="w-full max-w-5xl max-h-[92vh] overflow-y-auto rounded-2xl bg-card border border-border p-6 shadow-2xl space-y-6">
               <div className="flex items-center justify-between border-b border-border pb-4">
                 <div>
                   <div className="flex items-center gap-2">
@@ -689,12 +692,63 @@ export function ProduceLotsPage({
               </div>
 
               <form onSubmit={handleInspectSubmit} className="space-y-6">
+                {/* Large Expansive GPS Land Boundary Preview */}
+                <div className="rounded-2xl border border-border bg-card p-4 space-y-2.5 shadow-sm">
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-sm text-foreground flex items-center gap-1.5">
+                        <MapPin size={16} className="text-primary" /> GPS Land Boundary (Polygon Preview)
+                      </span>
+                      <span className="rounded-full bg-primary/10 text-primary px-2.5 py-0.5 text-[11px] font-bold">
+                        {farmName} · {farmArea} Acres
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2.5">
+                      <span className="text-muted-foreground text-xs font-medium">
+                        {boundaryPoints.length} Boundary Coordinates
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setInspectMapExpanded((prev) => !prev)}
+                        className="flex items-center gap-1 rounded-lg border border-border bg-muted/60 px-2.5 py-1 text-[11px] font-semibold text-foreground hover:bg-muted transition"
+                        title={inspectMapExpanded ? 'Collapse map to standard size' : 'Expand map to extra large view'}
+                      >
+                        {inspectMapExpanded ? (
+                          <>
+                            <Minimize2 size={13} /> Compact View
+                          </>
+                        ) : (
+                          <>
+                            <Maximize2 size={13} /> Maximize Map
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div
+                    className={`w-full rounded-xl overflow-hidden border border-border bg-muted/20 transition-all duration-300 ${
+                      inspectMapExpanded ? 'h-[520px]' : 'h-80 md:h-[400px]'
+                    }`}
+                  >
+                    {boundaryPoints.length >= 3 ? (
+                      <FarmMap points={boundaryPoints} farmName={farmName} interactive={true} height="100%" />
+                    ) : (
+                      <div className="h-full flex flex-col items-center justify-center text-xs text-muted-foreground gap-2 p-6 text-center">
+                        <MapPin size={32} className="opacity-40 text-primary" />
+                        <p className="font-semibold text-foreground">Plot boundary points registered with GPS coordinates</p>
+                        <p className="text-[11px]">This farm boundary has {boundaryPoints.length} point(s) recorded.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Left Column: Farm Details & GPS Boundary */}
+                  {/* Left Column: Farm & Crop Profile */}
                   <div className="space-y-4">
                     <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-3">
                       <h4 className="font-semibold text-sm flex items-center gap-2">
-                        <MapPin size={16} className="text-primary" /> Farm & Crop Profile
+                        <FileCheck size={16} className="text-primary" /> Farm & Crop Profile
                       </h4>
                       <div className="grid grid-cols-2 gap-2 text-xs">
                         <div>
@@ -729,23 +783,6 @@ export function ProduceLotsPage({
                           <span className="text-muted-foreground block">Expected Harvest</span>
                           <span className="font-medium text-foreground">{expHarvest}</span>
                         </div>
-                      </div>
-                    </div>
-
-                    {/* Land Boundary Plotting Preview */}
-                    <div className="space-y-1.5">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="font-medium text-foreground">GPS Land Boundary (Polygon Preview)</span>
-                        <span className="text-muted-foreground">{boundaryPoints.length} Coordinates</span>
-                      </div>
-                      <div className="h-56 rounded-xl overflow-hidden border border-border bg-muted/20">
-                        {boundaryPoints.length >= 3 ? (
-                          <FarmMap points={boundaryPoints} interactive={false} height="100%" />
-                        ) : (
-                          <div className="h-full flex items-center justify-center text-xs text-muted-foreground">
-                            Plot boundary points registered with GPS coordinates
-                          </div>
-                        )}
                       </div>
                     </div>
                   </div>
