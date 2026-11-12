@@ -65,6 +65,7 @@ export function FarmMap({
   onEdit,
   finished = false,
   interactive = true,
+  className = '',
 }) {
   const mapContainer = useRef(null)
   const mapRef = useRef(null)
@@ -320,7 +321,7 @@ export function FarmMap({
   }
 
   return (
-    <div className="relative h-full min-h-0 w-full overflow-hidden rounded-2xl bg-muted/20">
+    <div className={`relative h-full min-h-0 w-full overflow-hidden ${className || 'rounded-2xl'} bg-muted/20`}>
       <div
         ref={mapContainer}
         className={`h-full min-h-0 w-full ${marking ? 'farm-map-marking' : ''}`}
