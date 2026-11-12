@@ -129,10 +129,7 @@ export function SettingsPage({
     <div className="space-y-6 max-w-5xl">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Workspace Settings & Preferences</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Configure active role persona, personal credentials, phone number, and verified Aadhaar details.
-        </p>
+        <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Workspace Settings</h1>
       </div>
 
       {/* SECTION 1: Active Workspace Role */}
