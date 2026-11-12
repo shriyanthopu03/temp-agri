@@ -13,7 +13,9 @@ import {
   LayoutDashboard,
   LogOut,
   MapPin,
+  Maximize2,
   Menu,
+  Minimize2,
   Moon,
   Plus,
   Search,
@@ -442,6 +444,7 @@ export default function App() {
 
   const [selectedFarm, setSelectedFarm] = useState(farms[0])
   const [showForm, setShowForm] = useState(false)
+  const [modalFullscreen, setModalFullscreen] = useState(false)
   const [points, setPoints] = useState([])
   const [finished, setFinished] = useState(false)
   const [farmArea, setFarmArea] = useState(null)
@@ -1372,60 +1375,145 @@ export default function App() {
 
       {/* Add New Farm Modal */}
       {showForm && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-foreground/30 p-4" role="dialog">
-          <div className="w-full max-w-2xl overflow-hidden rounded-2xl bg-card shadow-xl border border-border">
-            <div className="flex items-center justify-between border-b border-border p-5">
-              <div>
-                <h2 className="text-lg font-semibold">Mark & Save Farm Boundary</h2>
-                <p className="mt-1 text-sm text-muted-foreground">Click the map to mark at least three boundary points.</p>
+        <div
+          className={`fixed inset-0 z-40 flex items-center justify-center bg-foreground/40 backdrop-blur-xs transition-all duration-300 ${
+            modalFullscreen ? 'p-0' : 'p-3 sm:p-5 lg:p-7'
+          }`}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div
+            className={`flex flex-col overflow-hidden bg-card border border-border shadow-2xl transition-all duration-300 ${
+              modalFullscreen
+                ? 'w-screen h-screen rounded-none border-0'
+                : 'w-full max-w-6xl xl:max-w-7xl h-[88vh] max-h-[92vh] rounded-3xl'
+            }`}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-border px-6 py-4 bg-card/90 shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary font-bold">
+                  <Compass size={18} />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold tracking-tight text-foreground md:text-lg">
+                    Mark & Save Farm Boundary
+                  </h2>
+                  <p className="text-xs text-muted-foreground">
+                    Click points directly on the map to define your parcel polygon. Zoom in for precision.
+                  </p>
+                </div>
               </div>
-              <button onClick={() => setShowForm(false)} aria-label="Close">
-                <X size={20} />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setModalFullscreen(!modalFullscreen)}
+                  className="rounded-xl p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition"
+                  title={modalFullscreen ? 'Exit Fullscreen' : 'Maximize Map Window'}
+                  aria-label={modalFullscreen ? 'Exit Fullscreen' : 'Maximize Map Window'}
+                >
+                  {modalFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowForm(false)
+                    setModalFullscreen(false)
+                  }}
+                  className="rounded-xl p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition"
+                  aria-label="Close"
+                  title="Close Modal"
+                >
+                  <X size={20} />
+                </button>
+              </div>
             </div>
-            <div className="grid md:grid-cols-[1fr_1.2fr]">
-              <div className="flex flex-col gap-3 p-5 overflow-y-auto max-h-[80vh]">
-                <label className="text-xs font-semibold text-foreground">
-                  Farm Name
+
+            {/* Modal Body: Left Controls + Right Map */}
+            <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] flex-1 min-h-0 overflow-hidden">
+              {/* Left Column: Form Controls */}
+              <div className="flex flex-col gap-4 p-6 overflow-y-auto border-r border-border bg-card">
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-foreground">
+                    Farm Name
+                  </label>
                   <input
                     value={farmName}
                     onChange={(event) => setFarmName(event.target.value)}
                     placeholder="e.g. Nashik Mango Grove"
-                    className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs outline-none focus:border-primary"
+                    className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs font-medium outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                   />
-                </label>
-                <label className="text-xs font-semibold text-foreground">
-                  Primary Crop
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-foreground">
+                    Primary Crop
+                  </label>
                   <input
                     value={crop}
                     onChange={(event) => setCrop(event.target.value)}
                     placeholder="e.g. Organic Alphonso Mangoes"
-                    className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs outline-none focus:border-primary"
+                    className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs font-medium outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                   />
-                </label>
+                </div>
 
-                <div className="rounded-xl bg-secondary p-4 text-sm">
-                  <div className="flex items-center gap-2 font-medium text-primary">
-                    <Compass size={16} /> Boundary points
+                {/* Boundary Points & Acreage Card */}
+                <div className="rounded-2xl border border-border bg-secondary/50 p-4 space-y-2 text-xs">
+                  <div className="flex items-center justify-between font-semibold text-primary">
+                    <span className="flex items-center gap-1.5">
+                      <Compass size={15} /> Boundary Points
+                    </span>
+                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-bold">
+                      {points.length} {points.length === 1 ? 'Point' : 'Points'}
+                    </span>
                   </div>
-                  <p className="mt-2 text-muted-foreground">
-                    {points.length} points marked.{' '}
-                    {finished && farmArea
-                      ? `Calculated area: ${farmArea.acres.toFixed(2)} acres (${farmArea.hectares.toFixed(2)} ha).`
-                      : 'Finish the boundary to calculate area.'}
+
+                  {finished && farmArea ? (
+                    <div className="rounded-xl bg-card p-3 border border-border space-y-1">
+                      <p className="text-[10px] font-semibold uppercase text-muted-foreground tracking-wider">
+                        Calculated Parcel Area
+                      </p>
+                      <p className="text-lg font-bold text-primary">
+                        {farmArea.acres.toFixed(2)} acres
+                      </p>
+                      <p className="text-[11px] text-muted-foreground">
+                        {farmArea.hectares.toFixed(2)} hectares ({Math.round(farmArea.sqm).toLocaleString()} m²)
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground leading-relaxed text-[11px]">
+                      {points.length === 0
+                        ? 'Click "Mark Farm Boundary" on the map, then click at least 3 points around your land parcel.'
+                        : points.length < 3
+                        ? `Mark at least ${3 - points.length} more point${3 - points.length > 1 ? 's' : ''} to form a closed polygon.`
+                        : 'Click "Finish Farm" on the map toolbar to calculate total area.'}
+                    </p>
+                  )}
+                </div>
+
+                {farmError && (
+                  <p className="rounded-xl bg-destructive/10 border border-destructive/20 p-3 text-xs text-destructive">
+                    {farmError}
+                  </p>
+                )}
+
+                <div className="mt-auto pt-4 space-y-2">
+                  <button
+                    type="button"
+                    disabled={points.length < 3 || !finished || !farmName.trim() || !crop.trim() || !farmArea}
+                    onClick={addFarm}
+                    className="w-full rounded-xl bg-primary px-4 py-3 text-xs font-bold text-primary-foreground shadow-md disabled:cursor-not-allowed disabled:opacity-40 hover:opacity-90 transition flex items-center justify-center gap-2"
+                  >
+                    Save Farm Parcel
+                  </button>
+                  <p className="text-center text-[10px] text-muted-foreground">
+                    Requires 3+ boundary points & finished polygon to save.
                   </p>
                 </div>
-                {farmError && <p className="text-xs text-destructive">{farmError}</p>}
-                <button
-                  disabled={points.length < 3 || !finished || !farmName.trim() || !crop.trim() || !farmArea}
-                  onClick={addFarm}
-                  className="mt-auto rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground disabled:cursor-not-allowed disabled:opacity-40 hover:opacity-90 transition"
-                >
-                  Save Farm Parcel
-                </button>
               </div>
 
-              <div className="min-h-[340px] bg-muted">
+              {/* Right Column: Expansive Map */}
+              <div className="h-full min-h-[420px] lg:min-h-[580px] w-full relative bg-muted/20">
                 <FarmMap
                   editable={['farmer', 'admin'].includes(currentRoleValue)}
                   points={points}

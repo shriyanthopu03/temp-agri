@@ -136,7 +136,17 @@ export function FarmMap({
 
     mapRef.current = map
 
+    const resizeObserver = new ResizeObserver(() => {
+      try {
+        map.resize()
+      } catch {}
+    })
+    if (mapContainer.current) {
+      resizeObserver.observe(mapContainer.current)
+    }
+
     return () => {
+      resizeObserver.disconnect()
       markersRef.current.forEach((marker) => marker.remove())
       map.remove()
       mapRef.current = null
