@@ -439,17 +439,6 @@ export function FarmMap({
         {locationState === 'loading' ? 'Locating…' : 'Use my location'}
       </button>
 
-      {/* MapTiler Key Config Button */}
-      <button
-        type="button"
-        onClick={() => setKeyModalOpen(true)}
-        className="absolute bottom-4 left-36 z-10 flex items-center gap-1.5 rounded-xl border border-border bg-card/90 px-2.5 py-2 text-xs font-medium text-muted-foreground shadow-md backdrop-blur-sm hover:text-foreground hover:bg-muted transition"
-        title="Configure MapTiler API Key"
-      >
-        <Key size={13} />
-        <span className="hidden sm:inline">MapTiler Key</span>
-      </button>
-
       {/* Calculated Area Overlay */}
       {area && (
         <div className="absolute bottom-4 right-4 z-10 rounded-xl border border-border bg-card/95 px-4 py-2.5 shadow-md backdrop-blur-sm text-right">
