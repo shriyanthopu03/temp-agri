@@ -368,16 +368,6 @@ export async function createOrder(req, res, next) {
     next(error)
   }
 }
-        populate: [
-          { path: 'buyer', select: 'name email' },
-          { path: 'farmer', select: 'name email' },
-        ],
-      })
-    res.status(201).json(populatedOrder)
-  } catch (error) {
-    next(error)
-  }
-}
 
 export async function getOrders(req, res, next) {
   try {
@@ -394,12 +384,18 @@ export async function getOrders(req, res, next) {
     const sanitized = orders.map((ord) => {
       const obj = ord.toObject ? ord.toObject() : ord
       const rawPickup = obj.pickupLocation?.address || ''
-      if (rawPickup.toLowerCase().includes('nashik') || !rawPickup) {
-        const lat = obj.pickupLocation?.latitude ?? obj.farm?.location?.latitude
-        const lng = obj.pickupLocation?.longitude ?? obj.farm?.location?.longitude
+      if (!rawPickup || rawPickup.toLowerCase().includes('nashik') || /^[\s,\-—_]+$/.test(rawPickup)) {
+        const lat = obj.pickupLocation?.latitude ?? obj.farm?.location?.latitude ?? 17.4321
+        const lng = obj.pickupLocation?.longitude ?? obj.farm?.location?.longitude ?? 78.5678
         if (Number.isFinite(Number(lat)) && Number.isFinite(Number(lng))) {
           obj.pickupLocation = { ...obj.pickupLocation, address: `GPS: ${Number(lat).toFixed(4)}, ${Number(lng).toFixed(4)}` }
         }
+      }
+      const rawBuyerLoc = obj.buyerLocation?.address || ''
+      if (!rawBuyerLoc || rawBuyerLoc.toLowerCase().includes('nashik') || /^[\s,\-—_]+$/.test(rawBuyerLoc)) {
+        const blat = obj.buyerLocation?.latitude ?? 19.0760
+        const blng = obj.buyerLocation?.longitude ?? 72.8777
+        obj.buyerLocation = { ...obj.buyerLocation, address: `Buyer Logistics Hub (GPS: ${Number(blat).toFixed(4)}, ${Number(blng).toFixed(4)})` }
       }
       return obj
     })
@@ -429,12 +425,18 @@ export async function getShipments(req, res, next) {
     const sanitized = shipments.map((shp) => {
       const obj = shp.toObject ? shp.toObject() : shp
       const rawPickup = obj.pickupLocation?.address || ''
-      if (rawPickup.toLowerCase().includes('nashik') || !rawPickup) {
-        const lat = obj.pickupLocation?.latitude ?? obj.order?.farm?.location?.latitude
-        const lng = obj.pickupLocation?.longitude ?? obj.order?.farm?.location?.longitude
+      if (!rawPickup || rawPickup.toLowerCase().includes('nashik') || /^[\s,\-—_]+$/.test(rawPickup)) {
+        const lat = obj.pickupLocation?.latitude ?? obj.order?.farm?.location?.latitude ?? 17.4321
+        const lng = obj.pickupLocation?.longitude ?? obj.order?.farm?.location?.longitude ?? 78.5678
         if (Number.isFinite(Number(lat)) && Number.isFinite(Number(lng))) {
           obj.pickupLocation = { ...obj.pickupLocation, address: `GPS: ${Number(lat).toFixed(4)}, ${Number(lng).toFixed(4)}` }
         }
+      }
+      const rawDest = obj.destination?.address || ''
+      if (!rawDest || rawDest.toLowerCase().includes('nashik') || /^[\s,\-—_]+$/.test(rawDest)) {
+        const dlat = obj.destination?.latitude ?? 19.0760
+        const dlng = obj.destination?.longitude ?? 72.8777
+        obj.destination = { ...obj.destination, address: `Buyer Logistics Hub (GPS: ${Number(dlat).toFixed(4)}, ${Number(dlng).toFixed(4)})` }
       }
       return obj
     })

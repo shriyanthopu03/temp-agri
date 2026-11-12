@@ -53,16 +53,19 @@ function formatLocation(location, fallbackPoints = [], fallbackLabel = 'Location
 
   const rawAddress = typeof location === 'string' ? location : location?.address
 
-  // Sanitize legacy static strings or placeholders
-  if (rawAddress && (rawAddress.toLowerCase().includes('nashik') || rawAddress.includes('—'))) {
+  // Sanitize legacy static strings or placeholders (e.g. Nashik, -, -, —, etc.)
+  if (
+    !rawAddress ||
+    rawAddress.toLowerCase().includes('nashik') ||
+    rawAddress.includes('—') ||
+    /^[\s,\-—_]+$/.test(rawAddress) ||
+    rawAddress === 'Location pending' ||
+    rawAddress === 'Registered Farm Land'
+  ) {
     return coordsFormatted || fallbackLabel
   }
 
-  if (rawAddress && rawAddress !== 'Location pending' && rawAddress !== 'Registered Farm Land') {
-    return rawAddress
-  }
-
-  return coordsFormatted || fallbackLabel
+  return rawAddress
 }
 
 function LogisticsDeliveriesPage({ shipments = [], onAcceptOrder, onMarkDelivered }) {
@@ -250,6 +253,7 @@ function LogisticsDeliveriesPage({ shipments = [], onAcceptOrder, onMarkDelivere
               finished={false}
               interactive={true}
               className="rounded-none"
+              showArea={false}
             />
           </div>
 

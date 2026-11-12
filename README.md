@@ -82,19 +82,9 @@ npm run install:all
 npm run dev      # Concurrently runs frontend (port 3000) and backend (port 5000)
 ```
 
-## Shared Workspace Accounts
+## User Registration & Access
 
-The seed command creates these shared workspace accounts:
-
-| Workspace | Email | Password | Role |
-| --- | --- | --- | --- |
-| Farmer | `farmer@rythusevak.com` | `Farmer123!` | `farmer` |
-| Quality Inspection | `qi@gmail.com` | `12345678` | `quality_inspector` |
-| Buyer | `buyer@gmail.com` | `12345678` | `buyer` |
-| Logistics Coordinator | `l@gmail.com` | `12345678` | `logistics_coordinator` |
-| Platform Admin | `admin@gmail.com` | `12345678` | `platform_admin` |
-
-Run `npm run seed` from the backend or root after configuring `MONGODB_URL` to create or update them. New users registered through public sign-up can select their role (Farmer, Quality Inspector, Buyer, or Logistics Coordinator). Platform Admin is protected from public registration.
+New users can register directly through the application sign-up screen, selecting their appropriate workspace role (Farmer, Quality Inspector, Buyer, or Logistics Coordinator). Platform Admin access is managed securely by platform administrators.
 
 ## Features
 

@@ -1123,9 +1123,15 @@ function MarketPage({
               </button>
             </div>
             <div className="h-96 md:h-[400px] rounded-xl overflow-hidden border border-border relative bg-muted/20">
-              <FarmMap points={getFarmPoints(showMapModal)} farmName={showMapModal.farmName} finished={false} interactive={true} />
+              <FarmMap
+                points={getFarmPoints(showMapModal)}
+                farmName={showMapModal.farmName}
+                finished={false}
+                interactive={true}
+                showArea={false}
+              />
             </div>
-            <div className="flex justify-end pt-2">
+            <div className="flex justify-end pt-3">
               <button
                 onClick={() => setShowMapModal(null)}
                 className="rounded-xl bg-primary px-6 py-2.5 text-xs font-semibold text-primary-foreground shadow-sm hover:opacity-90 transition"

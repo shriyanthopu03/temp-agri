@@ -66,6 +66,7 @@ function FarmMap({
   finished = false,
   interactive = true,
   className = '',
+  showArea = editable,
 }) {
   const mapContainer = useRef(null)
   const mapRef = useRef(null)
@@ -450,9 +451,9 @@ function FarmMap({
         {locationState === 'loading' ? 'Locating…' : 'Use my location'}
       </button>
 
-      {/* Calculated Area Overlay */}
-      {area && (
-        <div className="absolute bottom-4 right-4 z-10 rounded-xl border border-border bg-card/95 px-3.5 py-2 shadow-md backdrop-blur-sm text-right pointer-events-none">
+      {/* Calculated Area Overlay (shown only when showArea is enabled, positioned to avoid attribution overlap) */}
+      {showArea && area && (
+        <div className="absolute bottom-10 right-4 z-10 rounded-xl border border-border bg-card/95 px-3.5 py-2 shadow-md backdrop-blur-sm text-right pointer-events-none mb-1">
           <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
             Farm area
           </p>
