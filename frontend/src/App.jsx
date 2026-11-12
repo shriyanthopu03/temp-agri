@@ -810,31 +810,26 @@ export default function App() {
   const navItems = isBuyerWorkspace
     ? [
         { label: 'Market', icon: AreaChart },
-        { label: 'Settings', icon: Settings },
       ]
     : isQualityInspectionWorkspace
       ? [
           { label: 'Produce Lots', icon: Package },
-          { label: 'Settings', icon: Settings },
         ]
       : isLogisticsWorkspace
         ? [
             { label: 'Deliveries', icon: Tractor },
-            { label: 'Settings', icon: Settings },
           ]
         : isFarmerWorkspace
           ? [
               { label: 'Home', icon: Home },
               { label: 'My Farms', icon: MapPin },
               { label: 'Produce Lots', icon: Package },
-              { label: 'Settings', icon: Settings },
             ]
     : [
         { label: 'Home', icon: Home },
         ...(canAccessMyFarms ? [{ label: 'My Farms', icon: MapPin }] : []),
         { label: 'Produce Lots', icon: Package },
         { label: 'Market', icon: AreaChart },
-        { label: 'Settings', icon: Settings },
       ]
 
   return (
