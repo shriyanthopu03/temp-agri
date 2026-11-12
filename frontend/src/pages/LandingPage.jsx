@@ -586,8 +586,7 @@ function LandingPage({ onLogin, onRegister, onRoleRegister, session, onGoToDashb
               </p>
               <div className="space-y-1.5 text-xs">
                 <p><span className="font-semibold text-foreground">Email:</span> support@rythusevak.com</p>
-                <p><span className="font-semibold text-foreground">Helpline:</span> +91 1800-425-AGRI (Toll Free)</p>
-                <p><span className="font-semibold text-foreground">Hours:</span> Mon – Sat: 6:00 AM – 8:00 PM IST</p>
+                <p><span className="font-semibold text-foreground">Helpline:</span> 0000-000-0000 (Toll Free)</p>
               </div>
             </div>
           </div>
