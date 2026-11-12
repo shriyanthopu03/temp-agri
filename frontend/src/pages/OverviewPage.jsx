@@ -311,9 +311,6 @@ export function OverviewPage({
                     <Icon size={20} />
                   </div>
                 </div>
-                <div className="mt-4 flex items-center gap-1 text-xs font-medium text-primary">
-                  <TrendingUp size={13} /> 8.4% <span className="font-normal text-muted-foreground">vs last cycle</span>
-                </div>
               </div>
             )
           })}
@@ -547,58 +544,6 @@ export function OverviewPage({
             </button>
           </div>
         </section>
-      </div>
-
-      {/* Secondary Bottom Grid */}
-      <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
-        {/* Progress Card */}
-        <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-          <div className="flex items-start justify-between">
-            <div>
-              <h2 className="font-semibold">Season Progress & Quality Assurance</h2>
-              <p className="mt-1 text-sm text-muted-foreground">September 2026 harvest cycle</p>
-            </div>
-            <span className="rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-primary">On track</span>
-          </div>
-          <div className="mt-6 flex items-end gap-2">
-            <span className="text-4xl font-semibold">74%</span>
-            <span className="mb-1 text-sm text-muted-foreground">completed handoffs</span>
-          </div>
-          <div className="mt-4 h-2 overflow-hidden rounded-full bg-muted">
-            <div className="h-full w-[74%] rounded-full bg-primary" />
-          </div>
-          <div className="mt-4 flex justify-between text-xs text-muted-foreground">
-            <span>Planting & Intake</span>
-            <span>Quality Inspection</span>
-            <span>Warehouse & Dispatch</span>
-            <span>Buyer Delivery</span>
-          </div>
-        </section>
-
-        {role !== 'farmer' && <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="font-semibold">Live Market Snapshot</h2>
-              <p className="mt-1 text-sm text-muted-foreground">Real-time agricultural commodity prices</p>
-            </div>
-            <button onClick={() => setActiveTab('Market')} className="text-sm font-semibold text-primary hover:underline">
-              Open market
-            </button>
-          </div>
-          <div className="mt-5 flex items-center gap-4">
-            <div className="flex size-11 items-center justify-center rounded-xl bg-[#f7ecd8] text-[#a56a17]">
-              <TrendingUp size={20} />
-            </div>
-            <div>
-              <p className="text-2xl font-semibold">—</p>
-              <p className="text-xs text-muted-foreground">Live market movement unavailable</p>
-            </div>
-            <div className="ml-auto text-right">
-              <p className="text-sm font-medium">No market data</p>
-              <p className="text-sm font-bold text-primary">—</p>
-            </div>
-          </div>
-        </section>}
       </div>
     </div>
   )
