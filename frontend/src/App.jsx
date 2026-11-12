@@ -1018,7 +1018,7 @@ export default function App() {
         }`}
       >
         {/* Top Header */}
-        <header className="flex h-20 items-center justify-between border-b border-border bg-card/80 px-5 backdrop-blur md:px-8">
+        <header className="sticky top-0 z-40 flex h-20 items-center justify-between border-b border-border bg-card/95 px-5 backdrop-blur md:px-8">
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -1063,11 +1063,17 @@ export default function App() {
 
               {/* Notifications Dropdown Panel */}
               {notificationsOpen && (
-                <div
-                  className="absolute right-0 top-12 z-40 w-80 sm:w-96 rounded-2xl border border-border bg-card shadow-2xl overflow-hidden animate-in fade-in-50 zoom-in-95 duration-150"
-                  role="region"
-                  aria-label="Notification Center"
-                >
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setNotificationsOpen(false)}
+                    aria-hidden="true"
+                  />
+                  <div
+                    className="absolute right-0 top-12 z-50 w-80 sm:w-96 rounded-2xl border border-border bg-card shadow-2xl overflow-hidden animate-in fade-in-50 zoom-in-95 duration-150"
+                    role="region"
+                    aria-label="Notification Center"
+                  >
                   {/* Panel Header */}
                   <div className="flex items-center justify-between border-b border-border px-4 py-3 bg-muted/30">
                     <div className="flex items-center gap-2">
@@ -1166,7 +1172,8 @@ export default function App() {
                     </button>
                   </div>
                 </div>
-              )}
+              </>
+            )}
             </div>
 
             <button
@@ -1216,10 +1223,16 @@ export default function App() {
 
               {/* Dropdown Menu below username when toggle is clicked */}
               {accountMenuOpen && (
-                <div
-                  className="absolute right-0 top-12 z-30 w-64 rounded-2xl border border-border bg-card p-2 shadow-xl space-y-1"
-                  role="menu"
-                >
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setAccountMenuOpen(false)}
+                    aria-hidden="true"
+                  />
+                  <div
+                    className="absolute right-0 top-12 z-50 w-64 rounded-2xl border border-border bg-card p-2 shadow-xl space-y-1"
+                    role="menu"
+                  >
                   <div className="px-3 py-2 border-b border-border">
                     <p className="text-xs font-bold text-foreground">{userName}</p>
                     <p className="text-[11px] text-muted-foreground">{session?.user?.email || 'user@rythusevak.com'}</p>
@@ -1244,7 +1257,8 @@ export default function App() {
                     </button>
                   </div>
                 </div>
-              )}
+              </>
+            )}
             </div>
           </div>
         </header>
@@ -1431,7 +1445,7 @@ export default function App() {
       {/* Add New Farm Modal */}
       {showForm && (
         <div
-          className={`fixed inset-0 z-40 flex items-center justify-center bg-foreground/40 backdrop-blur-xs transition-all duration-300 ${
+          className={`fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 backdrop-blur-xs transition-all duration-300 ${
             modalFullscreen ? 'p-0' : 'p-3 sm:p-5 lg:p-7'
           }`}
           role="dialog"
