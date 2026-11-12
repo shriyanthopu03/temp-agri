@@ -368,6 +368,16 @@ export async function createOrder(req, res, next) {
     next(error)
   }
 }
+        populate: [
+          { path: 'buyer', select: 'name email' },
+          { path: 'farmer', select: 'name email' },
+        ],
+      })
+    res.status(201).json(populatedOrder)
+  } catch (error) {
+    next(error)
+  }
+}
 
 export async function getOrders(req, res, next) {
   try {
