@@ -1388,7 +1388,45 @@ export default function App() {
               purchaseOrders={purchaseOrders}
               lots={lots}
               availableBatches={availableBatches}
-              onCreatePO={(newPO) => setPurchaseOrders([newPO, ...purchaseOrders])}
+              farms={farms}
+              onCreatePO={async (newPOData) => {
+                if (!session?.token) {
+                  const fallbackPO = {
+                    ...newPOData,
+                    id: `local-po-${Date.now()}`,
+                    reference: `ORD-${Date.now()}`,
+                    totalBudget: newPOData.quantity * (newPOData.unitPrice || 0),
+                    status: 'submitted',
+                  }
+                  setPurchaseOrders([fallbackPO, ...purchaseOrders])
+                  return fallbackPO
+                }
+                const saved = await requestWorkflow('/orders', {
+                  method: 'POST',
+                  body: JSON.stringify(newPOData),
+                }, session.token)
+                const mappedPO = {
+                  ...saved,
+                  id: saved._id,
+                  reference: saved.number,
+                  crop: saved.crop,
+                  totalBudget: saved.totalAmount,
+                }
+                setPurchaseOrders((current) => [mappedPO, ...current])
+                if (saved.shipment) {
+                  const newShipment = typeof saved.shipment === 'object'
+                    ? { ...saved.shipment, id: saved.shipment._id, reference: saved.shipment.shipmentNumber, order: saved }
+                    : null
+                  if (newShipment) setShipments((current) => [newShipment, ...current])
+                }
+                try {
+                  const updatedShipments = await requestWorkflow('/shipments', {}, session.token)
+                  if (Array.isArray(updatedShipments)) {
+                    setShipments(updatedShipments.map((s) => ({ ...s, id: s._id, reference: s.shipmentNumber })))
+                  }
+                } catch { /* retain existing state */ }
+                return mappedPO
+              }}
               onPurchaseBatch={async (batchId, order) => {
                 const saved = await requestWorkflow('/orders', { method: 'POST', body: JSON.stringify({ batchId, quantity: order.quantity, buyerLocation: order.buyerLocation }) }, session.token)
                 const mappedPO = { ...saved, id: saved._id, reference: saved.number, crop: saved.crop, totalBudget: saved.totalAmount }

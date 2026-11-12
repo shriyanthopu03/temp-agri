@@ -92,10 +92,26 @@ export async function getAvailableBatches(req, res, next) {
 
 export async function createOrder(req, res, next) {
   try {
-    const { batchId, quantity, buyerLocation } = req.body
+    const {
+      isCustomPO,
+      batchId,
+      quantity,
+      unit,
+      unitPrice,
+      crop,
+      farmerName,
+      farmerEmail,
+      farmName,
+      farmId,
+      pickupLocation,
+      buyerLocation,
+      qualityGrade,
+      notes,
+    } = req.body
+
     const requested = Number(quantity)
-    if (!batchId || !Number.isFinite(requested) || requested <= 0) {
-      return res.status(400).json({ message: 'Batch ID and positive purchase quantity are required' })
+    if (!Number.isFinite(requested) || requested <= 0) {
+      return res.status(400).json({ message: 'Positive purchase order quantity is required' })
     }
 
     const deliveryAddress = buyerLocation?.address || 'Buyer Regional Distribution Center'
@@ -107,8 +123,169 @@ export async function createOrder(req, res, next) {
       longitude: deliveryLng,
     }
 
-    const lot = await ProduceLot.findOne(scopedFilter(req, { _id: batchId, status: 'accepted', availableQuantity: { $gte: requested } })).populate('farm')
-    if (!lot) {
+    let lot = null
+    let targetFarm = null
+    let supplierUser = null
+
+    if (batchId && mongoose.isValidObjectId(batchId)) {
+      lot = await ProduceLot.findById(batchId).populate('farm').populate('farmer')
+      if (lot) {
+        targetFarm = lot.farm
+        supplierUser = lot.farmer
+      }
+    }
+
+    // Custom PO flow OR when batch is not a strict catalog lot
+    if (isCustomPO || !lot) {
+      const orderCrop = crop || lot?.category || 'Agricultural Produce'
+      const pricePerUnit = Number(unitPrice ?? lot?.marketPrice ?? 50)
+      const orderUnit = unit || lot?.unit || 'kg'
+      const grade = qualityGrade || lot?.qualityGrade || 'Grade A'
+
+      // 1. Resolve Supplier / Farmer User
+      if (!supplierUser && farmerEmail) {
+        supplierUser = await User.findOne({ email: farmerEmail.toLowerCase().trim() })
+      }
+      if (!supplierUser && farmerName) {
+        supplierUser = await User.findOne({ name: new RegExp(`^${farmerName.trim()}$`, 'i'), role: 'farmer' })
+      }
+      if (!supplierUser) {
+        supplierUser = await User.findOne({ role: 'farmer' })
+      }
+      if (!supplierUser) {
+        supplierUser = await User.create({
+          name: farmerName || 'Registered Farmer',
+          email: farmerEmail || `farmer-${Date.now()}@rythusevak.local`,
+          role: 'farmer',
+          organizationId: req.user.organizationId || '507f1f77bcf86cd799439011',
+          regionId: req.user.regionId || '507f1f77bcf86cd799439012',
+        })
+      }
+
+      // 2. Resolve Farm
+      if (!targetFarm && farmId && mongoose.isValidObjectId(farmId)) {
+        targetFarm = await Farm.findById(farmId)
+      }
+      if (!targetFarm && farmName) {
+        targetFarm = await Farm.findOne({ farmName: new RegExp(`^${farmName.trim()}$`, 'i') })
+      }
+      if (!targetFarm && supplierUser) {
+        targetFarm = await Farm.findOne({ farmer: supplierUser._id })
+      }
+
+      // Determine pickup location coordinates
+      let pickupLat = Number(pickupLocation?.latitude)
+      let pickupLng = Number(pickupLocation?.longitude)
+      if (!isValidCoordinate(pickupLat, pickupLng)) {
+        if (targetFarm?.location?.latitude && targetFarm?.location?.longitude) {
+          pickupLat = targetFarm.location.latitude
+          pickupLng = targetFarm.location.longitude
+        } else {
+          pickupLat = 17.4321
+          pickupLng = 78.5678
+        }
+      }
+
+      const pickupAddress = pickupLocation?.address || targetFarm?.location?.address || `GPS: ${pickupLat.toFixed(4)}, ${pickupLng.toFixed(4)}`
+      const pickupLocationObj = {
+        address: pickupAddress,
+        latitude: pickupLat,
+        longitude: pickupLng,
+      }
+
+      if (!targetFarm) {
+        targetFarm = await Farm.create({
+          organizationId: req.user.organizationId || '507f1f77bcf86cd799439011',
+          regionId: req.user.regionId || '507f1f77bcf86cd799439012',
+          farmer: supplierUser._id,
+          farmName: farmName || `${orderCrop} Farm Plot`,
+          crops: [orderCrop],
+          location: pickupLocationObj,
+          boundary: {
+            type: 'Polygon',
+            coordinates: [[[pickupLng - 0.005, pickupLat - 0.005], [pickupLng + 0.005, pickupLat - 0.005], [pickupLng + 0.005, pickupLat + 0.005], [pickupLng - 0.005, pickupLat - 0.005]]],
+          },
+          areaSqMeters: 4046.86,
+          areaAcres: 1,
+          areaHectares: 0.4047,
+          inspectionStatus: 'inspected',
+        })
+      }
+
+      // 3. Resolve or create produce lot
+      if (!lot) {
+        lot = await ProduceLot.create({
+          organizationId: req.user.organizationId || '507f1f77bcf86cd799439011',
+          regionId: req.user.regionId || '507f1f77bcf86cd799439012',
+          farmer: supplierUser._id,
+          farm: targetFarm._id,
+          category: orderCrop,
+          quantity: requested,
+          availableQuantity: 0,
+          unit: orderUnit,
+          marketPrice: pricePerUnit,
+          qualityGrade: grade,
+          status: 'allocated',
+          statusHistory: [{ status: 'allocated', changedBy: req.user.userId, note: 'Direct Custom PO procurement' }],
+        })
+      } else {
+        lot.availableQuantity = Math.max(0, (lot.availableQuantity || lot.quantity) - requested)
+        if (lot.availableQuantity === 0) lot.status = 'allocated'
+        await lot.save()
+      }
+
+      // 4. Create Purchase Order in MongoDB
+      const totalAmount = requested * pricePerUnit
+      const order = await PurchaseOrder.create({
+        organizationId: req.user.organizationId || '507f1f77bcf86cd799439011',
+        regionId: req.user.regionId || '507f1f77bcf86cd799439012',
+        supplier: supplierUser._id,
+        buyer: req.user.userId,
+        farm: targetFarm._id,
+        batch: lot._id,
+        number: `ORD-${Date.now()}`,
+        status: 'submitted',
+        crop: orderCrop,
+        quantity: requested,
+        unit: orderUnit,
+        unitPrice: pricePerUnit,
+        totalAmount: totalAmount,
+        buyerLocation: deliveryLocationObj,
+        pickupLocation: pickupLocationObj,
+        lines: [{ category: orderCrop, quantity: requested, unitPrice: pricePerUnit, allocatedLots: [{ lot: lot._id, quantity: requested }] }],
+        history: [{ status: 'submitted', changedBy: req.user.userId, note: notes || 'Custom Purchase Order placed directly with producer' }],
+      })
+
+      // 5. Create Shipment for Logistics coordination
+      const shipment = await Shipment.create({
+        organizationId: req.user.organizationId || '507f1f77bcf86cd799439011',
+        regionId: req.user.regionId || '507f1f77bcf86cd799439012',
+        order: order._id,
+        buyer: order.buyer,
+        farmer: order.supplier,
+        shipmentNumber: `SHP-${Date.now()}`,
+        status: 'ready_for_pickup',
+        lots: [{ lot: lot._id, quantity: requested }],
+        pickupLocation: order.pickupLocation,
+        destination: order.buyerLocation,
+        qualityGrade: grade,
+        history: [{ status: 'ready_for_pickup', actor: req.user.userId, note: 'Shipment created from custom PO (Pending Logistics)' }],
+      })
+      order.shipment = shipment._id
+      await order.save()
+
+      const populatedOrder = await PurchaseOrder.findById(order._id)
+        .populate('supplier', 'name email')
+        .populate('buyer', 'name email')
+        .populate('farm')
+        .populate('batch')
+        .populate('shipment')
+
+      return res.status(201).json(populatedOrder)
+    }
+
+    // Standard Catalog Purchase
+    if (lot.status !== 'accepted' || (lot.availableQuantity ?? lot.quantity) < requested) {
       return res.status(409).json({ message: 'Only inspected, available batches can be purchased with sufficient stock' })
     }
 
@@ -121,8 +298,8 @@ export async function createOrder(req, res, next) {
         pickupLng = sum[0] / points.length
         pickupLat = sum[1] / points.length
       } else {
-        pickupLat = 20.5937
-        pickupLng = 78.9629
+        pickupLat = 17.4321
+        pickupLng = 78.5678
       }
     }
     const rawAddress = lot.farm?.location?.address
@@ -132,13 +309,14 @@ export async function createOrder(req, res, next) {
     const pickupLocationObj = { address: pickupAddress, latitude: Number(pickupLat), longitude: Number(pickupLng) }
 
     const order = await PurchaseOrder.create({
-      ...scopedFilter(req),
-      supplier: lot.farmer,
+      organizationId: req.user.organizationId || '507f1f77bcf86cd799439011',
+      regionId: req.user.regionId || '507f1f77bcf86cd799439012',
+      supplier: lot.farmer?._id || lot.farmer,
       buyer: req.user.userId,
       farm: lot.farm._id,
       batch: lot._id,
       number: `ORD-${Date.now()}`,
-      status: 'submitted', // Initial status: pending logistics
+      status: 'submitted',
       crop: lot.category,
       quantity: requested,
       unit: lot.unit,
@@ -156,7 +334,8 @@ export async function createOrder(req, res, next) {
     await lot.save()
 
     const shipment = await Shipment.create({
-      ...scopedFilter(req),
+      organizationId: req.user.organizationId || '507f1f77bcf86cd799439011',
+      regionId: req.user.regionId || '507f1f77bcf86cd799439012',
       order: order._id,
       buyer: order.buyer,
       farmer: order.supplier,
@@ -183,6 +362,7 @@ export async function createOrder(req, res, next) {
           { path: 'farmer', select: 'name email' },
         ],
       })
+
     res.status(201).json(populatedOrder)
   } catch (error) {
     next(error)
