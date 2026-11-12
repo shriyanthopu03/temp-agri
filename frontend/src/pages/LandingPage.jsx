@@ -262,7 +262,7 @@ export function LandingPage({ onLogin, onRegister, onRoleRegister, session, onGo
             {[
               {
                 title: 'Map-Based Land Registration',
-                desc: 'Satellite map integration allowing precise marking of agricultural parcels.',
+                desc: 'Satellite map integration allowing precise marking of agricultural land & farms.',
                 icon: Globe,
               },
               {

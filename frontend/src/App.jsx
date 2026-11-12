@@ -268,7 +268,7 @@ function SignUpScreen({ onLogin, onSignUp, onBackToHome, initialRole = 'farmer' 
   }
 
   const roleOptions = [
-    { value: 'farmer', label: 'Farmer', desc: 'Register land parcels & crops' },
+    { value: 'farmer', label: 'Farmer', desc: 'Register farms & crops' },
     { value: 'quality_inspector', label: 'Quality Inspector', desc: 'Inspect plots & grade harvest' },
     { value: 'buyer', label: 'Buyer', desc: 'Procure certified Grade crops' },
     { value: 'logistics_coordinator', label: 'Logistics', desc: 'Fleet dispatch & deliveries' },
@@ -604,7 +604,7 @@ export default function App() {
             id: 'notif-4',
             type: 'farm',
             title: 'Farm Boundary Synced',
-            message: 'GPS land parcel boundary verified and encrypted on MongoDB Atlas.',
+            message: 'GPS farm boundary verified and encrypted on MongoDB Atlas.',
             createdAt: '1d ago',
             readAt: '2026-11-10',
             targetTab: 'My Farms',
@@ -1400,7 +1400,7 @@ export default function App() {
                     Mark & Save Farm Boundary
                   </h2>
                   <p className="text-xs text-muted-foreground">
-                    Click points directly on the map to define your parcel polygon. Zoom in for precision.
+                    Click points directly on the map to define your farm boundary polygon. Zoom in for precision.
                   </p>
                 </div>
               </div>
@@ -1471,7 +1471,7 @@ export default function App() {
                   {finished && farmArea ? (
                     <div className="rounded-xl bg-card p-3 border border-border space-y-1">
                       <p className="text-[10px] font-semibold uppercase text-muted-foreground tracking-wider">
-                        Calculated Parcel Area
+                        Calculated Farm Area
                       </p>
                       <p className="text-lg font-bold text-primary">
                         {farmArea.acres.toFixed(2)} acres
@@ -1483,7 +1483,7 @@ export default function App() {
                   ) : (
                     <p className="text-muted-foreground leading-relaxed text-[11px]">
                       {points.length === 0
-                        ? 'Click "Mark Farm Boundary" on the map, then click at least 3 points around your land parcel.'
+                        ? 'Click "Mark Farm Boundary" on the map, then click at least 3 points around your farm boundary.'
                         : points.length < 3
                         ? `Mark at least ${3 - points.length} more point${3 - points.length > 1 ? 's' : ''} to form a closed polygon.`
                         : 'Click "Finish Farm" on the map toolbar to calculate total area.'}
@@ -1504,7 +1504,7 @@ export default function App() {
                     onClick={addFarm}
                     className="w-full rounded-xl bg-primary px-4 py-3 text-xs font-bold text-primary-foreground shadow-md disabled:cursor-not-allowed disabled:opacity-40 hover:opacity-90 transition flex items-center justify-center gap-2"
                   >
-                    Save Farm Parcel
+                    Save Farm
                   </button>
                   <p className="text-center text-[10px] text-muted-foreground">
                     Requires 3+ boundary points & finished polygon to save.

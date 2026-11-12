@@ -114,7 +114,7 @@ export function MyFarmsPage({
       {/* Header & Controls */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Registered Land Parcels & Farms</h1>
+          <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Registered Farms & Land</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Mark GPS boundaries, manage crops, and submit requests for certified Quality Inspection.
           </p>
@@ -126,7 +126,7 @@ export function MyFarmsPage({
               onClick={() => setShowForm(true)}
               className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:opacity-90"
             >
-              <Plus size={18} /> Register New Land Parcel
+              <Plus size={18} /> Register New Farm
             </button>
           )}
         </div>
@@ -214,7 +214,7 @@ export function MyFarmsPage({
           <div className="flex items-center justify-between border-b border-border p-4">
             <div>
               <h2 className="font-semibold text-sm md:text-base">Farm Directory</h2>
-              <p className="text-xs text-muted-foreground">{filteredFarms.length} land parcel(s) listed</p>
+              <p className="text-xs text-muted-foreground">{filteredFarms.length} farm(s) listed</p>
             </div>
             <span className="text-xs font-semibold text-primary bg-secondary px-2.5 py-1 rounded-full">
               GPS Verified
@@ -338,7 +338,7 @@ export function MyFarmsPage({
             </div>
 
             <p className="text-xs text-muted-foreground">
-              Submit your registered land parcel <strong>{requestInspectionFarm.name}</strong> ({(requestInspectionFarm.area || 0).toFixed(2)} acres) for on-site quality evaluation.
+              Submit your registered farm <strong>{requestInspectionFarm.name}</strong> ({(requestInspectionFarm.area || 0).toFixed(2)} acres) for on-site quality evaluation.
             </p>
 
             <form onSubmit={handleSubmitInspectionRequest} className="space-y-3 text-xs">
@@ -429,7 +429,7 @@ export function MyFarmsPage({
                 <p className="font-semibold text-foreground mt-1">{inspectModalFarm.crop}</p>
               </div>
               <div className="rounded-xl bg-muted/60 p-3">
-                <p className="text-xs text-muted-foreground">Parcel Size</p>
+                <p className="text-xs text-muted-foreground">Farm Area</p>
                 <p className="font-semibold text-primary mt-1">
                   {(inspectModalFarm.area || 0).toFixed(2)} Acres ({((inspectModalFarm.area || 0) * 0.404686).toFixed(2)} Ha)
                 </p>

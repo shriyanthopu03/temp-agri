@@ -100,7 +100,7 @@ export function MarketPage({
       .map((batch) => {
         const farm = typeof batch.farm === 'object' && batch.farm !== null ? batch.farm : null
         const farmerName = batch.farmer?.name || batch.farmerName || 'Registered Farmer'
-        const farmName = farm?.farmName || batch.farmName || 'Verified Farm Parcel'
+        const farmName = farm?.farmName || batch.farmName || 'Verified Farm'
         const farmLocation = farm?.location?.address || 'Nashik Belt, Maharashtra'
         const farmArea = farm?.areaAcres || 10
         const latestInspection = batch.inspectionHistory?.[batch.inspectionHistory.length - 1]
@@ -310,7 +310,7 @@ export function MarketPage({
                         <p className="font-semibold text-foreground mt-0.5">{item.quantity}</p>
                       </div>
                       <div className="rounded-xl bg-muted/40 p-2.5">
-                        <p className="text-[10px] text-muted-foreground">Land Parcel Area</p>
+                        <p className="text-[10px] text-muted-foreground">Farm Area</p>
                         <p className="font-semibold text-foreground mt-0.5">{item.farmArea} Acres</p>
                       </div>
                     </div>

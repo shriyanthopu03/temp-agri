@@ -165,7 +165,7 @@ export function LogisticsDeliveriesPage({ shipments = [], onAcceptOrder, onMarkD
                 <span className="text-[11px] font-bold text-primary uppercase tracking-wider">
                   Order ID: {selectedShipment.reference || selectedShipment.shipmentNumber}
                 </span>
-                <h2 className="text-lg font-bold text-foreground mt-0.5">{farm?.farmName || 'Registered Farm Parcel'}</h2>
+                <h2 className="text-lg font-bold text-foreground mt-0.5">{farm?.farmName || 'Registered Farm'}</h2>
                 <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
                   <MapPin size={13} /> Pickup: {formatLocation(selectedShipment.pickupLocation || farm?.location)}
                 </p>

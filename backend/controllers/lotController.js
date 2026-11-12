@@ -34,7 +34,7 @@ export async function createLot(req, res, next) {
       targetFarm = await Farm.create({
         ...scopedFilter(req),
         farmer: ownerId,
-        farmName: `${category} Farm Parcel`,
+        farmName: `${category} Farm`,
         crops: [category],
         location: { address: 'Nashik Agriculture Belt, MH', latitude: 19.9975, longitude: 73.7898 },
         boundary: {

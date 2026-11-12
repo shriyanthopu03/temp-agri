@@ -432,7 +432,7 @@ export function ProduceLotsPage({
                       <User size={13} className="text-primary" /> Farmer: <span className="font-medium text-foreground">{lot.farmerName}</span>
                     </p>
                     <p className="flex items-center gap-1.5">
-                      <MapPin size={13} className="text-primary" /> Parcel: <span className="font-medium text-foreground">{lot.farmName}</span>
+                      <MapPin size={13} className="text-primary" /> Farm: <span className="font-medium text-foreground">{lot.farmName}</span>
                     </p>
                   </div>
 
@@ -608,7 +608,7 @@ export function ProduceLotsPage({
               </div>
 
               <label className="block space-y-1">
-                <span className="font-medium text-foreground">Farm Land Parcel</span>
+                <span className="font-medium text-foreground">Farm Land</span>
                 {farms && farms.length > 0 ? (
                   <select
                     value={newFarm}
@@ -1046,7 +1046,7 @@ export function ProduceLotsPage({
                 <p className="font-semibold text-foreground mt-0.5">{activeLot.farmerName}</p>
               </div>
               <div className="p-3 rounded-xl bg-muted/60">
-                <p className="text-muted-foreground">Farm Parcel</p>
+                <p className="text-muted-foreground">Farm</p>
                 <p className="font-semibold text-foreground mt-0.5">{activeLot.farmName}</p>
               </div>
               <div className="p-3 rounded-xl bg-muted/60">

@@ -73,7 +73,7 @@ export function OverviewPage({
   const roleConfig = {
     farmer: {
       badge: 'Farmer Workspace',
-      description: 'Overview of your registered land parcels, crop health, and harvest batches.',
+      description: 'Overview of your registered farms, crop health, and harvest batches.',
       actionBtn: 'Add new farm',
       onAction: () => setShowForm(true),
       metrics: [
@@ -101,7 +101,7 @@ export function OverviewPage({
       onAction: () => setActiveTab('Settings'),
       metrics: [
         { label: 'Total Users', value: '—', suffix: 'active', icon: Users, tone: 'bg-[#e7efe5] text-primary' },
-        { label: 'Land Parcels', value: String(farms.length), suffix: 'parcels', icon: Globe, tone: 'bg-[#f7ecd8] text-[#a56a17]' },
+        { label: 'Registered Farms', value: String(farms.length), suffix: 'farms', icon: Globe, tone: 'bg-[#f7ecd8] text-[#a56a17]' },
         { label: 'Enterprise POs', value: String(purchaseOrders.length), suffix: 'orders', icon: FileCheck, tone: 'bg-[#e4eef1] text-[#2e7080]' },
         { label: 'Platform GMV', value: '—', suffix: 'total trade', icon: TrendingUp, tone: 'bg-[#eee8f4] text-[#76518e]' },
       ],
@@ -327,7 +327,7 @@ export function OverviewPage({
           <div className="flex items-center justify-between border-b border-border p-5">
             <div>
               <h2 className="font-semibold">Regional Operations Map</h2>
-              <p className="mt-1 text-sm text-muted-foreground">Registered land parcels & collection centers</p>
+              <p className="mt-1 text-sm text-muted-foreground">Registered farms & collection centers</p>
             </div>
             <button
               onClick={() => setActiveTab('My Farms')}
