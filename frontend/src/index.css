@@ -26,8 +26,8 @@
 .dark, [data-theme="dark"] {
   --color-background: #898861;
   --color-foreground: #EFE9D7;
-  --color-card: #72714D;
-  --color-card-foreground: #EFE9D7;
+  --color-card: #EFE9D7;
+  --color-card-foreground: #343723;
   --color-primary: #7D2826;
   --color-primary-foreground: #EFE9D7;
   --color-secondary: #EFE9D7;
@@ -35,6 +35,16 @@
   --color-muted-foreground: #DCD6C0;
   --color-border: #97966F;
   --color-accent: #7D2826;
+}
+
+.dark .bg-card, [data-theme="dark"] .bg-card {
+  --color-background: #F5F1E4;
+  --color-foreground: #343723;
+  --color-card-foreground: #343723;
+  --color-muted: #E5E0CA;
+  --color-muted-foreground: #62634A;
+  --color-border: #CEC8AE;
+  color: #343723;
 }
 * { box-sizing: border-box; }
 body { margin: 0; min-width: 320px; }
