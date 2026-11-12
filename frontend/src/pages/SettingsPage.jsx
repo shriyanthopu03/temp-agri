@@ -7,7 +7,6 @@ import {
   Phone,
   Save,
   User,
-  X,
 } from 'lucide-react'
 import { updateUserProfile } from '../services/authService'
 
@@ -158,7 +157,7 @@ export function SettingsPage({
               Manage your personal identification, phone number, and verified Aadhaar details.
             </p>
           </div>
-          {!isEditingProfile ? (
+          {!isEditingProfile && (
             <button
               type="button"
               onClick={handleStartEdit}
@@ -166,15 +165,6 @@ export function SettingsPage({
             >
               <Edit2 size={13} />
               <span>Edit Details</span>
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={handleCancelEdit}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-muted/50 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted transition"
-            >
-              <X size={13} />
-              <span>Cancel</span>
             </button>
           )}
         </div>
