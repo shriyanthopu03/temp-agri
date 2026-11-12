@@ -70,7 +70,6 @@ export function ProduceLotsPage({
   const [newCategory, setNewCategory] = useState('')
   const [newQuantity, setNewQuantity] = useState('')
   const [newUnit, setNewUnit] = useState('kg')
-  const [newCropHealth, setNewCropHealth] = useState('Healthy')
   const [newExpectedHarvestDate, setNewExpectedHarvestDate] = useState('')
   const [newFarmer, setNewFarmer] = useState(session?.user?.name || '')
   const [newFarm, setNewFarm] = useState(farms[0]?.name || farms[0]?.farmName || '')
@@ -136,7 +135,6 @@ export function ProduceLotsPage({
       category: newCategory.trim(),
       quantity: qty,
       unit: newUnit,
-      cropHealth: newCropHealth,
       expectedHarvestDate: newExpectedHarvestDate,
       farmerName: newFarmer,
       farmName: newFarm,
@@ -590,32 +588,16 @@ export function ProduceLotsPage({
                 </label>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
-                <label className="block space-y-1">
-                  <span className="font-medium text-foreground">Crop Health</span>
-                  <select
-                    value={newCropHealth}
-                    onChange={(e) => setNewCropHealth(e.target.value)}
-                    className="w-full rounded-xl border border-border bg-background p-2.5 text-xs outline-none focus:border-primary"
-                  >
-                    <option value="Excellent">Excellent</option>
-                    <option value="Healthy">Healthy</option>
-                    <option value="Good">Good</option>
-                    <option value="Moderate">Moderate</option>
-                    <option value="Poor">Poor</option>
-                  </select>
-                </label>
-                <label className="block space-y-1">
-                  <span className="font-medium text-foreground">Expected Harvesting Date</span>
-                  <input
-                    type="date"
-                    value={newExpectedHarvestDate}
-                    onChange={(e) => setNewExpectedHarvestDate(e.target.value)}
-                    required
-                    className="w-full rounded-xl border border-border bg-background p-2.5 text-xs outline-none focus:border-primary"
-                  />
-                </label>
-              </div>
+              <label className="block space-y-1">
+                <span className="font-medium text-foreground">Expected Harvesting Date</span>
+                <input
+                  type="date"
+                  value={newExpectedHarvestDate}
+                  onChange={(e) => setNewExpectedHarvestDate(e.target.value)}
+                  required
+                  className="w-full rounded-xl border border-border bg-background p-2.5 text-xs outline-none focus:border-primary"
+                />
+              </label>
 
               <label className="block space-y-1">
                 <span className="font-medium text-foreground">Farm Land</span>
