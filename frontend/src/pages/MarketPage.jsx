@@ -440,7 +440,7 @@ export function MarketPage({
               <div className="bg-muted px-3 py-1.5 text-[11px] font-semibold text-muted-foreground flex items-center gap-1">
                 <Layers size={13} className="text-primary" /> Land Polygon Plot: {activeListing.farmName} ({activeListing.farmArea} Acres)
               </div>
-              <div className="h-44">
+              <div className="h-52 relative">
                 <FarmMap points={getFarmPoints(activeListing)} farmName={activeListing.farmName} finished={false} />
               </div>
             </div>
@@ -522,23 +522,23 @@ export function MarketPage({
       {/* Standalone Map Viewer Modal */}
       {showMapModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/30 p-4" role="dialog">
-          <div className="w-full max-w-xl rounded-2xl bg-card border border-border p-5 shadow-xl space-y-3">
+          <div className="w-full max-w-2xl rounded-2xl bg-card border border-border p-6 shadow-2xl space-y-4">
             <div className="flex items-center justify-between border-b border-border pb-3">
               <div>
-                <h3 className="font-bold text-base">{showMapModal.farmName}</h3>
+                <h3 className="font-bold text-lg text-foreground">{showMapModal.farmName}</h3>
                 <p className="text-xs text-muted-foreground">{showMapModal.farmLocation} · {showMapModal.farmArea} Acres</p>
               </div>
-              <button onClick={() => setShowMapModal(null)} className="rounded-lg p-1 hover:bg-muted">
+              <button onClick={() => setShowMapModal(null)} className="rounded-lg p-1.5 hover:bg-muted text-muted-foreground">
                 <X size={18} />
               </button>
             </div>
-            <div className="h-72 rounded-xl overflow-hidden border border-border">
-              <FarmMap points={getFarmPoints(showMapModal)} farmName={showMapModal.farmName} finished={false} />
+            <div className="h-96 md:h-[400px] rounded-xl overflow-hidden border border-border relative bg-muted/20">
+              <FarmMap points={getFarmPoints(showMapModal)} farmName={showMapModal.farmName} finished={false} interactive={true} />
             </div>
-            <div className="flex justify-end pt-1">
+            <div className="flex justify-end pt-2">
               <button
                 onClick={() => setShowMapModal(null)}
-                className="rounded-xl bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground"
+                className="rounded-xl bg-primary px-6 py-2.5 text-xs font-semibold text-primary-foreground shadow-sm hover:opacity-90 transition"
               >
                 Close
               </button>

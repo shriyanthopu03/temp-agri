@@ -320,10 +320,10 @@ export function FarmMap({
   }
 
   return (
-    <div className="relative h-full min-h-[340px] w-full overflow-hidden rounded-2xl bg-muted/20">
+    <div className="relative h-full min-h-0 w-full overflow-hidden rounded-2xl bg-muted/20">
       <div
         ref={mapContainer}
-        className={`h-full min-h-[340px] w-full ${marking ? 'farm-map-marking' : ''}`}
+        className={`h-full min-h-0 w-full ${marking ? 'farm-map-marking' : ''}`}
       />
 
       {/* 403 / Key Notice Banner */}
@@ -451,11 +451,11 @@ export function FarmMap({
 
       {/* Calculated Area Overlay */}
       {area && (
-        <div className="absolute bottom-4 right-4 z-10 rounded-xl border border-border bg-card/95 px-4 py-2.5 shadow-md backdrop-blur-sm text-right">
+        <div className="absolute bottom-4 right-4 z-10 rounded-xl border border-border bg-card/95 px-3.5 py-2 shadow-md backdrop-blur-sm text-right pointer-events-none">
           <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
             Farm area
           </p>
-          <p className="text-base font-bold text-primary">
+          <p className="text-sm font-bold text-primary leading-tight">
             {area.acres.toFixed(2)} acres
           </p>
           <p className="text-[10px] text-muted-foreground">
