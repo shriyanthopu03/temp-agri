@@ -550,7 +550,7 @@ export function LandingPage({ onLogin, onRegister, onRoleRegister, session, onGo
       {/* 8. Footer */}
       <footer id="contact" className="bg-card py-12 text-sm text-muted-foreground">
         <div className="mx-auto max-w-7xl px-5 md:px-8">
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4 pb-12 border-b border-border">
+          <div className="grid gap-10 sm:grid-cols-2 md:grid-cols-3 pb-12 border-b border-border">
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-base font-bold text-foreground">
                 <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-black text-xs tracking-tight select-none">
@@ -561,38 +561,41 @@ export function LandingPage({ onLogin, onRegister, onRoleRegister, session, onGo
               <p className="text-xs leading-relaxed">
                 End-to-end agriculture procurement and supply chain management platform connecting farmers, inspectors, buyers, and logistics.
               </p>
+              <p className="text-[11px] text-muted-foreground pt-1">
+                Empowering Indian agriculture through transparent quality grading, polygon farm boundary mapping, and direct buyer access.
+              </p>
             </div>
 
             <div>
               <p className="font-semibold text-foreground text-xs uppercase tracking-wider mb-3">Platform Navigation</p>
-              <ul className="space-y-2 text-xs">
-                <li><a href="#home" onClick={(e) => { e.preventDefault(); scrollTo('home') }} className="hover:text-primary">Home</a></li>
-                <li><a href="#about" onClick={(e) => { e.preventDefault(); scrollTo('about') }} className="hover:text-primary">About Rythu Sevak</a></li>
-                <li><a href="#how-it-works" onClick={(e) => { e.preventDefault(); scrollTo('how-it-works') }} className="hover:text-primary">How It Works</a></li>
-                <li><a href="#features" onClick={(e) => { e.preventDefault(); scrollTo('features') }} className="hover:text-primary">Platform Features</a></li>
-                <li><a href="#sevak-ai" onClick={(e) => { e.preventDefault(); scrollTo('sevak-ai') }} className="hover:text-primary flex items-center gap-1 font-semibold text-primary"><Sparkles size={11} /> Sevak AI Copilot</a></li>
-                <li><a href="#roles" onClick={(e) => { e.preventDefault(); scrollTo('roles') }} className="hover:text-primary">User Workspaces</a></li>
+              <ul className="space-y-2.5 text-xs">
+                <li><a href="#home" onClick={(e) => { e.preventDefault(); scrollTo('home') }} className="hover:text-primary transition">Home</a></li>
+                <li><a href="#about" onClick={(e) => { e.preventDefault(); scrollTo('about') }} className="hover:text-primary transition">About Rythu Sevak</a></li>
+                <li><a href="#how-it-works" onClick={(e) => { e.preventDefault(); scrollTo('how-it-works') }} className="hover:text-primary transition">How It Works</a></li>
+                <li><a href="#features" onClick={(e) => { e.preventDefault(); scrollTo('features') }} className="hover:text-primary transition">Platform Features</a></li>
+                <li><a href="#sevak-ai" onClick={(e) => { e.preventDefault(); scrollTo('sevak-ai') }} className="hover:text-primary transition flex items-center gap-1 font-semibold text-primary"><Sparkles size={11} /> Sevak AI Copilot</a></li>
+                <li><a href="#roles" onClick={(e) => { e.preventDefault(); scrollTo('roles') }} className="hover:text-primary transition">User Workspaces</a></li>
               </ul>
             </div>
 
-            <div>
-              <p className="font-semibold text-foreground text-xs uppercase tracking-wider mb-3">Workspaces</p>
-              <ul className="space-y-2 text-xs">
-                <li><button onClick={() => onRoleRegister ? onRoleRegister('farmer') : onRegister()} className="hover:text-primary">Farmer Portal</button></li>
-                <li><button onClick={() => onRoleRegister ? onRoleRegister('quality_inspector') : onRegister()} className="hover:text-primary">Quality Inspector Workbench</button></li>
-                <li><button onClick={() => onRoleRegister ? onRoleRegister('buyer') : onRegister()} className="hover:text-primary">Buyer Sourcing Hub</button></li>
-                <li><button onClick={() => onRoleRegister ? onRoleRegister('logistics_coordinator') : onRegister()} className="hover:text-primary">Logistics Operations Hub</button></li>
-              </ul>
-            </div>
-
-            <div>
+            <div className="space-y-3">
               <p className="font-semibold text-foreground text-xs uppercase tracking-wider mb-3">Contact & Support</p>
-              <p className="text-xs">Support: support@rythusevak.com</p>
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                Assistance with farmer registration, GPS farm boundary mapping, harvest inspections, or order dispatch.
+              </p>
+              <div className="space-y-1.5 text-xs">
+                <p><span className="font-semibold text-foreground">Email:</span> support@rythusevak.com</p>
+                <p><span className="font-semibold text-foreground">Helpline:</span> +91 1800-425-AGRI (Toll Free)</p>
+                <p><span className="font-semibold text-foreground">Hours:</span> Mon – Sat: 6:00 AM – 8:00 PM IST</p>
+              </div>
             </div>
           </div>
 
           <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
             <p>&copy; {new Date().getFullYear()} Rythu Sevak Platform. All rights reserved.</p>
+            <div className="flex items-center gap-6">
+              <a href="#home" onClick={(e) => { e.preventDefault(); scrollTo('home') }} className="hover:text-primary transition">Back to Top ↑</a>
+            </div>
           </div>
         </div>
       </footer>
