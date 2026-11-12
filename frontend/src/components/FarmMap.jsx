@@ -1,11 +1,12 @@
-import { useEffect, useRef, useState } from 'react'
-import maplibregl from 'maplibre-gl'
+import { useEffect, useRef, useState, useCallback } from 'react'
+import * as maptilersdk from '@maptiler/sdk'
 import * as turf from '@turf/turf'
 import '@maptiler/sdk/dist/maptiler-sdk.css'
+import { Layers, Key, Check, AlertCircle, ExternalLink, X, MapPin } from 'lucide-react'
 
 const DEFAULT_CENTER = [78.9629, 20.5937]
 
-// High-availability Carto Voyager style (free raster tiles, zero API key required, reliable for agricultural mapping)
+// High-availability Carto Voyager style (used as seamless fallback if MapTiler key returns 403 or network issue)
 const CARTO_VOYAGER_STYLE = {
   version: 8,
   sources: {
@@ -33,32 +34,24 @@ const CARTO_VOYAGER_STYLE = {
   ],
 }
 
-// Fallback OpenStreetMap standard raster style
-const OSM_STYLE = {
-  version: 8,
-  sources: {
-    'osm-tiles': {
-      type: 'raster',
-      tiles: [
-        'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
-        'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
-        'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      ],
-      tileSize: 256,
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors',
-      maxzoom: 19,
-    },
-  },
-  layers: [
-    {
-      id: 'osm-tiles-layer',
-      type: 'raster',
-      source: 'osm-tiles',
-      minzoom: 0,
-      maxzoom: 19,
-    },
-  ],
+// Available MapTiler Styles
+const MAPTILER_STYLES = [
+  { id: 'outdoor', label: 'Outdoor Topo', style: maptilersdk.MapStyle.OUTDOOR },
+  { id: 'satellite', label: 'Satellite', style: maptilersdk.MapStyle.SATELLITE },
+  { id: 'hybrid', label: 'Hybrid', style: maptilersdk.MapStyle.HYBRID },
+  { id: 'streets', label: 'Streets', style: maptilersdk.MapStyle.STREETS },
+]
+
+const getInitialApiKey = () => {
+  if (typeof window !== 'undefined') {
+    const stored = window.localStorage.getItem('maptiler_api_key')
+    if (stored && stored.trim()) return stored.trim()
+  }
+  const envKey =
+    (typeof process !== 'undefined' && process.env?.MAPTILER_API_KEY) ||
+    (import.meta?.env && import.meta.env.VITE_MAPTILER_API_KEY) ||
+    ''
+  return envKey.trim() || 'fqDiQwYmuIvVrorFowV3'
 }
 
 export function FarmMap({
@@ -71,6 +64,7 @@ export function FarmMap({
   onFinish,
   onEdit,
   finished = false,
+  interactive = true,
 }) {
   const mapContainer = useRef(null)
   const mapRef = useRef(null)
@@ -86,51 +80,50 @@ export function FarmMap({
   onAddRef.current = onAdd
   const [area, setArea] = useState(null)
 
-  // Determine map style based on available API key
-  const userKey =
-    (typeof process !== 'undefined' && process.env?.MAPTILER_API_KEY) ||
-    (import.meta?.env && import.meta.env.VITE_MAPTILER_API_KEY) ||
-    ''
+  // MapTiler API Key State & Management
+  const [apiKey, setApiKey] = useState(getInitialApiKey)
+  const [keyModalOpen, setKeyModalOpen] = useState(false)
+  const [inputKey, setInputKey] = useState(apiKey === 'fqDiQwYmuIvVrorFowV3' ? '' : apiKey)
+  const [hasKeyError, setHasKeyError] = useState(false)
+  const [currentStyleId, setCurrentStyleId] = useState('outdoor')
+  const [styleMenuOpen, setStyleMenuOpen] = useState(false)
 
-  // Only use MapTiler cloud if a genuine custom key is provided (ignore known deprecated demo key)
-  const hasValidCustomKey =
-    Boolean(userKey) &&
-    userKey !== 'fqDiQwYmuIvVrorFowV3' &&
-    userKey.trim().length > 6
-
-  const resolvedInitialStyle = hasValidCustomKey
-    ? `https://api.maptiler.com/maps/streets-v2/style.json?key=${userKey}`
-    : CARTO_VOYAGER_STYLE
-
-  // Initialize Map
+  // Initialize Map with MapTiler SDK
   useEffect(() => {
     if (!mapContainer.current) return
 
-    const map = new maplibregl.Map({
+    maptilersdk.config.apiKey = apiKey
+
+    const initialStyleSpec = MAPTILER_STYLES.find((s) => s.id === currentStyleId)?.style || maptilersdk.MapStyle.OUTDOOR
+
+    const map = new maptilersdk.Map({
       container: mapContainer.current,
-      style: resolvedInitialStyle,
+      style: initialStyleSpec,
       center: DEFAULT_CENTER,
       zoom: 4,
+      navigationControl: true,
+      interactive: interactive,
     })
-
-    map.addControl(new maplibregl.NavigationControl(), 'top-right')
 
     map.on('load', () => {
       setMapReady(true)
     })
 
-    // If external MapTiler style fails with 403 or network issue, fallback gracefully to CARTO/OSM
-    map.on('error', (e) => {
-      if (
-        hasValidCustomKey &&
-        (e?.error?.status === 403 ||
-          (typeof e?.error?.message === 'string' && e.error.message.includes('403')))
-      ) {
-        console.warn('MapTiler key returned 403. Falling back to built-in Carto/OSM tiles.')
+    // Listen for MapTiler tile authentication / 403 errors
+    map.on('error', (event) => {
+      const err = event?.error
+      const is403 =
+        err?.status === 403 ||
+        (typeof err?.message === 'string' && err.message.includes('403')) ||
+        event?.status === 403
+
+      if (is403) {
+        console.warn('MapTiler key returned 403. Showing key prompt and falling back gracefully.')
+        setHasKeyError(true)
         try {
           map.setStyle(CARTO_VOYAGER_STYLE)
-        } catch {
-          map.setStyle(OSM_STYLE)
+        } catch (styleErr) {
+          console.error('Failed to apply fallback style:', styleErr)
         }
       }
     })
@@ -149,7 +142,48 @@ export function FarmMap({
       mapRef.current = null
       setMapReady(false)
     }
-  }, [])
+  }, [apiKey])
+
+  // Change Map Style (Outdoor, Satellite, Hybrid, Streets)
+  const handleStyleChange = (styleItem) => {
+    setCurrentStyleId(styleItem.id)
+    setStyleMenuOpen(false)
+    const map = mapRef.current
+    if (!map) return
+
+    try {
+      map.setStyle(styleItem.style)
+      setHasKeyError(false)
+    } catch (err) {
+      console.warn('Error setting MapTiler style:', err)
+    }
+  }
+
+  // Save Custom MapTiler Key
+  const handleSaveKey = (e) => {
+    e.preventDefault()
+    const cleanKey = inputKey.trim()
+    if (!cleanKey) return
+
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('maptiler_api_key', cleanKey)
+    }
+    maptilersdk.config.apiKey = cleanKey
+    setApiKey(cleanKey)
+    setHasKeyError(false)
+    setKeyModalOpen(false)
+
+    // Re-apply MapTiler style
+    const map = mapRef.current
+    if (map) {
+      const selectedStyle = MAPTILER_STYLES.find((s) => s.id === currentStyleId)?.style || maptilersdk.MapStyle.OUTDOOR
+      try {
+        map.setStyle(selectedStyle)
+      } catch (err) {
+        console.warn('Error refreshing style with new key:', err)
+      }
+    }
+  }
 
   // Sync points, markers, polygon layers, and area
   useEffect(() => {
@@ -162,7 +196,7 @@ export function FarmMap({
       const element = document.createElement('div')
       element.className = 'farm-point-marker'
       element.textContent = String(index + 1)
-      return new maplibregl.Marker({ element })
+      return new maptilersdk.Marker({ element })
         .setLngLat([longitude, latitude])
         .addTo(map)
     })
@@ -181,7 +215,7 @@ export function FarmMap({
       label.textContent = farmName
 
       markersRef.current.push(
-        new maplibregl.Marker({ element: label, anchor: 'bottom' })
+        new maptilersdk.Marker({ element: label, anchor: 'bottom' })
           .setLngLat(center)
           .addTo(map),
       )
@@ -282,6 +316,21 @@ export function FarmMap({
         className={`h-full min-h-[340px] w-full ${marking ? 'farm-map-marking' : ''}`}
       />
 
+      {/* 403 / Key Notice Banner */}
+      {hasKeyError && (
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 flex max-w-[92%] items-center gap-2 rounded-xl bg-card/95 px-4 py-2 text-xs shadow-lg backdrop-blur-md border border-amber-500/40 text-foreground">
+          <AlertCircle size={15} className="text-amber-500 shrink-0" />
+          <span className="truncate">MapTiler Key required or 403 Forbidden. Using fallback tiles.</span>
+          <button
+            type="button"
+            onClick={() => setKeyModalOpen(true)}
+            className="shrink-0 rounded-lg bg-primary px-2.5 py-1 font-semibold text-primary-foreground hover:opacity-90 transition text-[11px]"
+          >
+            Enter Key
+          </button>
+        </div>
+      )}
+
       {/* Editing Toolbar */}
       {editable && (
         <div className="absolute left-4 top-4 flex max-w-[calc(100%-2rem)] flex-wrap gap-2 z-10">
@@ -346,19 +395,64 @@ export function FarmMap({
         </div>
       )}
 
+      {/* Map Style Switcher (Outdoor / Satellite / Hybrid / Streets) */}
+      <div className="absolute top-4 right-14 z-10">
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setStyleMenuOpen(!styleMenuOpen)}
+            className="flex items-center gap-1.5 rounded-xl border border-border bg-card/90 px-3 py-2 text-xs font-semibold shadow-md backdrop-blur-sm hover:bg-card transition"
+            title="Change MapTiler Style"
+          >
+            <Layers size={14} className="text-primary" />
+            <span className="capitalize">{currentStyleId}</span>
+          </button>
+
+          {styleMenuOpen && (
+            <div className="absolute right-0 top-10 z-30 w-36 overflow-hidden rounded-xl border border-border bg-card py-1 shadow-xl">
+              {MAPTILER_STYLES.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => handleStyleChange(item)}
+                  className={`flex w-full items-center justify-between px-3 py-2 text-left text-xs font-medium transition hover:bg-muted ${
+                    currentStyleId === item.id ? 'text-primary font-bold bg-muted/60' : 'text-foreground'
+                  }`}
+                >
+                  <span>{item.label}</span>
+                  {currentStyleId === item.id && <Check size={13} className="text-primary" />}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Geolocation Button */}
       <button
         type="button"
         onClick={locateUser}
         disabled={locationState === 'loading'}
-        className="absolute bottom-4 left-4 z-10 rounded-xl border border-border bg-card px-3 py-2 text-xs font-semibold text-primary shadow-md hover:bg-muted transition"
+        className="absolute bottom-4 left-4 z-10 flex items-center gap-1.5 rounded-xl border border-border bg-card/90 px-3 py-2 text-xs font-semibold text-primary shadow-md backdrop-blur-sm hover:bg-muted transition"
       >
+        <MapPin size={13} />
         {locationState === 'loading' ? 'Locating…' : 'Use my location'}
+      </button>
+
+      {/* MapTiler Key Config Button */}
+      <button
+        type="button"
+        onClick={() => setKeyModalOpen(true)}
+        className="absolute bottom-4 left-36 z-10 flex items-center gap-1.5 rounded-xl border border-border bg-card/90 px-2.5 py-2 text-xs font-medium text-muted-foreground shadow-md backdrop-blur-sm hover:text-foreground hover:bg-muted transition"
+        title="Configure MapTiler API Key"
+      >
+        <Key size={13} />
+        <span className="hidden sm:inline">MapTiler Key</span>
       </button>
 
       {/* Calculated Area Overlay */}
       {area && (
-        <div className="absolute bottom-4 right-4 z-10 rounded-xl border border-border bg-card px-4 py-2.5 shadow-md text-right">
+        <div className="absolute bottom-4 right-4 z-10 rounded-xl border border-border bg-card/95 px-4 py-2.5 shadow-md backdrop-blur-sm text-right">
           <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
             Farm area
           </p>
@@ -373,7 +467,7 @@ export function FarmMap({
 
       {/* Completed Badge */}
       {finished && (
-        <div className="absolute right-4 top-4 z-10 rounded-xl bg-emerald-600 text-white px-3 py-1.5 text-xs font-semibold shadow-md">
+        <div className="absolute right-4 top-16 z-10 rounded-xl bg-emerald-600 text-white px-3 py-1.5 text-xs font-semibold shadow-md">
           Boundary Completed
         </div>
       )}
@@ -383,6 +477,76 @@ export function FarmMap({
         <p className="absolute bottom-16 left-4 z-10 max-w-[220px] rounded-lg bg-card px-3 py-2 text-xs text-destructive shadow-md">
           Location permission was denied or unavailable.
         </p>
+      )}
+
+      {/* MapTiler API Key Modal */}
+      {keyModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <div className="flex items-center gap-2">
+                <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Key size={16} />
+                </div>
+                <h3 className="font-bold text-foreground text-sm">MapTiler API Key</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setKeyModalOpen(false)}
+                className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              MapTiler powers high-resolution satellite imagery, terrain topology, and outdoor farm boundary mapping.
+            </p>
+
+            <form onSubmit={handleSaveKey} className="space-y-3">
+              <div>
+                <label className="text-xs font-semibold text-foreground block mb-1.5">
+                  Enter Your MapTiler Key
+                </label>
+                <input
+                  type="text"
+                  value={inputKey}
+                  onChange={(e) => setInputKey(e.target.value)}
+                  placeholder="Paste MapTiler API key here"
+                  className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-xs font-mono outline-none focus:border-primary"
+                  autoFocus
+                />
+              </div>
+
+              <div className="flex items-center justify-between pt-1">
+                <a
+                  href="https://cloud.maptiler.com/account/keys/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline"
+                >
+                  Get a free key (100k requests/mo) <ExternalLink size={11} />
+                </a>
+
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setKeyModalOpen(false)}
+                    className="rounded-xl border border-border px-3 py-2 text-xs font-semibold hover:bg-muted transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-md hover:opacity-90 transition"
+                  >
+                    Save & Apply
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   )
