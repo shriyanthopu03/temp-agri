@@ -195,31 +195,6 @@ function LoginScreen({ onLogin, onSignUp, onBackToHome }) {
             <button className="login-submit" type="submit" disabled={loading}>
               {loading ? 'Signing in...' : 'Login'}
             </button>
-
-            <div className="mt-4 pt-3 border-t border-border/60">
-              <p className="text-[11px] font-semibold text-muted-foreground mb-2">Quick Demo Accounts (Click to Fill):</p>
-              <div className="flex flex-wrap gap-1.5">
-                {[
-                  { label: 'Farmer', email: 'farmer@rythusevak.com', pass: 'Farmer123!' },
-                  { label: 'Admin', email: 'admin@gmail.com', pass: '12345678' },
-                  { label: 'Buyer', email: 'buyer@gmail.com', pass: '12345678' },
-                  { label: 'Inspector', email: 'qi@gmail.com', pass: '12345678' },
-                  { label: 'Logistics', email: 'l@gmail.com', pass: '12345678' },
-                ].map((demo) => (
-                  <button
-                    key={demo.label}
-                    type="button"
-                    onClick={() => {
-                      setEmail(demo.email)
-                      setPassword(demo.pass)
-                    }}
-                    className="text-[11px] px-2.5 py-1 rounded-lg bg-muted/80 hover:bg-primary/20 text-foreground transition font-medium border border-border/80"
-                  >
-                    {demo.label}
-                  </button>
-                ))}
-              </div>
-            </div>
           </form>
         </div>
       </section>
